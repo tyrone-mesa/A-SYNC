@@ -1,0 +1,12 @@
+node_modules/
+
+# Local configuration and secrets
+.env
+.env.*
+!.env.example
+
+# Generated frontend output
+client/build/
+
+# Runtime-uploaded files
+server/uploads/

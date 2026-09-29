@@ -1,4 +1,6 @@
 {
   "$schema": "https://schema.railpack.com",
-  "provider": "node"
+  "nodejs": {
+    "version": "20"
+  }
 }

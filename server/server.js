@@ -42,9 +42,7 @@ const messageRoutes = require("./routes/messageRoutes");
 const staffRoutes = require("./routes/staffRoutes");
 const contactRoutes = require("./routes/contactRoutes");
 const registerHealthRoute = require("./utils/health");
-
 const app = express();
-
 const ensureStorageDirectories = () => {
   const directories = [
     path.join(__dirname, "uploads", "company-logos"),

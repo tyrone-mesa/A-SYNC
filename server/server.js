@@ -53,6 +53,21 @@ app.use(
     crossOriginResourcePolicy: { policy: "cross-origin" }
   })
 );
+
+mediaSrc: ["'self'", "blob:", "https:"],
+connectSrc: ["'self'", "https:", "wss:"],
+imgSrc: ["'self'", "data:", "blob:", "https:"],
+
+  <video
+  autoPlay
+  muted
+  loop
+  playsInline
+>
+  <source src="/media/hero-intro-2.mp4" type="video/mp4" />
+</video>
+
+
 // Trust the first proxy hop so req.ip reports the real client address (needed
 // behind Render / Railway / Heroku / Nginx).
 if (process.env.NODE_ENV === "production") app.set("trust proxy", 1);

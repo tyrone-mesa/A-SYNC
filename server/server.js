@@ -6,11 +6,12 @@ const express = require("express");
 const cors = require("cors");
 const helmet = require("helmet");
 const app = express();
-// Disable Content Security Policy or configure it to allow media & connect resources app.use(
-helmet({
-  contentSecurityPolicy: false, // Disables the strict defauly-src 'none' blocking
-  crossOriginResourcePolicy: { policy: "cross-origin"},
-})
+// Disable Content Security Policy or configure it to allow media & connect resources
+app.use(
+  helmet({
+    contentSecurityPolicy: false,
+    crossOriginResourcePolicy: { policy: "cross-origin" }
+  })
 );
 const rateLimit = require("express-rate-limit");
 const morgan = require("morgan");

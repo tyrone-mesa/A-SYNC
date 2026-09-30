@@ -6,13 +6,6 @@ const express = require("express");
 const cors = require("cors");
 const helmet = require("helmet");
 const app = express();
-// Disable Content Security Policy or configure it to allow media & connect resources
-app.use(
-  helmet({
-    contentSecurityPolicy: false,
-    crossOriginResourcePolicy: { policy: "cross-origin" }
-  })
-);
 const rateLimit = require("express-rate-limit");
 const morgan = require("morgan");
 const { execFileSync } = require("child_process");
@@ -54,7 +47,13 @@ const ensureStorageDirectories = () => {
     fs.mkdirSync(directory, { recursive: true });
   });
 };
-
+// Disable Content Security Policy or configure it to allow media & connect resources
+app.use(
+  helmet({
+    contentSecurityPolicy: false,
+    crossOriginResourcePolicy: { policy: "cross-origin" }
+  })
+);
 // Trust the first proxy hop so req.ip reports the real client address (needed
 // behind Render / Railway / Heroku / Nginx).
 if (process.env.NODE_ENV === "production") app.set("trust proxy", 1);

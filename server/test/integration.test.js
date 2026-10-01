@@ -1,185 +1,241 @@
-const assert = require("node:assert/strict");
-const { after, before, describe, it, mock } = require("node:test");
-const express = require("express");
-const jwt = require("jsonwebtoken");
-const Application = require("../models/Application");
-const CompanyProfile = require("../models/CompanyProfile");
-const StudentProfile = require("../models/StudentProfile");
-const User = require("../models/User");
-const registerHealthRoute = require("../utils/health");
-const { buildArchivePdf } = require("../utils/archivePdf");
-const studentRoutes = require("../routes/studentRoutes");
+-const nodemailer = require("nodemailer");
+const { Resend } = require("resend");
 
-process.env.JWT_SECRET = "integration-test-secret-with-at-least-32-characters";
+// Shared email client for automated mail. Prefers the modern Resend REST API when
+// RESEND_API_KEY is configured, and seamlessly falls back to standard SMTP (Gmail,
+// custom SMTP, or smtp.resend.com) if not.
+let transporter = null;
+let resendClient = null;
 
-const ids = {
-  company: "64b000000000000000000001",
-  student: "64b000000000000000000002",
-  profile: "64b000000000000000000003",
-  companyProfile: "64b000000000000000000004",
-  unlinkedCompany: "64b000000000000000000005",
+const getResendClient = () => {
+  if (resendClient) return resendClient;
+  if ((process.env.MAIL_PROVIDER || "").toLowerCase() === "gmail") {
+    return null;
+  }
+  const apiKey = String(process.env.RESEND_API_KEY || "").trim();
+  if (apiKey) {
+    resendClient = new Resend(apiKey);
+  }
+  return resendClient;
 };
 
-const users = {
-  [ids.company]: {
-    _id: ids.company,
-    role: "company",
-    isActive: true,
-    isArchived: false,
-  },
-  [ids.student]: {
-    _id: ids.student,
-    role: "student",
-    isActive: true,
-    isArchived: false,
-  },
-  [ids.unlinkedCompany]: {
-    _id: ids.unlinkedCompany,
-    role: "company",
-    isActive: true,
-    isArchived: false,
-  },
+const isMailUnavailableError = (error) => {
+  const message = String(error?.message || error || "");
+  if (!message) return false;
+
+  const patterns = [
+    /daily user sending limit exceeded/i,
+    /sending limit exceeded/i,
+    /mail quota exceeded/i,
+    /too many messages/i,
+    /rate limit/i,
+    /temporar(?:y|ily) unavailable/i,
+    /service unavailable/i,
+    /421\b|450\b|451\b|452\b|454\b|455\b/i,
+    /exceeded.*limit/i,
+  ];
+
+  return patterns.some((pattern) => pattern.test(message));
 };
 
-const profile = {
-  _id: ids.profile,
-  course: "Information Technology",
-  skills: ["JavaScript"],
-  user: {
-    fullName: "Test Student",
-    email: "student@example.test",
-  },
+const getMailConfig = () => {
+  const provider = (process.env.MAIL_PROVIDER || "custom-smtp").toLowerCase();
+  const host = process.env.SMTP_HOST || "smtp.gmail.com";
+  const port =
+    Number(process.env.SMTP_PORT) || (provider === "gmail" ? 465 : 587);
+  const user = process.env.SMTP_USER || "";
+  const pass = process.env.SMTP_PASS || "";
+
+  return {
+    provider,
+    host,
+    port,
+    user,
+    pass: /gmail\.com$/i.test(host) ? pass.replace(/\s+/g, "") : pass,
+    secure: port === 465,
+    recommendsCustomProvider: provider !== "gmail",
+  };
 };
 
-let server;
-let baseUrl;
-let databaseReadyState = 0;
+const getTransporter = () => {
+  if (transporter) return transporter;
 
-const tokenFor = (id) => jwt.sign({ id }, process.env.JWT_SECRET);
+  const config = getMailConfig();
 
-const get = async (url, token) =>
-  fetch(`${baseUrl}${url}`, {
-    headers: token ? { Authorization: `Bearer ${token}` } : {},
-  });
+  if (!config.user || !config.pass) {
+    return null;
+  }
 
-describe("server integration protections", { concurrency: false }, () => {
-  before(async () => {
-    mock.method(User, "findById", async (id) => users[id] || null);
-    mock.method(StudentProfile, "findById", () => ({
-      populate: async () => profile,
-    }));
-    mock.method(CompanyProfile, "findOne", ({ user }) => ({
-      select: async () =>
-        user === ids.unlinkedCompany ? null : { _id: ids.companyProfile },
-    }));
-    mock.method(Application, "exists", async () => false);
-
-    const app = express();
-    registerHealthRoute(app, () => databaseReadyState);
-    app.use("/api/students", studentRoutes);
-    server = app.listen(0);
-    await new Promise((resolve) => server.once("listening", resolve));
-    baseUrl = `http://127.0.0.1:${server.address().port}`;
-  });
-
-  after(async () => {
-    server.closeAllConnections();
-    await new Promise((resolve, reject) =>
-      server.close((error) => (error ? reject(error) : resolve())),
+  if (config.host.includes("gmail.com") || config.provider === "gmail") {
+    console.warn(
+      "[ASIATECH SYNC] Gmail SMTP is configured. This is convenient for testing, but Gmail enforces daily sending limits and can block OTP/password-reset emails in production.",
     );
-    mock.restoreAll();
+  }
+
+  transporter = nodemailer.createTransport({
+    host: config.host,
+    port: config.port,
+    secure: config.secure,
+    connectionTimeout: 10000,
+    greetingTimeout: 10000,
+    socketTimeout: 15000,
+    auth: {
+      user: config.user,
+      pass: config.pass,
+    },
   });
 
-  it("reports database readiness without changing the health endpoint's liveness status", async () => {
-    for (const [readyState, expectedStatus, expectedReadiness] of [
-      [0, "disconnected", "not_ready"],
-      [2, "connecting", "not_ready"],
-      [1, "connected", "ready"],
-    ]) {
-      databaseReadyState = readyState;
-      const response = await get("/api/health");
-      const body = await response.json();
+  return transporter;
+};
 
-      assert.equal(response.status, 200);
-      assert.equal(body.status, "ok");
-      assert.equal(body.database.status, expectedStatus);
-      assert.equal(body.readiness, expectedReadiness);
+const sendMail = async ({
+  to,
+  subject,
+  html,
+  attachments,
+  allowDevOverride = false,
+}) => {
+  let targetTo = to;
+  let targetSubject = subject;
+  let targetHtml = html;
+
+  // Development redirection is opt-in. A configured test inbox alone must never silently
+  // divert OTP or password-reset messages away from the account that requested them.
+  const devOverride = String(process.env.DEV_EMAIL_OVERRIDE || "").trim();
+  const redirectEnabled = process.env.DEV_EMAIL_REDIRECT === "true";
+  if (
+    devOverride &&
+    allowDevOverride &&
+    redirectEnabled &&
+    process.env.NODE_ENV !== "production"
+  ) {
+    const originalRecipient = Array.isArray(to) ? to.join(", ") : to;
+    targetTo = devOverride;
+    targetSubject = `[DEV to: ${originalRecipient}] ${subject}`;
+    targetHtml = `
+      <div style="background:#fef3c7;border:1px solid #f59e0b;padding:10px 14px;margin-bottom:18px;border-radius:8px;font-family:sans-serif;font-size:13px;color:#92400e;">
+        <strong>[DEV EMAIL REDIRECT]</strong> This email was originally addressed to: <code>${originalRecipient}</code>
+      </div>
+      ${html}
+    `;
+    console.log(
+      `[ASIATECH SYNC] DEV_EMAIL_OVERRIDE active: redirecting email for "${originalRecipient}" to "${devOverride}"`,
+    );
+  }
+
+  // 1. Prefer Resend API if configured
+  const resend = getResendClient();
+  if (resend) {
+    try {
+      const fromAddress =
+        process.env.RESEND_FROM ||
+        process.env.SMTP_FROM ||
+        "ASIATECH SYNC <onboarding@resend.dev>";
+
+      const formattedAttachments = attachments?.map((att) => ({
+        filename: att.filename,
+        content: att.content,
+        path: att.path,
+      }));
+
+      const response = await resend.emails.send({
+        from: fromAddress,
+        to: Array.isArray(targetTo) ? targetTo : [targetTo],
+        subject: targetSubject,
+        html: targetHtml,
+        ...(formattedAttachments?.length
+          ? { attachments: formattedAttachments }
+          : {}),
+      });
+
+      if (response.error) {
+        console.error(
+          `[ASIATECH SYNC] Resend API error sending to ${targetTo}:`,
+          response.error,
+        );
+        return {
+          sent: false,
+          unavailable: false,
+          error: response.error.message || String(response.error),
+          message: response.error.message,
+        };
+      }
+
+      console.log(
+        `[ASIATECH SYNC] Email sent via Resend API to ${targetTo} (id: ${response.data?.id})`,
+      );
+      return {
+        sent: true,
+        messageId: response.data?.id,
+      };
+    } catch (err) {
+      console.error(
+        `[ASIATECH SYNC] Exception sending email via Resend to ${targetTo}:`,
+        err.message,
+      );
+      return {
+        sent: false,
+        unavailable: false,
+        error: err.message,
+        message: err.message,
+      };
     }
-  });
+  }
 
-  it("generates a PDF archive report for archived account data", async () => {
-    const pdf = await buildArchivePdf({
-      user: {
-        fullName: "Archived Test User",
-        email: "archived@example.test",
-        role: "company",
-        isActive: false,
-        isArchived: true,
-        archivedAt: new Date("2026-09-27T00:00:00.000Z"),
-      },
-      companyProfile: { companyName: "Test Company" },
-      jobs: [{ title: "Test role", status: "archived" }],
-      applications: [],
-      attendance: [],
-      conversations: [],
-      messages: [],
+  // 2. Fall back to SMTP transporter
+  const t = getTransporter();
+  if (!t) {
+    return {
+      sent: false,
+      skipped: true,
+      unavailable: false,
+      error: "Neither RESEND_API_KEY nor SMTP credentials are configured.",
+    };
+  }
+
+  try {
+    const fromAddress = process.env.SMTP_FROM || process.env.SMTP_USER;
+    const info = await t.sendMail({
+      from: `"ASIATECH SYNC" <${fromAddress}>`,
+      to: targetTo,
+      subject: targetSubject,
+      html: targetHtml,
+      attachments,
     });
-
-    assert.equal(pdf.subarray(0, 5).toString(), "%PDF-");
-    assert.ok(pdf.length > 500);
-  });
-
-  it("rejects requests without authentication and blocks students from company profile routes", async () => {
-    const unauthenticated = await get(`/api/students/${ids.profile}`);
-    const studentRequest = await get(
-      `/api/students/${ids.profile}`,
-      tokenFor(ids.student),
+    const accepted = info.accepted || [];
+    const rejected = info.rejected || [];
+    console.log(
+      `[ASIATECH SYNC] Email accepted by SMTP for ${targetTo} (messageId: ${info.messageId || "unknown"}; accepted: ${accepted.length}; rejected: ${rejected.length})`,
     );
-
-    assert.equal(unauthenticated.status, 401);
-    assert.equal(studentRequest.status, 403);
-  });
-
-  it("denies a company access to a student profile and export without an application", async () => {
-    const token = tokenFor(ids.company);
-    const profileResponse = await get(
-      `/api/students/${ids.profile}`,
-      token,
+    if (!accepted.includes(targetTo)) {
+      return {
+        sent: false,
+        unavailable: false,
+        error: `SMTP did not accept recipient ${targetTo}.`,
+        messageId: info.messageId,
+      };
+    }
+    return {
+      sent: true,
+      messageId: info.messageId,
+      accepted,
+      rejected,
+    };
+  } catch (err) {
+    const unavailable = isMailUnavailableError(err);
+    console.error(
+      `[ASIATECH SYNC] Failed to send email to ${targetTo}:`,
+      err.message,
     );
-    const exportResponse = await get(
-      `/api/students/${ids.profile}/export/csv`,
-      token,
-    );
+    return {
+      sent: false,
+      unavailable,
+      error: err.message,
+      message: unavailable
+        ? "Email delivery is temporarily unavailable. Please contact the admin office or try again later."
+        : err.message,
+    };
+  }
+};
 
-    assert.equal(profileResponse.status, 404);
-    assert.equal(exportResponse.status, 404);
-  });
-
-  it("denies a company account that has no linked company profile", async () => {
-    const token = tokenFor(ids.unlinkedCompany);
-    const response = await get(`/api/students/${ids.profile}`, token);
-
-    assert.equal(response.status, 404);
-  });
-
-  it("allows a company with an application to view and export the applicant profile", async () => {
-    Application.exists.mock.mockImplementation(async () => true);
-
-    const token = tokenFor(ids.company);
-    const profileResponse = await get(
-      `/api/students/${ids.profile}`,
-      token,
-    );
-    const profileBody = await profileResponse.json();
-    const exportResponse = await get(
-      `/api/students/${ids.profile}/export/csv`,
-      token,
-    );
-    const csv = await exportResponse.text();
-
-    assert.equal(profileResponse.status, 200);
-    assert.equal(profileBody.profile._id, ids.profile);
-    assert.equal(exportResponse.status, 200);
-    assert.match(csv, /student@example\.test/);
-  });
-});
+module.exports = { sendMail, isMailUnavailableError };

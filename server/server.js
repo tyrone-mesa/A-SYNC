@@ -69,6 +69,7 @@ const ensureStorageDirectories = () => {
 |   /media/hero-intro-2.mp4
 |
 */
+
 app.use(
   helmet({
     contentSecurityPolicy: false,
@@ -363,35 +364,73 @@ const startDatabaseConnection = async () => {
 */
 
 /*
- * CORS configuration
- *
- * Railway production deployments can use a separate frontend service,
- * or the same service can serve the React build. We therefore accept
- * frontend URLs from CLIENT_URL / FRONTEND_URL and also support a
- * comma-separated list of origins.
- *
- * Example Railway variable:
- *   CLIENT_URL=https://your-frontend.up.railway.app
- *
- * Do NOT add a trailing slash to the URL.
- */
+|--------------------------------------------------------------------------
+| CORS configuration - FIXED FOR RAILWAY
+|--------------------------------------------------------------------------
+|
+| Frontend:
+| https://a-sync.up.railway.app
+|
+| CLIENT_URL should remain:
+| https://a-sync.up.railway.app
+|
+*/
+
+const normalizeOrigin = (value) => {
+  if (!value) {
+    return null;
+  }
+
+  try {
+    const url = new URL(String(value).trim());
+
+    return `${url.protocol}//${url.host}`.toLowerCase();
+  } catch {
+    return String(value)
+      .trim()
+      .replace(/\/+$/, "")
+      .toLowerCase();
+  }
+};
+
 const getAllowedCorsOrigins = () => {
-  const configuredOrigins = [
+  const origins = [
+    // Your existing Railway CLIENT_URL
     process.env.CLIENT_URL,
+
+    // Optional frontend variable
     process.env.FRONTEND_URL,
+
+    // Legacy Render variable
     process.env.RENDER_EXTERNAL_URL,
+
+    // Railway static URL
     process.env.RAILWAY_STATIC_URL,
+
+    // Railway public domain
     process.env.RAILWAY_PUBLIC_DOMAIN
       ? `https://${process.env.RAILWAY_PUBLIC_DOMAIN}`
       : null,
-  ]
-    .filter(Boolean)
-    .flatMap((value) => String(value).split(","))
-    .map((value) => value.trim().replace(/\/$/, ""))
-    .filter(Boolean);
 
-  // Remove duplicates.
-  return [...new Set(configuredOrigins)];
+    /*
+     * Explicitly allow your actual public frontend URL.
+     *
+     * This guarantees that:
+     * https://a-sync.up.railway.app
+     * is recognized as an allowed origin.
+     */
+    "https://a-sync.up.railway.app",
+  ];
+
+  return [
+    ...new Set(
+      origins
+        .filter(Boolean)
+        .flatMap((value) => String(value).split(","))
+        .map(normalizeOrigin)
+        .filter(Boolean)
+    ),
+  ];
 };
 
 app.use(
@@ -400,43 +439,65 @@ app.use(
       const allowedOrigins = getAllowedCorsOrigins();
 
       /*
-       * Requests without an Origin header are common for:
+       * Requests without an Origin header include:
        * - server-to-server requests
        * - health checks
-       * - direct navigation
+       * - direct requests
        *
-       * They do not need CORS permission.
+       * These do not require CORS permission.
        */
       if (!origin) {
         return callback(null, true);
       }
 
       /*
-       * In development, keep the existing permissive behavior.
+       * Development mode.
        */
       if (process.env.NODE_ENV !== "production") {
         return callback(null, true);
       }
 
       /*
-       * Production:
-       * Allow only explicitly configured frontend origins.
+       * Normalize the browser Origin.
+       *
+       * Example:
+       *
+       * https://A-SYNC.up.railway.app/
+       *
+       * becomes:
+       *
+       * https://a-sync.up.railway.app
        */
-      const normalizedOrigin = String(origin)
-        .trim()
-        .replace(/\/$/, "");
+      const normalizedOrigin = normalizeOrigin(origin);
 
+      console.log(
+        "[ASIATECH SYNC] CORS request origin:",
+        normalizedOrigin
+      );
+
+      console.log(
+        "[ASIATECH SYNC] CORS allowed origins:",
+        allowedOrigins
+      );
+
+      /*
+       * Check normalized origin against normalized allowed origins.
+       */
       if (allowedOrigins.includes(normalizedOrigin)) {
+        console.log(
+          "[ASIATECH SYNC] ✓ CORS origin allowed:",
+          normalizedOrigin
+        );
+
         return callback(null, true);
       }
 
+      /*
+       * If we get here, the browser origin is not allowed.
+       */
       console.error(
-        `[ASIATECH SYNC] CORS blocked origin: ${normalizedOrigin}. ` +
-        `Allowed origins: ${
-          allowedOrigins.length
-            ? allowedOrigins.join(", ")
-            : "(none configured)"
-        }`
+        "[ASIATECH SYNC] ✗ CORS blocked origin:",
+        normalizedOrigin
       );
 
       return callback(
@@ -444,6 +505,10 @@ app.use(
       );
     },
 
+    /*
+     * Your application uses authentication/cookies,
+     * so credentials remain enabled.
+     */
     credentials: true,
   })
 );

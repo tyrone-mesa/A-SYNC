@@ -1,81 +1,65 @@
 const nodemailer = require("nodemailer");
-const { Resend } = require("resend");
 
-// Shared email client for automated mail. Prefers the modern Resend REST API when
-// RESEND_API_KEY is configured, and seamlessly falls back to standard SMTP (Gmail,
-// custom SMTP, or smtp.resend.com) if not.
 let transporter = null;
-let resendClient = null;
-
-const getResendClient = () => {
-  if (resendClient) return resendClient;
-  if ((process.env.MAIL_PROVIDER || "").toLowerCase() === "gmail") {
-    return null;
-  }
-  const apiKey = String(process.env.RESEND_API_KEY || "").trim();
-  if (apiKey) {
-    resendClient = new Resend(apiKey);
-  }
-  return resendClient;
-};
-
-const isMailUnavailableError = (error) => {
-  const message = String(error?.message || error || "");
-  if (!message) return false;
-
-  const patterns = [
-    /daily user sending limit exceeded/i,
-    /sending limit exceeded/i,
-    /mail quota exceeded/i,
-    /too many messages/i,
-    /rate limit/i,
-    /temporar(?:y|ily) unavailable/i,
-    /service unavailable/i,
-    /421\b|450\b|451\b|452\b|454\b|455\b/i,
-    /exceeded.*limit/i,
-  ];
-
-  return patterns.some((pattern) => pattern.test(message));
-};
 
 const getMailConfig = () => {
-  const provider = (process.env.MAIL_PROVIDER || "custom-smtp").toLowerCase();
-  const host = process.env.SMTP_HOST || "smtp.gmail.com";
-  const port =
-    Number(process.env.SMTP_PORT) || (provider === "gmail" ? 465 : 587);
-  const user = process.env.SMTP_USER || "";
-  const pass = process.env.SMTP_PASS || "";
+  const provider = String(
+    process.env.MAIL_PROVIDER || "gmail"
+  ).toLowerCase();
+
+  const host = String(
+    process.env.SMTP_HOST || "smtp.gmail.com"
+  ).trim();
+
+  const port = Number(process.env.SMTP_PORT || 587);
+
+  const user = String(
+    process.env.SMTP_USER || ""
+  ).trim();
+
+  const pass = /gmail\.com$/i.test(host)
+    ? String(process.env.SMTP_PASS || "").replace(/\s+/g, "")
+    : String(process.env.SMTP_PASS || "");
+
+  const from = String(
+    process.env.SMTP_FROM || user
+  ).trim();
 
   return {
     provider,
     host,
     port,
     user,
-    pass: /gmail\.com$/i.test(host) ? pass.replace(/\s+/g, "") : pass,
+    pass,
+    from,
     secure: port === 465,
-    recommendsCustomProvider: provider !== "gmail",
   };
 };
 
 const getTransporter = () => {
-  if (transporter) return transporter;
+  if (transporter) {
+    return transporter;
+  }
 
   const config = getMailConfig();
 
   if (!config.user || !config.pass) {
+    console.error(
+      "[ASIATECH SYNC] SMTP configuration is incomplete."
+    );
+
     return null;
   }
 
-  if (config.host.includes("gmail.com") || config.provider === "gmail") {
-    console.warn(
-      "[ASIATECH SYNC] Gmail SMTP is configured. This is convenient for testing, but Gmail enforces daily sending limits and can block OTP/password-reset emails in production.",
-    );
-  }
+  console.log(
+    `[ASIATECH SYNC] SMTP: ${config.host}:${config.port}`
+  );
 
   transporter = nodemailer.createTransport({
     host: config.host,
     port: config.port,
     secure: config.secure,
+    requireTLS: config.port === 587,
     connectionTimeout: 10000,
     greetingTimeout: 10000,
     socketTimeout: 15000,
@@ -86,6 +70,73 @@ const getTransporter = () => {
   });
 
   return transporter;
+};
+
+const verifyMailConnection = async () => {
+  const t = getTransporter();
+
+  if (!t) {
+    return {
+      success: false,
+      error: "SMTP credentials are not configured.",
+    };
+  }
+
+  try {
+    await t.verify();
+
+    console.log(
+      "[ASIATECH SYNC] SMTP connection verified."
+    );
+
+    return {
+      success: true,
+    };
+  } catch (error) {
+    console.error(
+      "[ASIATECH SYNC] SMTP verification failed:",
+      error.message
+    );
+
+    return {
+      success: false,
+      error: error.message,
+    };
+  }
+};
+
+const isMailUnavailableError = (error) => {
+  const message = String(
+    error?.message || error || ""
+  );
+
+  if (!message) {
+    return false;
+  }
+
+  const patterns = [
+    /daily user sending limit exceeded/i,
+    /sending limit exceeded/i,
+    /mail quota exceeded/i,
+    /too many messages/i,
+    /rate limit/i,
+    /temporar(?:y|ily) unavailable/i,
+    /service unavailable/i,
+    /\b421\b/i,
+    /\b450\b/i,
+    /\b451\b/i,
+    /\b452\b/i,
+    /\b454\b/i,
+    /\b455\b/i,
+    /ECONNRESET/i,
+    /ECONNREFUSED/i,
+    /ETIMEDOUT/i,
+    /ENETUNREACH/i,
+  ];
+
+  return patterns.some((pattern) =>
+    pattern.test(message)
+  );
 };
 
 const sendMail = async ({
@@ -99,143 +150,149 @@ const sendMail = async ({
   let targetSubject = subject;
   let targetHtml = html;
 
-  // Development redirection is opt-in. A configured test inbox alone must never silently
-  // divert OTP or password-reset messages away from the account that requested them.
-  const devOverride = String(process.env.DEV_EMAIL_OVERRIDE || "").trim();
-  const redirectEnabled = process.env.DEV_EMAIL_REDIRECT === "true";
+  const devOverride = String(
+    process.env.DEV_EMAIL_OVERRIDE || ""
+  ).trim();
+
+  const redirectEnabled =
+    process.env.DEV_EMAIL_REDIRECT === "true";
+
   if (
     devOverride &&
     allowDevOverride &&
     redirectEnabled &&
     process.env.NODE_ENV !== "production"
   ) {
-    const originalRecipient = Array.isArray(to) ? to.join(", ") : to;
+    const originalRecipient = Array.isArray(to)
+      ? to.join(", ")
+      : to;
+
     targetTo = devOverride;
-    targetSubject = `[DEV to: ${originalRecipient}] ${subject}`;
+
+    targetSubject =
+      `[DEV to: ${originalRecipient}] ${subject}`;
+
     targetHtml = `
-      <div style="background:#fef3c7;border:1px solid #f59e0b;padding:10px 14px;margin-bottom:18px;border-radius:8px;font-family:sans-serif;font-size:13px;color:#92400e;">
-        <strong>[DEV EMAIL REDIRECT]</strong> This email was originally addressed to: <code>${originalRecipient}</code>
+      <div
+        style="
+          background:#fef3c7;
+          border:1px solid #f59e0b;
+          padding:10px 14px;
+          margin-bottom:18px;
+          border-radius:8px;
+          font-family:sans-serif;
+          font-size:13px;
+          color:#92400e;
+        "
+      >
+        <strong>[DEV EMAIL REDIRECT]</strong>
+        Originally addressed to:
+        <code>${originalRecipient}</code>
       </div>
       ${html}
     `;
+
     console.log(
-      `[ASIATECH SYNC] DEV_EMAIL_OVERRIDE active: redirecting email for "${originalRecipient}" to "${devOverride}"`,
+      `[ASIATECH SYNC] Email redirected: ${originalRecipient} → ${devOverride}`
     );
   }
 
-  // 1. Prefer Resend API if configured
-  const resend = getResendClient();
-  if (resend) {
-    try {
-      const fromAddress =
-        process.env.RESEND_FROM ||
-        process.env.SMTP_FROM ||
-        "ASIATECH SYNC <onboarding@resend.dev>";
-
-      const formattedAttachments = attachments?.map((att) => ({
-        filename: att.filename,
-        content: att.content,
-        path: att.path,
-      }));
-
-      const response = await resend.emails.send({
-        from: fromAddress,
-        to: Array.isArray(targetTo) ? targetTo : [targetTo],
-        subject: targetSubject,
-        html: targetHtml,
-        ...(formattedAttachments?.length
-          ? { attachments: formattedAttachments }
-          : {}),
-      });
-
-      if (response.error) {
-        console.error(
-          `[ASIATECH SYNC] Resend API error sending to ${targetTo}:`,
-          response.error,
-        );
-        return {
-          sent: false,
-          unavailable: false,
-          error: response.error.message || String(response.error),
-          message: response.error.message,
-        };
-      }
-
-      console.log(
-        `[ASIATECH SYNC] Email sent via Resend API to ${targetTo} (id: ${response.data?.id})`,
-      );
-      return {
-        sent: true,
-        messageId: response.data?.id,
-      };
-    } catch (err) {
-      console.error(
-        `[ASIATECH SYNC] Exception sending email via Resend to ${targetTo}:`,
-        err.message,
-      );
-      return {
-        sent: false,
-        unavailable: false,
-        error: err.message,
-        message: err.message,
-      };
-    }
-  }
-
-  // 2. Fall back to SMTP transporter
   const t = getTransporter();
+
   if (!t) {
     return {
       sent: false,
       skipped: true,
       unavailable: false,
-      error: "Neither RESEND_API_KEY nor SMTP credentials are configured.",
+      error: "SMTP credentials are not configured.",
+      message:
+        "Email service is not configured.",
     };
   }
 
+  const config = getMailConfig();
+
   try {
-    const fromAddress = process.env.SMTP_FROM || process.env.SMTP_USER;
+    const fromAddress = config.from || config.user;
+
     const info = await t.sendMail({
       from: `"ASIATECH SYNC" <${fromAddress}>`,
       to: targetTo,
       subject: targetSubject,
       html: targetHtml,
-      attachments,
+      attachments: attachments || [],
     });
+
     const accepted = info.accepted || [];
     const rejected = info.rejected || [];
+
     console.log(
-      `[ASIATECH SYNC] Email accepted by SMTP for ${targetTo} (messageId: ${info.messageId || "unknown"}; accepted: ${accepted.length}; rejected: ${rejected.length})`,
+      `[ASIATECH SYNC] Email processed for ${targetTo}. ` +
+      `Message ID: ${info.messageId || "unknown"}; ` +
+      `Accepted: ${accepted.length}; ` +
+      `Rejected: ${rejected.length}`
     );
-    if (!accepted.includes(targetTo)) {
+
+    const recipients = Array.isArray(targetTo)
+      ? targetTo
+      : [targetTo];
+
+    const allAccepted = recipients.every(
+      (recipient) =>
+        accepted.includes(recipient)
+    );
+
+    if (!allAccepted) {
       return {
         sent: false,
         unavailable: false,
-        error: `SMTP did not accept recipient ${targetTo}.`,
+        error:
+          "SMTP did not accept the recipient.",
         messageId: info.messageId,
+        accepted,
+        rejected,
       };
     }
+
     return {
       sent: true,
       messageId: info.messageId,
       accepted,
       rejected,
     };
-  } catch (err) {
-    const unavailable = isMailUnavailableError(err);
+  } catch (error) {
+    const unavailable =
+      isMailUnavailableError(error);
+
     console.error(
       `[ASIATECH SYNC] Failed to send email to ${targetTo}:`,
-      err.message,
+      error.message
     );
+
     return {
       sent: false,
       unavailable,
-      error: err.message,
+      error: error.message,
       message: unavailable
-        ? "Email delivery is temporarily unavailable. Please contact the admin office or try again later."
-        : err.message,
+        ? "Email delivery is temporarily unavailable. Please try again later."
+        : error.message,
     };
   }
 };
 
-module.exports = { sendMail, isMailUnavailableError };
+module.exports = {
+  sendMail,
+  isMailUnavailableError,
+  verifyMailConnection,
+};
+
+For Railway, keep:
+
+MAIL_PROVIDER=gmail
+SMTP_HOST=smtp.gmail.com
+SMTP_PORT=587
+SMTP_USER=yourgmail@gmail.com
+SMTP_PASS=your_google_app_password
+SMTP_FROM=yourgmail@gmail.com
+
+This version removes the Resend code and keeps the SMTP implementation focused.

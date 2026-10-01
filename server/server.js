@@ -58,6 +58,16 @@ const ensureStorageDirectories = () => {
 |--------------------------------------------------------------------------
 | Security / Helmet
 |--------------------------------------------------------------------------
+|
+| CSP is intentionally disabled here because the React frontend is served
+| separately and the hero video / media assets need to load correctly.
+|
+| The previous configuration used:
+|   defaultSrc: ["'none'"]
+|
+| without correctly defining mediaSrc/connectSrc, which blocked:
+|   /media/hero-intro-2.mp4
+|
 */
 app.use(
   helmet({
@@ -196,7 +206,12 @@ const checkProductionEnv = () => {
   }
 
   const clientUrl =
-    process.env.CLIENT_URL || process.env.RAILWAY_PUBLIC_DOMAIN || process.env.RENDER_EXTERNAL_URL;
+    process.env.CLIENT_URL ||
+    process.env.FRONTEND_URL ||
+    process.env.RENDER_EXTERNAL_URL ||
+    (process.env.RAILWAY_PUBLIC_DOMAIN
+      ? `https://${process.env.RAILWAY_PUBLIC_DOMAIN}`
+      : "");
 
   if (
     !clientUrl ||
@@ -267,6 +282,17 @@ const startDatabaseConnection = async () => {
       );
     }
 
+    /*
+    |--------------------------------------------------------------------------
+    | Company logos
+    |--------------------------------------------------------------------------
+    |
+    | Legacy external logo seeders are intentionally disabled.
+    |
+    | Clearbit's old free logo endpoint is no longer used here.
+    |
+    */
+
     try {
       const uploadedLogoResult = await seedCompanyUploadedLogos();
 
@@ -279,6 +305,12 @@ const startDatabaseConnection = async () => {
         err.message
       );
     }
+
+    /*
+    |--------------------------------------------------------------------------
+    | Message history
+    |--------------------------------------------------------------------------
+    */
 
     try {
       await ensureMessageHistoryCollections();
@@ -326,62 +358,92 @@ const startDatabaseConnection = async () => {
 
 /*
 |--------------------------------------------------------------------------
-| Middleware & CORS Configuration
+| Middleware
 |--------------------------------------------------------------------------
 */
 
-// Helper function to sanitize and format standard origins
-const formatOrigin = (url) => {
-  if (!url) return null;
-  let formatted = url.trim();
-  if (!/^https?:\/\//i.test(formatted)) {
-    formatted = `https://${formatted}`;
-  }
-  return formatted.replace(/\/$/, ""); // Strip trailing slash
+/*
+ * CORS configuration
+ *
+ * Railway production deployments can use a separate frontend service,
+ * or the same service can serve the React build. We therefore accept
+ * frontend URLs from CLIENT_URL / FRONTEND_URL and also support a
+ * comma-separated list of origins.
+ *
+ * Example Railway variable:
+ *   CLIENT_URL=https://your-frontend.up.railway.app
+ *
+ * Do NOT add a trailing slash to the URL.
+ */
+const getAllowedCorsOrigins = () => {
+  const configuredOrigins = [
+    process.env.CLIENT_URL,
+    process.env.FRONTEND_URL,
+    process.env.RENDER_EXTERNAL_URL,
+    process.env.RAILWAY_STATIC_URL,
+    process.env.RAILWAY_PUBLIC_DOMAIN
+      ? `https://${process.env.RAILWAY_PUBLIC_DOMAIN}`
+      : null,
+  ]
+    .filter(Boolean)
+    .flatMap((value) => String(value).split(","))
+    .map((value) => value.trim().replace(/\/$/, ""))
+    .filter(Boolean);
+
+  // Remove duplicates.
+  return [...new Set(configuredOrigins)];
 };
-
-const rawAllowedOrigins = [
-  ...(process.env.CLIENT_URL ? process.env.CLIENT_URL.split(",") : []),
-  process.env.RAILWAY_PUBLIC_DOMAIN,
-  process.env.RAILWAY_STATIC_URL,
-  process.env.RENDER_EXTERNAL_URL,
-];
-
-const allowedOrigins = rawAllowedOrigins
-  .map(formatOrigin)
-  .filter(Boolean);
 
 app.use(
   cors({
     origin: (origin, callback) => {
+      const allowedOrigins = getAllowedCorsOrigins();
+
       /*
-       * Allow requests with no origin (e.g. same-origin static assets, 
-       * server-to-server requests, mobile apps, or Postman)
+       * Requests without an Origin header are common for:
+       * - server-to-server requests
+       * - health checks
+       * - direct navigation
+       *
+       * They do not need CORS permission.
        */
       if (!origin) {
         return callback(null, true);
       }
 
       /*
-       * Development mode: Allow all local development origins
+       * In development, keep the existing permissive behavior.
        */
       if (process.env.NODE_ENV !== "production") {
         return callback(null, true);
       }
 
       /*
-       * Production mode: Match against configured origins
+       * Production:
+       * Allow only explicitly configured frontend origins.
        */
-      const normalizedOrigin = formatOrigin(origin);
+      const normalizedOrigin = String(origin)
+        .trim()
+        .replace(/\/$/, "");
 
       if (allowedOrigins.includes(normalizedOrigin)) {
         return callback(null, true);
       }
 
+      console.error(
+        `[ASIATECH SYNC] CORS blocked origin: ${normalizedOrigin}. ` +
+        `Allowed origins: ${
+          allowedOrigins.length
+            ? allowedOrigins.join(", ")
+            : "(none configured)"
+        }`
+      );
+
       return callback(
         new Error("Origin is not allowed by CORS.")
       );
     },
+
     credentials: true,
   })
 );
@@ -419,11 +481,18 @@ if (process.env.NODE_ENV !== "test") {
 
 const apiLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
+
+  /*
+   * Allows reasonable traffic from shared office/home IPs.
+   */
   max: 1200,
+
   standardHeaders: true,
   legacyHeaders: false,
+
   message: {
-    message: "Too many requests. Please try again later.",
+    message:
+      "Too many requests. Please try again later.",
   },
 });
 
@@ -437,11 +506,18 @@ app.use("/api", apiLimiter);
 
 const authLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
+
+  /*
+   * Strict protection against credential stuffing.
+   */
   max: 20,
+
   standardHeaders: true,
   legacyHeaders: false,
+
   message: {
-    message: "Too many authentication attempts. Please try again later.",
+    message:
+      "Too many authentication attempts. Please try again later.",
   },
 });
 
@@ -506,17 +582,60 @@ registerHealthRoute(app);
 |--------------------------------------------------------------------------
 */
 
-app.use("/api/auth", authRoutes);
-app.use("/api/students", studentRoutes);
-app.use("/api/companies", companyRoutes);
-app.use("/api/jobs", jobRoutes);
-app.use("/api/applications", applicationRoutes);
-app.use("/api/admin", adminRoutes);
-app.use("/api/interview", interviewRoutes);
-app.use("/api/notifications", notificationRoutes);
-app.use("/api/messages", messageRoutes);
-app.use("/api/staff", staffRoutes);
-app.use("/api/contact", contactRoutes);
+app.use(
+  "/api/auth",
+  authRoutes
+);
+
+app.use(
+  "/api/students",
+  studentRoutes
+);
+
+app.use(
+  "/api/companies",
+  companyRoutes
+);
+
+app.use(
+  "/api/jobs",
+  jobRoutes
+);
+
+app.use(
+  "/api/applications",
+  applicationRoutes
+);
+
+app.use(
+  "/api/admin",
+  adminRoutes
+);
+
+app.use(
+  "/api/interview",
+  interviewRoutes
+);
+
+app.use(
+  "/api/notifications",
+  notificationRoutes
+);
+
+app.use(
+  "/api/messages",
+  messageRoutes
+);
+
+app.use(
+  "/api/staff",
+  staffRoutes
+);
+
+app.use(
+  "/api/contact",
+  contactRoutes
+);
 
 /*
 |--------------------------------------------------------------------------
@@ -545,6 +664,10 @@ if (
   );
 
   app.get("*", (req, res, next) => {
+    /*
+     * Don't send the React index page for API
+     * or uploaded file requests.
+     */
     if (
       req.path === "/api" ||
       req.path.startsWith("/api/") ||

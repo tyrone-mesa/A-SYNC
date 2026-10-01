@@ -58,16 +58,6 @@ const ensureStorageDirectories = () => {
 |--------------------------------------------------------------------------
 | Security / Helmet
 |--------------------------------------------------------------------------
-|
-| CSP is intentionally disabled here because the React frontend is served
-| separately and the hero video / media assets need to load correctly.
-|
-| The previous configuration used:
-|   defaultSrc: ["'none'"]
-|
-| without correctly defining mediaSrc/connectSrc, which blocked:
-|   /media/hero-intro-2.mp4
-|
 */
 app.use(
   helmet({
@@ -206,7 +196,7 @@ const checkProductionEnv = () => {
   }
 
   const clientUrl =
-    process.env.CLIENT_URL || process.env.RENDER_EXTERNAL_URL;
+    process.env.CLIENT_URL || process.env.RAILWAY_PUBLIC_DOMAIN || process.env.RENDER_EXTERNAL_URL;
 
   if (
     !clientUrl ||
@@ -277,17 +267,6 @@ const startDatabaseConnection = async () => {
       );
     }
 
-    /*
-    |--------------------------------------------------------------------------
-    | Company logos
-    |--------------------------------------------------------------------------
-    |
-    | Legacy external logo seeders are intentionally disabled.
-    |
-    | Clearbit's old free logo endpoint is no longer used here.
-    |
-    */
-
     try {
       const uploadedLogoResult = await seedCompanyUploadedLogos();
 
@@ -300,12 +279,6 @@ const startDatabaseConnection = async () => {
         err.message
       );
     }
-
-    /*
-    |--------------------------------------------------------------------------
-    | Message history
-    |--------------------------------------------------------------------------
-    */
 
     try {
       await ensureMessageHistoryCollections();
@@ -353,31 +326,55 @@ const startDatabaseConnection = async () => {
 
 /*
 |--------------------------------------------------------------------------
-| Middleware
+| Middleware & CORS Configuration
 |--------------------------------------------------------------------------
 */
+
+// Helper function to sanitize and format standard origins
+const formatOrigin = (url) => {
+  if (!url) return null;
+  let formatted = url.trim();
+  if (!/^https?:\/\//i.test(formatted)) {
+    formatted = `https://${formatted}`;
+  }
+  return formatted.replace(/\/$/, ""); // Strip trailing slash
+};
+
+const rawAllowedOrigins = [
+  ...(process.env.CLIENT_URL ? process.env.CLIENT_URL.split(",") : []),
+  process.env.RAILWAY_PUBLIC_DOMAIN,
+  process.env.RAILWAY_STATIC_URL,
+  process.env.RENDER_EXTERNAL_URL,
+];
+
+const allowedOrigins = rawAllowedOrigins
+  .map(formatOrigin)
+  .filter(Boolean);
 
 app.use(
   cors({
     origin: (origin, callback) => {
       /*
-       * Development:
-       * Allow localhost, LAN IPs, and device hostnames.
+       * Allow requests with no origin (e.g. same-origin static assets, 
+       * server-to-server requests, mobile apps, or Postman)
+       */
+      if (!origin) {
+        return callback(null, true);
+      }
+
+      /*
+       * Development mode: Allow all local development origins
        */
       if (process.env.NODE_ENV !== "production") {
         return callback(null, true);
       }
 
       /*
-       * Production:
-       * Only allow configured frontend origins.
+       * Production mode: Match against configured origins
        */
-      const allowedOrigins = [
-        process.env.CLIENT_URL ||
-          process.env.RENDER_EXTERNAL_URL,
-      ].filter(Boolean);
+      const normalizedOrigin = formatOrigin(origin);
 
-      if (!origin || allowedOrigins.includes(origin)) {
+      if (allowedOrigins.includes(normalizedOrigin)) {
         return callback(null, true);
       }
 
@@ -385,7 +382,6 @@ app.use(
         new Error("Origin is not allowed by CORS.")
       );
     },
-
     credentials: true,
   })
 );
@@ -423,18 +419,11 @@ if (process.env.NODE_ENV !== "test") {
 
 const apiLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
-
-  /*
-   * Allows reasonable traffic from shared office/home IPs.
-   */
   max: 1200,
-
   standardHeaders: true,
   legacyHeaders: false,
-
   message: {
-    message:
-      "Too many requests. Please try again later.",
+    message: "Too many requests. Please try again later.",
   },
 });
 
@@ -448,18 +437,11 @@ app.use("/api", apiLimiter);
 
 const authLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
-
-  /*
-   * Strict protection against credential stuffing.
-   */
   max: 20,
-
   standardHeaders: true,
   legacyHeaders: false,
-
   message: {
-    message:
-      "Too many authentication attempts. Please try again later.",
+    message: "Too many authentication attempts. Please try again later.",
   },
 });
 
@@ -524,60 +506,17 @@ registerHealthRoute(app);
 |--------------------------------------------------------------------------
 */
 
-app.use(
-  "/api/auth",
-  authRoutes
-);
-
-app.use(
-  "/api/students",
-  studentRoutes
-);
-
-app.use(
-  "/api/companies",
-  companyRoutes
-);
-
-app.use(
-  "/api/jobs",
-  jobRoutes
-);
-
-app.use(
-  "/api/applications",
-  applicationRoutes
-);
-
-app.use(
-  "/api/admin",
-  adminRoutes
-);
-
-app.use(
-  "/api/interview",
-  interviewRoutes
-);
-
-app.use(
-  "/api/notifications",
-  notificationRoutes
-);
-
-app.use(
-  "/api/messages",
-  messageRoutes
-);
-
-app.use(
-  "/api/staff",
-  staffRoutes
-);
-
-app.use(
-  "/api/contact",
-  contactRoutes
-);
+app.use("/api/auth", authRoutes);
+app.use("/api/students", studentRoutes);
+app.use("/api/companies", companyRoutes);
+app.use("/api/jobs", jobRoutes);
+app.use("/api/applications", applicationRoutes);
+app.use("/api/admin", adminRoutes);
+app.use("/api/interview", interviewRoutes);
+app.use("/api/notifications", notificationRoutes);
+app.use("/api/messages", messageRoutes);
+app.use("/api/staff", staffRoutes);
+app.use("/api/contact", contactRoutes);
 
 /*
 |--------------------------------------------------------------------------
@@ -606,10 +545,6 @@ if (
   );
 
   app.get("*", (req, res, next) => {
-    /*
-     * Don't send the React index page for API
-     * or uploaded file requests.
-     */
     if (
       req.path === "/api" ||
       req.path.startsWith("/api/") ||

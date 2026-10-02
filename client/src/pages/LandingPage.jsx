@@ -1,4 +1,4 @@
-import React, { useCallback, useState } from "react";
+import React, { useCallback, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { motion, useReducedMotion } from "framer-motion";
 import Navbar from "../components/Navbar";
@@ -145,6 +145,7 @@ const ABOUT_SLIDES = [
 
 const LandingPage = ({ intro = false, onIntroComplete }) => {
   const { user } = useAuth();
+  const heroVideoRef = useRef(null);
   const [shouldRenderHeroVideo] = useState(
     () => intro || hasHomeIntroPlayedThisSession(),
   );
@@ -169,6 +170,21 @@ const LandingPage = ({ intro = false, onIntroComplete }) => {
     setIsIntroRevealed(true);
     onIntroComplete();
   }, [onIntroComplete]);
+
+  const ensureHeroVideoPlaying = useCallback(() => {
+    const video = heroVideoRef.current;
+    if (
+      !shouldRenderHeroVideo ||
+      prefersReducedMotion ||
+      hasIntroVideoFailed ||
+      document.visibilityState !== "visible" ||
+      !video?.paused
+    ) {
+      return;
+    }
+
+    video.play().catch(() => setHasIntroVideoFailed(true));
+  }, [hasIntroVideoFailed, prefersReducedMotion, shouldRenderHeroVideo]);
 
   React.useEffect(() => {
     if (!intro) return undefined;
@@ -199,6 +215,22 @@ const LandingPage = ({ intro = false, onIntroComplete }) => {
     isIntroVideoPlaying,
     prefersReducedMotion,
   ]);
+
+  React.useEffect(() => {
+    if (
+      !shouldRenderHeroVideo ||
+      prefersReducedMotion ||
+      hasIntroVideoFailed
+    ) {
+      return undefined;
+    }
+
+    document.addEventListener("visibilitychange", ensureHeroVideoPlaying);
+    ensureHeroVideoPlaying();
+
+    return () =>
+      document.removeEventListener("visibilitychange", ensureHeroVideoPlaying);
+  }, [ensureHeroVideoPlaying, hasIntroVideoFailed, prefersReducedMotion, shouldRenderHeroVideo]);
 
   const submitConcern = async (event) => {
     event.preventDefault();
@@ -290,7 +322,8 @@ const LandingPage = ({ intro = false, onIntroComplete }) => {
               !prefersReducedMotion &&
               !hasIntroVideoFailed && (
                 <video
-                  className="absolute inset-0 h-full w-full object-cover object-[50%_20%] transition-opacity duration-700 ease-out motion-reduce:transition-none"
+                  ref={heroVideoRef}
+                  className="landing-hero-video absolute inset-0 h-full w-full object-cover object-[50%_20%] transition-opacity duration-700 ease-out motion-reduce:transition-none"
                   src="/media/hero-intro-2.mp4?v=6fd1a86a"
                   poster="/media/hero-intro-still.webp"
                   autoPlay
@@ -298,6 +331,7 @@ const LandingPage = ({ intro = false, onIntroComplete }) => {
                   muted
                   playsInline
                   preload="metadata"
+                  onCanPlay={ensureHeroVideoPlaying}
                   onPlay={() => setIsIntroVideoPlaying(true)}
                   onPlaying={() => setIsIntroVideoPlaying(true)}
                   onError={() => setHasIntroVideoFailed(true)}

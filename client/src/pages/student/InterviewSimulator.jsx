@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import api from "../../api/axios";
 import Loader from "../../components/Loader";
 import DashboardShell from "../../components/DashboardShell";
+import { downloadBlob } from "../../utils/download";
 
 const InterviewSimulator = () => {
   const [sessions, setSessions] = useState([]);
@@ -104,19 +105,10 @@ const InterviewSimulator = () => {
     const response = await api.get(`/interview/sessions/${id}/export`, {
       responseType: "blob",
     });
-    const url = window.URL.createObjectURL(
+    downloadBlob(
       new Blob([response.data], { type: "application/pdf" }),
-    );
-    const link = document.createElement("a");
-    link.href = url;
-    link.setAttribute(
-      "download",
       `interview-${jobTitle.replace(/[^a-z0-9]+/gi, "-")}.pdf`,
     );
-    document.body.appendChild(link);
-    link.click();
-    link.remove();
-    window.URL.revokeObjectURL(url);
   };
 
   const handleDelete = async (id) => {

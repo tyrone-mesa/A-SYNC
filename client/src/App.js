@@ -90,6 +90,10 @@ function App() {
   const [showHomeIntro, setShowHomeIntro] = useState(
     () => location.pathname === "/",
   );
+  const completeHomeIntro = React.useCallback(
+    () => setShowHomeIntro(false),
+    [],
+  );
   const isDashboardRoute =
     location.pathname.startsWith("/student/") ||
     location.pathname.startsWith("/company/") ||
@@ -151,7 +155,7 @@ function App() {
                     showHomeIntro ? (
                       <LandingPage
                         intro
-                        onIntroComplete={() => setShowHomeIntro(false)}
+                        onIntroComplete={completeHomeIntro}
                       />
                     ) : (
                       <LandingPage />

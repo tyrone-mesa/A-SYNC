@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useCallback, useState } from "react";
 import { Link } from "react-router-dom";
 import { motion, useReducedMotion } from "framer-motion";
 import Navbar from "../components/Navbar";
@@ -18,6 +18,9 @@ import {
   ChevronRight,
 } from "lucide-react";
 
+const INTRO_DURATION = 9.2;
+const INTRO_CONTENT_REVEAL_DELAY = 7.85;
+
 const openPartnerSignup = () => {
   window.dispatchEvent(new CustomEvent("asiatech:partner-signup"));
 };
@@ -32,8 +35,12 @@ const fadeUp = {
 };
 
 const heroContent = {
-  hidden: {},
-  visible: { transition: { delayChildren: 0.25, staggerChildren: 0.12 } },
+  hidden: { opacity: 0, y: 10 },
+  visible: {
+    opacity: 1,
+    y: 0,
+    transition: { delayChildren: 0.25, staggerChildren: 0.12 },
+  },
 };
 
 const heroItem = {
@@ -137,8 +144,9 @@ const ABOUT_SLIDES = [
 
 const LandingPage = ({ intro = false, onIntroComplete }) => {
   const { user } = useAuth();
-  const [isHeroImageReady, setIsHeroImageReady] = useState(false);
   const [isIntroRevealed, setIsIntroRevealed] = useState(!intro);
+  const [isIntroVideoPlaying, setIsIntroVideoPlaying] = useState(false);
+  const [hasIntroVideoFailed, setHasIntroVideoFailed] = useState(false);
   const [concern, setConcern] = useState({
     name: "",
     email: "",
@@ -152,18 +160,40 @@ const LandingPage = ({ intro = false, onIntroComplete }) => {
   const [featureSlide, setFeatureSlide] = useState(0);
   const prefersReducedMotion = useReducedMotion();
 
-  React.useEffect(() => {
-    if (!intro || !isHeroImageReady) return undefined;
-
+  const finishIntroVideo = useCallback(() => {
     setIsIntroRevealed(true);
-    if (prefersReducedMotion) {
-      onIntroComplete();
+    onIntroComplete();
+  }, [onIntroComplete]);
+
+  React.useEffect(() => {
+    if (!intro) return undefined;
+
+    if (prefersReducedMotion || hasIntroVideoFailed) {
+      finishIntroVideo();
       return undefined;
     }
 
-    const completionTimeout = window.setTimeout(onIntroComplete, 1250);
-    return () => window.clearTimeout(completionTimeout);
-  }, [intro, isHeroImageReady, onIntroComplete, prefersReducedMotion]);
+    if (!isIntroVideoPlaying) return undefined;
+
+    const revealTimeout = window.setTimeout(
+      () => setIsIntroRevealed(true),
+      INTRO_CONTENT_REVEAL_DELAY * 1000,
+    );
+    const completionTimeout = window.setTimeout(
+      finishIntroVideo,
+      INTRO_DURATION * 1000,
+    );
+    return () => {
+      window.clearTimeout(revealTimeout);
+      window.clearTimeout(completionTimeout);
+    };
+  }, [
+    hasIntroVideoFailed,
+    finishIntroVideo,
+    intro,
+    isIntroVideoPlaying,
+    prefersReducedMotion,
+  ]);
 
   const submitConcern = async (event) => {
     event.preventDefault();
@@ -229,7 +259,7 @@ const LandingPage = ({ intro = false, onIntroComplete }) => {
         {intro && (
           <button
             type="button"
-            onClick={() => onIntroComplete?.()}
+            onClick={finishIntroVideo}
             className="absolute right-5 top-24 z-20 rounded-full border border-white/60 bg-[#0F3D2E]/75 px-5 py-2.5 text-sm font-semibold text-white shadow-md backdrop-blur-sm transition hover:bg-[#0F3D2E] focus:outline-none focus:ring-2 focus:ring-[#E8C165] focus:ring-offset-2 focus:ring-offset-[#0F3D2E] sm:right-8"
           >
             Skip intro
@@ -244,8 +274,21 @@ const LandingPage = ({ intro = false, onIntroComplete }) => {
               aria-hidden="true"
               fetchpriority="high"
               decoding="async"
-              onLoad={() => setIsHeroImageReady(true)}
             />
+            {intro && !prefersReducedMotion && !hasIntroVideoFailed && (
+              <video
+                className="absolute inset-0 h-full w-full object-cover object-[50%_20%]"
+                src="/media/hero-intro-2.mp4?v=6fd1a86a"
+                poster="/media/hero-intro-still.webp"
+                autoPlay
+                muted
+                playsInline
+                preload="auto"
+                onPlaying={() => setIsIntroVideoPlaying(true)}
+                onEnded={finishIntroVideo}
+                onError={() => setHasIntroVideoFailed(true)}
+              />
+            )}
           </div>
           <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-[#0F3D2E]/95 via-[#0F3D2E]/15 to-[#0F3D2E]/10" />
         </div>

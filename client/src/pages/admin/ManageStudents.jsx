@@ -23,7 +23,7 @@ const renderNumericEmail = (email) => {
 };
 
 const STUDENT_EMAIL_DOMAIN = "asiatech.edu.ph";
-const MAX_AVATAR_SIZE = 5 * 1024 * 1024;
+const MAX_AVATAR_SIZE = 3 * 1024 * 1024;
 const emptyForm = {
   firstName: "",
   middleName: "",
@@ -302,12 +302,12 @@ const ManageStudents = () => {
             </div>
             <div>
               <label className="label" htmlFor="managestudents-avatar">
-                Student Profile Picture
+                Student Profile Picture (Optional)
               </label>
               <input
                 id="managestudents-avatar"
                 type="file"
-                accept=".png,.jpg,.jpeg,.pdf"
+                accept=".png,.jpg,.jpeg"
                 onChange={(event) => {
                   const file = event.target.files?.[0] || null;
                   if (file && file.size > MAX_AVATAR_SIZE) {
@@ -323,7 +323,8 @@ const ManageStudents = () => {
                 className="input-field student-form-times-text p-2 text-sm"
               />
               <p className="mt-1 text-xs text-navy/65">
-                PNG, JPG, or PDF up to 5MB. Admin-managed only.
+                Leave blank to create the account without a photo. PNG or JPG
+                up to 3MB.
               </p>
             </div>
           </div>

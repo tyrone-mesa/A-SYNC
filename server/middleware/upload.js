@@ -267,8 +267,8 @@ const uploadLogo = multer({
 
 // ============================================================
 // STUDENT PROFILE PICTURE
-// JPG, JPEG, PNG, PDF
-// Maximum 5MB
+// JPG, JPEG, PNG
+// Maximum 3MB
 // ============================================================
 
 const avatarFileFilter = (req, file, cb) => {
@@ -277,13 +277,13 @@ const avatarFileFilter = (req, file, cb) => {
     .toLowerCase();
 
   if (
-    [".jpg", ".jpeg", ".png", ".pdf"].includes(ext)
+    [".jpg", ".jpeg", ".png"].includes(ext)
   ) {
     cb(null, true);
   } else {
     cb(
       new Error(
-        "Student profile picture must be JPG, PNG, or PDF format."
+        "Student profile picture must be JPG or PNG format."
       )
     );
   }
@@ -293,7 +293,7 @@ const uploadStudentAvatar = multer({
   storage,
   fileFilter: avatarFileFilter,
   limits: {
-    fileSize: 5 * 1024 * 1024,
+    fileSize: 3 * 1024 * 1024,
   },
 });
 

@@ -197,7 +197,13 @@ const Login = ({
             </button>
           </>
         )}
-        <div className={modal ? "relative z-10 p-7 sm:p-9" : ""}>
+        <div
+          className={
+            modal
+              ? "relative z-10 min-h-0 p-5 sm:overflow-y-auto sm:p-9"
+              : ""
+          }
+        >
           <button
             type="button"
             onClick={handleBack}

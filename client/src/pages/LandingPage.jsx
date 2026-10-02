@@ -482,6 +482,8 @@ const LandingPage = ({ intro = false, onIntroComplete }) => {
                   <img
                     src={ABOUT_SLIDES[aboutSlide].image}
                     alt={ABOUT_SLIDES[aboutSlide].alt}
+                    loading="lazy"
+                    decoding="async"
                     className={`w-full rounded-2xl object-contain ${
                       aboutSlide === 0
                         ? "h-[220px] max-w-full scale-100 sm:h-72"
@@ -568,6 +570,8 @@ const LandingPage = ({ intro = false, onIntroComplete }) => {
             <img
               src="/system-logo/Asiatech%20Seal.png"
               alt="ASIATECH school seal"
+              loading="lazy"
+              decoding="async"
               className="mx-auto h-56 w-full object-contain"
             />
           </div>
@@ -894,6 +898,8 @@ const LandingPage = ({ intro = false, onIntroComplete }) => {
             <img
               src="/system-logo/Asiatech%20Seal.png"
               alt="ASIATECH school seal"
+              loading="lazy"
+              decoding="async"
               className="h-44 w-full object-contain"
             />
           </div>

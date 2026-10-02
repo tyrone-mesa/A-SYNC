@@ -29,6 +29,8 @@ const { removeFile, serveFile } = require("../utils/storage");
 const router = express.Router();
 
 const removeUploadedFile = (fileUrl) => removeFile(fileUrl);
+const scanUploadedFileIfProvided = (req, res, next) =>
+  req.file ? scanUploadedFile(req, res, next) : next();
 
 // Every route below requires a logged-in user. Beyond that, permissions are granted per
 // route: admins have full access, while coordinators are only ever given read access to the
@@ -463,7 +465,7 @@ router.post(
   "/students",
   authorize("admin"),
   upload.uploadStudentAvatar.single("avatar"),
-  scanUploadedFile,
+  scanUploadedFileIfProvided,
   [
     body("fullName").trim().notEmpty().withMessage("Full name is required."),
     body("studentId")

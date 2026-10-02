@@ -6,44 +6,76 @@ import Navbar from "./components/Navbar";
 import ProtectedRoute from "./components/ProtectedRoute";
 import FloatingMessageCircle from "./components/FloatingMessageCircle";
 
-import LandingPage from "./pages/LandingPage";
-import Login from "./pages/Login";
-import Register from "./pages/Register";
-import Unauthorized from "./pages/Unauthorized";
-import NotFound from "./pages/NotFound";
-import Messages from "./pages/Messages";
-import PrivacyPolicy from "./pages/PrivacyPolicy";
-import TermsAndConditions from "./pages/TermsAndConditions";
-import CookiesPolicy from "./pages/CookiesPolicy";
+const LandingPage = React.lazy(() => import("./pages/LandingPage"));
+const Login = React.lazy(() => import("./pages/Login"));
+const Register = React.lazy(() => import("./pages/Register"));
+const Unauthorized = React.lazy(() => import("./pages/Unauthorized"));
+const NotFound = React.lazy(() => import("./pages/NotFound"));
+const Messages = React.lazy(() => import("./pages/Messages"));
+const PrivacyPolicy = React.lazy(() => import("./pages/PrivacyPolicy"));
+const TermsAndConditions = React.lazy(
+  () => import("./pages/TermsAndConditions"),
+);
+const CookiesPolicy = React.lazy(() => import("./pages/CookiesPolicy"));
 
-import BrowseJobs from "./pages/student/BrowseJobs";
-import JobDetail from "./pages/student/JobDetail";
-import StudentDashboard from "./pages/student/StudentDashboard";
-import StudentProfile from "./pages/student/StudentProfile";
-import MyApplications from "./pages/student/MyApplications";
-import InterviewSimulator from "./pages/student/InterviewSimulator";
-import OjtManual from "./pages/student/OjtManual";
+const BrowseJobs = React.lazy(() => import("./pages/student/BrowseJobs"));
+const JobDetail = React.lazy(() => import("./pages/student/JobDetail"));
+const StudentDashboard = React.lazy(
+  () => import("./pages/student/StudentDashboard"),
+);
+const StudentProfile = React.lazy(
+  () => import("./pages/student/StudentProfile"),
+);
+const MyApplications = React.lazy(
+  () => import("./pages/student/MyApplications"),
+);
+const InterviewSimulator = React.lazy(
+  () => import("./pages/student/InterviewSimulator"),
+);
+const OjtManual = React.lazy(() => import("./pages/student/OjtManual"));
 
-import CompanyDashboard from "./pages/company/CompanyDashboard";
-import CompanyProfile from "./pages/company/CompanyProfile";
-import PostJob from "./pages/company/PostJob";
-import ManageJobs from "./pages/company/ManageJobs";
-import ApplicantsList from "./pages/company/ApplicantsList";
-import ManageStudentAttendance from "./pages/company/ManageStudentAttendance";
+const CompanyDashboard = React.lazy(
+  () => import("./pages/company/CompanyDashboard"),
+);
+const CompanyProfile = React.lazy(
+  () => import("./pages/company/CompanyProfile"),
+);
+const PostJob = React.lazy(() => import("./pages/company/PostJob"));
+const ManageJobs = React.lazy(() => import("./pages/company/ManageJobs"));
+const ApplicantsList = React.lazy(
+  () => import("./pages/company/ApplicantsList"),
+);
+const ManageStudentAttendance = React.lazy(
+  () => import("./pages/company/ManageStudentAttendance"),
+);
 
-import AdminDashboard from "./pages/admin/AdminDashboard";
-import ManageUsers from "./pages/admin/ManageUsers";
-import ManageCompanies from "./pages/admin/ManageCompanies";
-import ManageStudents from "./pages/admin/ManageStudents";
-import ManageCoordinators from "./pages/admin/ManageCoordinators";
-import StudentDetail from "./pages/admin/StudentDetail";
-import CompanyDetail from "./pages/admin/CompanyDetail";
-import Reports from "./pages/admin/Reports";
-import ArchiveUsers from "./pages/admin/ArchiveUsers";
-import ManageRegistrars from "./pages/admin/ManageRegistrars";
-import SecurityAudit from "./pages/admin/SecurityAudit";
-import ManageStaffStudents from "./pages/staff/ManageStaffStudents";
-import RegistrarStudentDetail from "./pages/staff/RegistrarStudentDetail";
+const AdminDashboard = React.lazy(
+  () => import("./pages/admin/AdminDashboard"),
+);
+const ManageUsers = React.lazy(() => import("./pages/admin/ManageUsers"));
+const ManageCompanies = React.lazy(
+  () => import("./pages/admin/ManageCompanies"),
+);
+const ManageStudents = React.lazy(
+  () => import("./pages/admin/ManageStudents"),
+);
+const ManageCoordinators = React.lazy(
+  () => import("./pages/admin/ManageCoordinators"),
+);
+const StudentDetail = React.lazy(() => import("./pages/admin/StudentDetail"));
+const CompanyDetail = React.lazy(() => import("./pages/admin/CompanyDetail"));
+const Reports = React.lazy(() => import("./pages/admin/Reports"));
+const ArchiveUsers = React.lazy(() => import("./pages/admin/ArchiveUsers"));
+const ManageRegistrars = React.lazy(
+  () => import("./pages/admin/ManageRegistrars"),
+);
+const SecurityAudit = React.lazy(() => import("./pages/admin/SecurityAudit"));
+const ManageStaffStudents = React.lazy(
+  () => import("./pages/staff/ManageStaffStudents"),
+);
+const RegistrarStudentDetail = React.lazy(
+  () => import("./pages/staff/RegistrarStudentDetail"),
+);
 
 // Soft cross-fade + slide between routes. mode="wait" lets the outgoing page finish its exit
 // animation before the incoming one starts, so they never overlap awkwardly.
@@ -101,7 +133,17 @@ function App() {
               exit={isDashboardRoute ? false : "exit"}
               transition={{ duration: 0.34, ease: [0.22, 1, 0.36, 1] }}
             >
-              <Routes location={location}>
+              <React.Suspense
+                fallback={
+                  <div
+                    className="flex min-h-[40vh] items-center justify-center px-4 text-sm text-[#0F1E35]/70"
+                    role="status"
+                  >
+                    Loading page…
+                  </div>
+                }
+              >
+                <Routes location={location}>
                 {/* Public */}
                 <Route
                   path="/"
@@ -407,7 +449,8 @@ function App() {
                 />
 
                 <Route path="*" element={<NotFound />} />
-              </Routes>
+                </Routes>
+              </React.Suspense>
             </motion.div>
           </AnimatePresence>
         </main>

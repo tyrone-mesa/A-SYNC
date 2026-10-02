@@ -468,55 +468,57 @@ const LandingPage = ({ intro = false, onIntroComplete }) => {
                 </p>
               </div>
             )}
-            <div className="relative mx-auto h-[250px] min-h-0 w-full max-w-[22rem] overflow-hidden px-8 py-3 sm:h-[320px] sm:max-w-none sm:overflow-visible sm:px-7 sm:py-7">
-              <div className="flex h-full items-center justify-center overflow-hidden sm:overflow-visible">
-                <img
-                  src={ABOUT_SLIDES[aboutSlide].image}
-                  alt={ABOUT_SLIDES[aboutSlide].alt}
-                  className={`w-full rounded-2xl object-contain ${
-                    aboutSlide === 0
-                      ? "h-[220px] max-w-full scale-100 sm:h-72"
-                      : aboutSlide === 1 || aboutSlide === 3
-                        ? "h-[220px] max-w-full translate-y-0 scale-100 sm:h-72 sm:scale-[1.6] md:translate-y-2 md:scale-[1.7]"
-                        : "h-[220px] max-w-full translate-y-0 scale-100 sm:h-72 sm:translate-y-8 sm:scale-[1.45] md:translate-y-10 md:scale-[1.55]"
-                  }`}
-                />
-              </div>
+            <div className="mx-auto grid h-[250px] min-h-0 w-full max-w-[22rem] grid-cols-[2.5rem_minmax(0,1fr)_2.5rem] items-center gap-1 py-3 sm:h-[320px] sm:max-w-none sm:grid-cols-[3rem_minmax(0,1fr)_3rem] sm:gap-3 sm:py-7">
               <button
                 type="button"
                 onClick={() => moveAboutSlide(-1)}
                 aria-label="Previous AsiatechSync team member"
-                className="absolute left-0 top-1/2 z-10 flex h-10 w-10 -translate-y-1/2 items-center justify-center text-[#0F3D2E] transition hover:text-[#1E5D46] sm:-left-10"
+                className="z-10 flex h-10 w-10 items-center justify-center rounded-full bg-white/90 text-[#0F3D2E] shadow-sm transition hover:bg-white hover:text-[#1E5D46]"
               >
                 <ChevronLeft size={18} />
               </button>
+              <div className="relative h-full min-w-0 overflow-hidden">
+                <div className="flex h-full items-center justify-center">
+                  <img
+                    src={ABOUT_SLIDES[aboutSlide].image}
+                    alt={ABOUT_SLIDES[aboutSlide].alt}
+                    className={`w-full rounded-2xl object-contain ${
+                      aboutSlide === 0
+                        ? "h-[220px] max-w-full scale-100 sm:h-72"
+                        : aboutSlide === 1 || aboutSlide === 3
+                          ? "h-[220px] max-w-full translate-y-0 scale-100 sm:h-72 sm:scale-[1.6] md:translate-y-2 md:scale-[1.7]"
+                          : "h-[220px] max-w-full translate-y-0 scale-100 sm:h-72 sm:translate-y-8 sm:scale-[1.45] md:translate-y-10 md:scale-[1.55]"
+                    }`}
+                  />
+                </div>
+                <div className="absolute bottom-1 left-1/2 z-10 flex -translate-x-1/2 gap-1.5 sm:bottom-4">
+                  {ABOUT_SLIDES.map((slide, index) => (
+                    <button
+                      key={slide.name}
+                      type="button"
+                      onClick={() => {
+                        setAboutDirection(index >= aboutSlide ? 1 : -1);
+                        setAboutSlide(index);
+                      }}
+                      aria-label={`Show ${slide.name}`}
+                      aria-current={aboutSlide === index}
+                      className={`h-1.5 rounded-full transition-all ${
+                        aboutSlide === index
+                          ? "w-6 bg-[#E8C165]"
+                          : "w-1.5 bg-[#1E5D46]/30 hover:bg-[#1E5D46]/60"
+                      }`}
+                    />
+                  ))}
+                </div>
+              </div>
               <button
                 type="button"
                 onClick={() => moveAboutSlide(1)}
                 aria-label="Next AsiatechSync team member"
-                className="absolute right-0 top-1/2 z-10 flex h-10 w-10 -translate-y-1/2 items-center justify-center text-[#0F3D2E] transition hover:text-[#1E5D46] sm:-right-10"
+                className="z-10 flex h-10 w-10 items-center justify-center rounded-full bg-white/90 text-[#0F3D2E] shadow-sm transition hover:bg-white hover:text-[#1E5D46]"
               >
                 <ChevronRight size={18} />
               </button>
-              <div className="absolute bottom-1 left-1/2 z-10 flex -translate-x-1/2 gap-1.5 sm:bottom-4">
-                {ABOUT_SLIDES.map((slide, index) => (
-                  <button
-                    key={slide.name}
-                    type="button"
-                    onClick={() => {
-                      setAboutDirection(index >= aboutSlide ? 1 : -1);
-                      setAboutSlide(index);
-                    }}
-                    aria-label={`Show ${slide.name}`}
-                    aria-current={aboutSlide === index}
-                    className={`h-1.5 rounded-full transition-all ${
-                      aboutSlide === index
-                        ? "w-6 bg-[#E8C165]"
-                        : "w-1.5 bg-white/40 hover:bg-white/70"
-                    }`}
-                  />
-                ))}
-              </div>
             </div>
             {aboutSlide % 2 === 1 && (
               <div className="min-w-0">

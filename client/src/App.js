@@ -152,14 +152,10 @@ function App() {
                 <Route
                   path="/"
                   element={
-                    showHomeIntro ? (
-                      <LandingPage
-                        intro
-                        onIntroComplete={completeHomeIntro}
-                      />
-                    ) : (
-                      <LandingPage />
-                    )
+                    <LandingPage
+                      intro={showHomeIntro}
+                      onIntroComplete={completeHomeIntro}
+                    />
                   }
                 />
                 <Route

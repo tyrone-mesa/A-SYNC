@@ -270,7 +270,13 @@ const LandingPage = ({ intro = false, onIntroComplete }) => {
           </button>
         )}
         <div className="absolute inset-0 bg-gradient-to-br from-[#0B2E22] via-[#0F3D2E] to-[#0B2E22]">
-          <div className="absolute inset-0">
+          <div
+            className={`absolute inset-0 ${
+              intro && isIntroVideoPlaying && !prefersReducedMotion
+                ? "landing-intro-camera"
+                : ""
+            }`}
+          >
             <img
               className="absolute inset-0 h-full w-full object-cover object-[50%_20%]"
               src="/media/hero-intro-still.webp"
@@ -367,7 +373,7 @@ const LandingPage = ({ intro = false, onIntroComplete }) => {
             </button>
           </motion.div>
         </motion.div>
-        {!hasIntroVideoFailed && (
+        {!intro && !hasIntroVideoFailed && (
           <button
             type="button"
             onClick={() => {

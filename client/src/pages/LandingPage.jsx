@@ -170,13 +170,13 @@ const LandingPage = ({ intro = false, onIntroComplete }) => {
   React.useEffect(() => {
     if (!intro || !isVideoReady) return undefined;
 
-    setHasIntroAnimation(true);
     if (prefersReducedMotion) {
       setIsIntroRevealed(true);
       onIntroComplete();
       return undefined;
     }
 
+    setHasIntroAnimation(true);
     const revealTimeout = window.setTimeout(
       () => setIsIntroRevealed(true),
       INTRO_CONTENT_REVEAL_DELAY * 1000,

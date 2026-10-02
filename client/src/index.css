@@ -90,7 +90,7 @@
     animation-timing-function: linear;
   }
   100% {
-    transform: scale(1.08);
+    transform: scale(1);
     filter: blur(0);
   }
 }

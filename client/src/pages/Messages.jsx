@@ -431,11 +431,11 @@ const Messages = () => {
                 placeholder="Search registered users..."
                 value={contactSearch}
                 onChange={(event) => setContactSearch(event.target.value)}
-                className={`input-field h-9 min-w-[220px] flex-1 px-3 py-2 text-sm sm:flex-none ${
+                className={`input-field h-9 min-w-0 w-full flex-1 px-3 py-2 text-sm sm:w-auto sm:min-w-[220px] sm:flex-none ${
                   /^\d+$/.test(contactSearch.trim()) ? "numeric-value" : ""
                 }`}
               />
-              <div className="flex min-w-[220px] flex-1 flex-wrap gap-1.5 sm:flex-none">
+              <div className="flex min-w-0 w-full flex-1 flex-wrap gap-1.5 sm:w-auto sm:min-w-[220px] sm:flex-none">
                 {loadingContacts ? (
                   <span className="px-2 py-2 text-xs text-navy/65">
                     Loading registered users...

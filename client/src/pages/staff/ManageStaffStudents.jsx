@@ -125,7 +125,58 @@ const ManageStaffStudents = () => {
           )}
         </div>
       </div>
-      <div className="relative z-0 overflow-x-auto rounded-2xl border border-white/35 bg-white/45 shadow-sm backdrop-blur-md">
+      <div className="space-y-3 md:hidden">
+        {filtered.map((student) => {
+          const complete =
+            (student.completedOJTHours || 0) >=
+            (student.requiredOJTHours || 0);
+          return (
+            <article
+              key={student._id}
+              className="space-y-3 rounded-2xl border border-white/35 bg-white/60 p-4 shadow-sm"
+            >
+              <div>
+                <p className="font-semibold text-[#5E7867]">
+                  {student.user?.fullName}
+                </p>
+                <p className="break-all text-sm text-navy/65">
+                  {student.user?.email}
+                </p>
+              </div>
+              <dl className="grid grid-cols-[auto_minmax(0,1fr)] gap-x-4 gap-y-2 text-sm">
+                <dt className="font-medium text-navy/65">Program</dt>
+                <dd className="break-words text-right text-navy">
+                  {student.course || student.department || "Not specified"}
+                </dd>
+                <dt className="font-medium text-navy/65">Company</dt>
+                <dd className="break-words text-right text-navy">
+                  {student.companyPlacement || "Not assigned"}
+                </dd>
+                <dt className="font-medium text-navy/65">Hours</dt>
+                <dd className="text-right text-navy">
+                  {student.completedOJTHours || 0} /{" "}
+                  {student.requiredOJTHours || 0} hours
+                </dd>
+                <dt className="font-medium text-navy/65">Status</dt>
+                <dd className="text-right text-navy">
+                  {student.assessmentSubmittedAt
+                    ? "Assessment complete"
+                    : complete
+                      ? "Ready for assessment"
+                      : "OJT in progress"}
+                </dd>
+              </dl>
+              <Link
+                className="btn-secondary w-full px-3 py-2 text-xs"
+                to={`${base}/students/${student._id}`}
+              >
+                View details
+              </Link>
+            </article>
+          );
+        })}
+      </div>
+      <div className="relative z-0 hidden overflow-x-auto rounded-2xl border border-white/35 bg-white/45 shadow-sm backdrop-blur-md md:block">
         <table className="w-full min-w-[700px] text-left text-sm">
           <thead className="border-b border-black/10 text-xs uppercase tracking-wide text-navy/65">
             <tr>

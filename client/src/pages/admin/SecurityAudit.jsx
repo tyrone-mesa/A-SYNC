@@ -135,7 +135,65 @@ const SecurityAudit = () => {
         </button>
       }
     >
-      <div className="flex min-h-full flex-col">
+      <div className="space-y-3 md:hidden">
+        {logs.map((log) => (
+          <article
+            key={log._id}
+            className="space-y-3 rounded-2xl border border-white/35 bg-white/60 p-4 shadow-sm"
+          >
+            <div className="flex items-start justify-between gap-3">
+              <p className="min-w-0 break-words font-semibold capitalize text-navy">
+                {log.action.replace(/_/g, " ")}
+              </p>
+              <span
+                className={`shrink-0 inline-flex rounded-full px-2.5 py-1 text-xs font-bold capitalize ${
+                  log.outcome === "success"
+                    ? "bg-[#dfeecf] text-[#5E7867]"
+                    : "bg-coral/15 text-[#DF2E1B]"
+                }`}
+              >
+                {log.outcome}
+              </span>
+            </div>
+            <dl className="grid grid-cols-[auto_minmax(0,1fr)] gap-x-4 gap-y-2 text-sm">
+              <dt className="font-medium text-navy/65">Time</dt>
+              <dd className="text-right text-navy/75">
+                {new Date(log.createdAt).toLocaleString()}
+              </dd>
+              <dt className="font-medium text-navy/65">Account</dt>
+              <dd className="min-w-0 text-right">
+                {log.user ? (
+                  <>
+                    <span className="block break-words font-semibold text-navy">
+                      {log.user.fullName}
+                    </span>
+                    <span className="block break-all text-xs text-navy/65">
+                      {log.user.email}
+                    </span>
+                    <span className="block text-xs capitalize text-navy/65">
+                      {log.user.role}
+                    </span>
+                  </>
+                ) : (
+                  <span className="break-all text-navy/75">
+                    {log.email || "Unknown"}
+                  </span>
+                )}
+              </dd>
+              <dt className="font-medium text-navy/65">Details</dt>
+              <dd className="whitespace-pre-wrap break-words text-right text-navy/75">
+                {log.details || "-"}
+              </dd>
+            </dl>
+          </article>
+        ))}
+        {logs.length === 0 && (
+          <p className="rounded-2xl border border-white/35 bg-white/60 p-6 text-center text-sm text-navy/65">
+            No security events found.
+          </p>
+        )}
+      </div>
+      <div className="hidden min-h-full flex-col md:flex">
         <div className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-2xl border border-white/35 bg-white/45 shadow-sm backdrop-blur-md">
           <div className="min-h-0 flex-1 overflow-auto">
             <table className="w-full min-w-[900px] text-left text-sm">

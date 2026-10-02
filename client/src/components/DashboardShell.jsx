@@ -85,7 +85,7 @@ const DashboardShell = ({
   };
 
   return (
-    <motion.div className="min-h-[calc(100vh-6rem)] overflow-y-auto bg-[radial-gradient(circle_at_top,_#edf8f2_0%,_#dfeae3_24%,_#cfe0d3_48%,_#bfd3c7_70%,_#b3c8bc_100%)] px-3 py-4 sm:px-6 sm:py-6 lg:h-[calc(100vh-6rem)] lg:overflow-hidden lg:px-8">
+    <motion.div className="min-h-[calc(100vh-6rem)] bg-[radial-gradient(circle_at_top,_#edf8f2_0%,_#dfeae3_24%,_#cfe0d3_48%,_#bfd3c7_70%,_#b3c8bc_100%)] px-3 py-4 sm:px-6 sm:py-6 lg:h-[calc(100vh-6rem)] lg:overflow-hidden lg:px-8">
       <div className="mx-auto flex min-h-full min-w-0 max-w-[1380px] flex-col gap-4 lg:h-full lg:min-h-0 lg:flex-row lg:items-stretch">
         <motion.aside
           className={`${mobileMenuOpen ? "mobile-dashboard-drawer fixed inset-x-3 top-20 z-50 block max-h-[calc(100vh-6rem)] overflow-y-auto" : "hidden"} glass-sidebar w-full rounded-[28px] border border-white/20 p-5 shadow-[0_20px_45px_rgba(16,38,34,0.14)] lg:static lg:z-auto lg:block lg:h-full lg:max-h-none lg:w-[290px] lg:overflow-visible`}
@@ -162,7 +162,7 @@ const DashboardShell = ({
           />
         )}
 
-        <motion.main className="glass-panel flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden rounded-[22px] border border-white/25 bg-[rgba(255,255,255,0.16)] shadow-[0_20px_45px_rgba(15,30,53,0.10)] backdrop-blur-xl sm:rounded-[28px]">
+        <motion.main className="glass-panel flex min-w-0 flex-1 flex-col overflow-visible rounded-[22px] border border-white/25 bg-[rgba(255,255,255,0.16)] shadow-[0_20px_45px_rgba(15,30,53,0.10)] backdrop-blur-xl sm:rounded-[28px] lg:min-h-0 lg:overflow-hidden">
           <header className="flex min-w-0 flex-col gap-3 border-b border-white/15 bg-[rgba(33,76,63,0.74)] px-4 py-4 text-white backdrop-blur-md sm:flex-row sm:items-center sm:justify-between sm:px-6 sm:py-5">
             <div>
               <div className="flex items-start gap-3">
@@ -209,7 +209,7 @@ const DashboardShell = ({
             </div>
           </header>
 
-          <div className="min-h-0 min-w-0 flex-1 overflow-y-auto px-4 py-5 sm:px-6 sm:py-6">
+          <div className="min-w-0 flex-1 px-4 py-5 sm:px-6 sm:py-6 lg:min-h-0 lg:overflow-y-auto">
             <AnimatePresence mode="wait" initial={false}>
               <motion.div
                 key={location.pathname}

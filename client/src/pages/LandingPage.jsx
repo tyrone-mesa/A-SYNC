@@ -282,7 +282,7 @@ const LandingPage = ({ intro = false, onIntroComplete }) => {
 
   return (
     <div className="min-h-screen bg-[#FBF8F3]">
-      <section className="relative flex min-h-[calc(100vh-24px)] items-center justify-start overflow-hidden bg-[#0F3D2E] px-5 py-24 sm:px-8 lg:px-12">
+      <section className="relative flex min-h-[calc(100svh-24px)] items-center justify-start overflow-hidden bg-[#0F3D2E] px-5 py-24 sm:px-8 lg:px-12">
         {/* Navbar lives inside the Hero section (which is `position: relative`) so it is
             absolutely positioned relative to the Hero, not the viewport. It scrolls away
             with the Hero naturally — no fixed, no sticky, no scroll listeners. */}

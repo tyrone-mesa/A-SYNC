@@ -1,4 +1,4 @@
-import React, { useCallback, useRef, useState } from "react";
+import React, { useCallback, useState } from "react";
 import { Link } from "react-router-dom";
 import { motion, useReducedMotion } from "framer-motion";
 import Navbar from "../components/Navbar";
@@ -14,10 +14,8 @@ import {
   ArrowRight,
   MapPin,
   ExternalLink,
-  Pause,
   ChevronLeft,
   ChevronRight,
-  Play,
 } from "lucide-react";
 
 const INTRO_DURATION = 9.2;
@@ -146,11 +144,11 @@ const ABOUT_SLIDES = [
 
 const LandingPage = ({ intro = false, onIntroComplete }) => {
   const { user } = useAuth();
-  const heroVideoRef = useRef(null);
+  const [shouldRenderHeroVideo] = useState(intro);
+  const [hasHeroIntro] = useState(intro);
   const [isIntroRevealed, setIsIntroRevealed] = useState(!intro);
   const [isIntroVideoPlaying, setIsIntroVideoPlaying] = useState(false);
   const [hasIntroVideoFailed, setHasIntroVideoFailed] = useState(false);
-  const [isHeroVideoPaused, setIsHeroVideoPaused] = useState(true);
   const [concern, setConcern] = useState({
     name: "",
     email: "",
@@ -253,7 +251,7 @@ const LandingPage = ({ intro = false, onIntroComplete }) => {
             y: 0,
           }}
           transition={{
-            duration: intro ? 1.05 : 0,
+            duration: hasHeroIntro ? 1.05 : 0,
             delay: intro && isIntroRevealed ? 0.16 : 0,
             ease: [0.22, 1, 0.36, 1],
           }}
@@ -285,30 +283,23 @@ const LandingPage = ({ intro = false, onIntroComplete }) => {
               fetchpriority="high"
               decoding="async"
             />
-            {!hasIntroVideoFailed && (
-              <video
-                ref={heroVideoRef}
-                className="absolute inset-0 h-full w-full object-cover object-[50%_20%] transition-opacity duration-700 ease-out motion-reduce:transition-none"
-                style={{
-                  opacity:
-                    prefersReducedMotion && isHeroVideoPaused ? 0 : 1,
-                }}
-                src="/media/hero-intro-2.mp4?v=6fd1a86a"
-                poster="/media/hero-intro-still.webp"
-                autoPlay={!prefersReducedMotion}
-                loop
-                muted
-                playsInline
-                preload="metadata"
-                onPlay={() => setIsIntroVideoPlaying(true)}
-                onPlaying={() => {
-                  setIsIntroVideoPlaying(true);
-                  setIsHeroVideoPaused(false);
-                }}
-                onPause={() => setIsHeroVideoPaused(true)}
-                onError={() => setHasIntroVideoFailed(true)}
-              />
-            )}
+            {shouldRenderHeroVideo &&
+              !prefersReducedMotion &&
+              !hasIntroVideoFailed && (
+                <video
+                  className="absolute inset-0 h-full w-full object-cover object-[50%_20%] transition-opacity duration-700 ease-out motion-reduce:transition-none"
+                  src="/media/hero-intro-2.mp4?v=6fd1a86a"
+                  poster="/media/hero-intro-still.webp"
+                  autoPlay
+                  loop
+                  muted
+                  playsInline
+                  preload="metadata"
+                  onPlay={() => setIsIntroVideoPlaying(true)}
+                  onPlaying={() => setIsIntroVideoPlaying(true)}
+                  onError={() => setHasIntroVideoFailed(true)}
+                />
+              )}
           </div>
           <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-[#0F3D2E]/95 via-[#0F3D2E]/15 to-[#0F3D2E]/10" />
         </div>
@@ -323,10 +314,10 @@ const LandingPage = ({ intro = false, onIntroComplete }) => {
               : "visible"
           }
           transition={
-            intro
+            hasHeroIntro
               ? {
                   duration: 1.05,
-                  delay: isIntroRevealed ? 0.16 : 0,
+                  delay: intro && isIntroRevealed ? 0.16 : 0,
                   ease: [0.22, 1, 0.36, 1],
                 }
               : undefined
@@ -373,29 +364,6 @@ const LandingPage = ({ intro = false, onIntroComplete }) => {
             </button>
           </motion.div>
         </motion.div>
-        {!intro && !hasIntroVideoFailed && (
-          <button
-            type="button"
-            onClick={() => {
-              const video = heroVideoRef.current;
-              if (!video) return;
-              if (video.paused) {
-                video.play().catch(() => {
-                  setIsHeroVideoPaused(true);
-                });
-              } else {
-                video.pause();
-                setIsHeroVideoPaused(true);
-              }
-            }}
-            aria-label={
-              isHeroVideoPaused ? "Play background video" : "Pause background video"
-            }
-            className="absolute bottom-24 right-5 z-20 flex h-10 w-10 items-center justify-center rounded-full bg-white/90 text-[#0F3D2E] shadow-sm transition hover:bg-white focus:outline-none focus:ring-2 focus:ring-[#E8C165] focus:ring-offset-2 focus:ring-offset-[#0F3D2E] sm:right-8"
-          >
-            {isHeroVideoPaused ? <Play size={17} /> : <Pause size={17} />}
-          </button>
-        )}
       </section>
 
       <section

@@ -17,6 +17,7 @@ const TermsAndConditions = React.lazy(
   () => import("./pages/TermsAndConditions"),
 );
 const CookiesPolicy = React.lazy(() => import("./pages/CookiesPolicy"));
+const HOME_INTRO_PLAYED_SESSION_KEY = "asiatechsync-home-intro-played";
 
 const BrowseJobs = React.lazy(() => import("./pages/student/BrowseJobs"));
 const JobDetail = React.lazy(() => import("./pages/student/JobDetail"));
@@ -88,12 +89,38 @@ const pageVariants = {
 function App() {
   const location = useLocation();
   const [showHomeIntro, setShowHomeIntro] = useState(
-    () => location.pathname === "/",
+    () => {
+      if (location.pathname !== "/") return false;
+      try {
+        const navigation = window.performance.getEntriesByType("navigation")[0];
+        if (navigation?.type === "reload") {
+          window.sessionStorage.removeItem(HOME_INTRO_PLAYED_SESSION_KEY);
+        }
+        return (
+          window.sessionStorage.getItem(HOME_INTRO_PLAYED_SESSION_KEY) !==
+          "true"
+        );
+      } catch (error) {
+        return true;
+      }
+    },
   );
   const completeHomeIntro = React.useCallback(
-    () => setShowHomeIntro(false),
+    () => {
+      setShowHomeIntro(false);
+      try {
+        window.sessionStorage.setItem(HOME_INTRO_PLAYED_SESSION_KEY, "true");
+      } catch (error) {
+        return;
+      }
+    },
     [],
   );
+  React.useEffect(() => {
+    if (location.pathname !== "/" && showHomeIntro) {
+      completeHomeIntro();
+    }
+  }, [completeHomeIntro, location.pathname, showHomeIntro]);
   const isDashboardRoute =
     location.pathname.startsWith("/student/") ||
     location.pathname.startsWith("/company/") ||

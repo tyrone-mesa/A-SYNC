@@ -315,24 +315,26 @@ const LandingPage = ({ intro = false, onIntroComplete }) => {
           variants={fadeIn}
           className="absolute inset-0"
         >
-          <motion.video
-            ref={heroVideoRef}
-            className={`absolute inset-0 h-full w-full object-cover object-[50%_20%] motion-reduce:transition-none ${hasIntroAnimation ? "landing-intro-video" : ""}`}
-            src="/media/hero-intro-2.mp4?v=6fd1a86a"
-            autoPlay
-            muted
-            loop
-            playsInline
-            controls={false}
-            onCanPlay={() => setIsVideoReady(true)}
-            initial={intro ? { opacity: 0 } : { opacity: 0, scale: 1.06 }}
-            animate={
-              intro
-                ? { opacity: isVideoReady ? 1 : 0 }
-                : { opacity: isVideoReady ? 1 : 0, scale: 1 }
-            }
-            transition={{ duration: intro ? 1 : 1.2, ease: [0.22, 1, 0.36, 1] }}
-          />
+          <div
+            className={`absolute inset-0 ${
+              hasIntroAnimation ? "landing-intro-video" : ""
+            }`}
+          >
+            <motion.video
+              ref={heroVideoRef}
+              className="absolute inset-0 h-full w-full object-cover object-[50%_20%] motion-reduce:transition-none"
+              src="/media/hero-intro-2.mp4?v=6fd1a86a"
+              autoPlay
+              muted
+              loop
+              playsInline
+              controls={false}
+              onCanPlay={() => setIsVideoReady(true)}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: isVideoReady ? 1 : 0 }}
+              transition={{ duration: 1, ease: [0.22, 1, 0.36, 1] }}
+            />
+          </div>
           {!isVideoReady && (
             <div className="absolute inset-0 animate-pulse bg-gradient-to-br from-[#0B2E22] via-[#0F3D2E] to-[#0B2E22]" />
           )}

@@ -1,4 +1,4 @@
-import React, { useRef, useState } from "react";
+import React, { useState } from "react";
 import { Link } from "react-router-dom";
 import { motion, useReducedMotion } from "framer-motion";
 import Navbar from "../components/Navbar";
@@ -14,13 +14,9 @@ import {
   ArrowRight,
   MapPin,
   ExternalLink,
-  Volume2,
-  VolumeX,
   ChevronLeft,
   ChevronRight,
 } from "lucide-react";
-
-const HERO_AUDIO_PREF_KEY = "asiatechsync_hero_audio_unmuted";
 
 const openPartnerSignup = () => {
   window.dispatchEvent(new CustomEvent("asiatech:partner-signup"));
@@ -33,11 +29,6 @@ const fadeUp = {
     y: 0,
     transition: { duration: 0.72, ease: [0.22, 1, 0.36, 1] },
   },
-};
-
-const fadeIn = {
-  hidden: { opacity: 0 },
-  visible: { opacity: 1, transition: { duration: 1.1, ease: "easeOut" } },
 };
 
 const heroContent = {
@@ -146,11 +137,8 @@ const ABOUT_SLIDES = [
 
 const LandingPage = ({ intro = false, onIntroComplete }) => {
   const { user } = useAuth();
-  const heroVideoRef = useRef(null);
-  const [isMuted, setIsMuted] = useState(true);
-  const [isVideoReady, setIsVideoReady] = useState(false);
+  const [isHeroImageReady, setIsHeroImageReady] = useState(false);
   const [isIntroRevealed, setIsIntroRevealed] = useState(!intro);
-  const [isSoundPressed, setIsSoundPressed] = useState(false);
   const [concern, setConcern] = useState({
     name: "",
     email: "",
@@ -165,12 +153,17 @@ const LandingPage = ({ intro = false, onIntroComplete }) => {
   const prefersReducedMotion = useReducedMotion();
 
   React.useEffect(() => {
-    if (!intro || !isVideoReady) return undefined;
+    if (!intro || !isHeroImageReady) return undefined;
 
     setIsIntroRevealed(true);
-    onIntroComplete();
-    return undefined;
-  }, [intro, isVideoReady, onIntroComplete]);
+    if (prefersReducedMotion) {
+      onIntroComplete();
+      return undefined;
+    }
+
+    const completionTimeout = window.setTimeout(onIntroComplete, 1250);
+    return () => window.clearTimeout(completionTimeout);
+  }, [intro, isHeroImageReady, onIntroComplete, prefersReducedMotion]);
 
   const submitConcern = async (event) => {
     event.preventDefault();
@@ -198,54 +191,6 @@ const LandingPage = ({ intro = false, onIntroComplete }) => {
       setConcernBusy(false);
     }
   };
-
-  const toggleSound = () => {
-    const video = heroVideoRef.current;
-    if (!video) return;
-    const nextMuted = !video.muted;
-    video.muted = nextMuted;
-    if (!nextMuted) {
-      video.volume = 0.85;
-      video.play().catch(() => {});
-    }
-    setIsMuted(nextMuted);
-    try {
-      window.localStorage.setItem(
-        HERO_AUDIO_PREF_KEY,
-        nextMuted ? "false" : "true",
-      );
-    } catch (e) {
-      // localStorage unavailable (e.g. private mode) — safe to ignore
-    }
-  };
-
-  React.useEffect(() => {
-    const video = heroVideoRef.current;
-    if (!video || !isVideoReady) return;
-
-    let prefersUnmuted = false;
-    try {
-      prefersUnmuted =
-        window.localStorage.getItem(HERO_AUDIO_PREF_KEY) === "true";
-    } catch (e) {
-      prefersUnmuted = false;
-    }
-
-    if (!prefersUnmuted) return;
-
-    video.muted = false;
-    video.volume = 0.85;
-    video
-      .play()
-      .then(() => {
-        setIsMuted(false);
-      })
-      .catch(() => {
-        // Browser blocked unmuted playback — stay muted so autoplay keeps working
-        video.muted = true;
-        setIsMuted(true);
-      });
-  }, [isVideoReady]);
 
   const moveAboutSlide = (direction) => {
     setAboutDirection(direction);
@@ -290,33 +235,20 @@ const LandingPage = ({ intro = false, onIntroComplete }) => {
             Skip intro
           </button>
         )}
-        <motion.div
-          initial="hidden"
-          animate="visible"
-          variants={fadeIn}
-          className="absolute inset-0"
-        >
+        <div className="absolute inset-0 bg-gradient-to-br from-[#0B2E22] via-[#0F3D2E] to-[#0B2E22]">
           <div className="absolute inset-0">
-            <motion.video
-              ref={heroVideoRef}
-              className="absolute inset-0 h-full w-full object-cover object-[50%_20%] motion-reduce:transition-none"
-              src="/media/hero-intro-2.mp4?v=6fd1a86a"
-              autoPlay
-              muted
-              loop
-              playsInline
-              controls={false}
-              onCanPlay={() => setIsVideoReady(true)}
-              initial={{ opacity: 0 }}
-              animate={{ opacity: isVideoReady ? 1 : 0 }}
-              transition={{ duration: 1, ease: [0.22, 1, 0.36, 1] }}
+            <img
+              className="absolute inset-0 h-full w-full object-cover object-[50%_20%]"
+              src="/media/hero-intro-still.webp"
+              alt=""
+              aria-hidden="true"
+              fetchpriority="high"
+              decoding="async"
+              onLoad={() => setIsHeroImageReady(true)}
             />
           </div>
-          {!isVideoReady && (
-            <div className="absolute inset-0 bg-gradient-to-br from-[#0B2E22] via-[#0F3D2E] to-[#0B2E22]" />
-          )}
           <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-[#0F3D2E]/95 via-[#0F3D2E]/15 to-[#0F3D2E]/10" />
-        </motion.div>
+        </div>
         <motion.div
           initial={intro ? { opacity: 0, y: 10 } : "hidden"}
           animate={
@@ -378,34 +310,6 @@ const LandingPage = ({ intro = false, onIntroComplete }) => {
             </button>
           </motion.div>
         </motion.div>
-        <motion.button
-          type="button"
-          onClick={toggleSound}
-          onPointerDown={() => setIsSoundPressed(true)}
-          onPointerUp={() => setIsSoundPressed(false)}
-          onPointerLeave={() => setIsSoundPressed(false)}
-          aria-label={isMuted ? "Unmute video" : "Mute video"}
-          aria-pressed={!isMuted}
-          initial={intro ? { opacity: 0 } : false}
-          className="absolute bottom-6 right-5 z-10 flex h-10 w-10 items-center justify-center rounded-full bg-white/85 text-[#0F3D2E] shadow-sm backdrop-blur-sm sm:right-8"
-          animate={
-            intro
-              ? {
-                  opacity: isIntroRevealed ? 1 : 0,
-                  scale: prefersReducedMotion || !isSoundPressed ? 1 : 0.92,
-                }
-              : prefersReducedMotion
-                ? undefined
-                : { scale: isSoundPressed ? 0.92 : 1 }
-          }
-          transition={
-            intro
-              ? { opacity: { duration: 1.05 }, scale: { duration: 0.15 } }
-              : undefined
-          }
-        >
-          {isMuted ? <VolumeX size={17} /> : <Volume2 size={17} />}
-        </motion.button>
       </section>
 
       <section

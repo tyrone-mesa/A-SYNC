@@ -431,7 +431,7 @@ const LandingPage = ({ intro = false, onIntroComplete }) => {
 
       <section
         id="about"
-        className="relative z-0 scroll-mt-24 overflow-hidden px-4 py-14 sm:px-8 sm:py-20 lg:px-12"
+        className="relative z-0 scroll-mt-24 overflow-hidden px-4 py-14 sm:px-8 sm:py-20 md:px-16 lg:px-20"
       >
         <motion.div
           initial="hidden"
@@ -468,16 +468,16 @@ const LandingPage = ({ intro = false, onIntroComplete }) => {
                 </p>
               </div>
             )}
-            <div className="mx-auto grid h-[250px] min-h-0 w-full max-w-[22rem] grid-cols-[2.5rem_minmax(0,1fr)_2.5rem] items-center gap-1 py-3 sm:h-[320px] sm:max-w-none sm:grid-cols-[3rem_minmax(0,1fr)_3rem] sm:gap-3 sm:py-7">
+            <div className="relative mx-auto grid h-[250px] min-h-0 w-full max-w-[22rem] grid-cols-[2.5rem_minmax(0,1fr)_2.5rem] items-center gap-1 py-3 sm:h-[320px] sm:max-w-none sm:grid-cols-[3rem_minmax(0,1fr)_3rem] sm:gap-3 sm:py-7 md:block">
               <button
                 type="button"
                 onClick={() => moveAboutSlide(-1)}
                 aria-label="Previous AsiatechSync team member"
-                className="z-10 flex h-10 w-10 items-center justify-center rounded-full bg-white/90 text-[#0F3D2E] shadow-sm transition hover:bg-white hover:text-[#1E5D46]"
+                className="z-10 flex h-10 w-10 items-center justify-center rounded-full bg-white/90 text-[#0F3D2E] shadow-sm transition hover:bg-white hover:text-[#1E5D46] md:hidden"
               >
                 <ChevronLeft size={18} />
               </button>
-              <div className="relative h-full min-w-0 overflow-hidden">
+              <div className="relative h-full min-w-0 overflow-hidden md:absolute md:inset-0">
                 <div className="flex h-full items-center justify-center">
                   <img
                     src={ABOUT_SLIDES[aboutSlide].image}
@@ -515,7 +515,7 @@ const LandingPage = ({ intro = false, onIntroComplete }) => {
                 type="button"
                 onClick={() => moveAboutSlide(1)}
                 aria-label="Next AsiatechSync team member"
-                className="z-10 flex h-10 w-10 items-center justify-center rounded-full bg-white/90 text-[#0F3D2E] shadow-sm transition hover:bg-white hover:text-[#1E5D46]"
+                className="z-10 flex h-10 w-10 items-center justify-center rounded-full bg-white/90 text-[#0F3D2E] shadow-sm transition hover:bg-white hover:text-[#1E5D46] md:hidden"
               >
                 <ChevronRight size={18} />
               </button>
@@ -535,6 +535,22 @@ const LandingPage = ({ intro = false, onIntroComplete }) => {
             )}
           </motion.div>
         </motion.div>
+        <button
+          type="button"
+          onClick={() => moveAboutSlide(-1)}
+          aria-label="Previous AsiatechSync team member"
+          className="absolute left-3 top-1/2 z-10 hidden h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full bg-white/90 text-[#0F3D2E] shadow-md transition hover:bg-white hover:text-[#1E5D46] md:flex lg:left-6"
+        >
+          <ChevronLeft size={20} />
+        </button>
+        <button
+          type="button"
+          onClick={() => moveAboutSlide(1)}
+          aria-label="Next AsiatechSync team member"
+          className="absolute right-3 top-1/2 z-10 hidden h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full bg-white/90 text-[#0F3D2E] shadow-md transition hover:bg-white hover:text-[#1E5D46] md:flex lg:right-6"
+        >
+          <ChevronRight size={20} />
+        </button>
       </section>
 
       <section

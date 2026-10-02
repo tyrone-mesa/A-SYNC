@@ -55,41 +55,33 @@ const escapeHtml = (value) =>
 
 const deleteUploadedFile = (fileUrl) => removeFile(fileUrl);
 
-const cleanupStagedFile = async (file) => {
-  if (!file) return;
-
-  const filePath = file.path;
-
-  if (!filePath) return;
-
-  try {
-    await fs.promises.rm(filePath, { force: true });
-  } catch (err) {
-    if (err.code !== "ENOENT") {
-      console.error(
-        "[ASIATECH SYNC] Failed to clean up staged upload:",
-        err.message,
-      );
-    }
-  }
-};
-
-// @route   GET /api/companies/me
+// GET /api/companies/me
 router.get("/me", protect, authorize("company"), async (req, res) => {
-  const profile = await CompanyProfile.findOne({
-    user: req.user._id,
-  }).populate("user", "fullName email");
+  try {
+    const profile = await CompanyProfile.findOne({
+      user: req.user._id,
+    }).populate("user", "fullName email");
 
-  if (!profile) {
-    return res.status(404).json({
-      message: "Company profile not found.",
+    if (!profile) {
+      return res.status(404).json({
+        message: "Company profile not found.",
+      });
+    }
+
+    return res.json({ profile });
+  } catch (err) {
+    console.error("Get company profile error:", err);
+
+    return res.status(500).json({
+      message: "Failed to fetch company profile.",
+      ...(process.env.DEBUG_ERRORS === "true" && {
+        error: err.message,
+      }),
     });
   }
-
-  res.json({ profile });
 });
 
-// @route   PUT /api/companies/me
+// PUT /api/companies/me
 router.put("/me", protect, authorize("company"), async (req, res) => {
   try {
     const editableFields = [
@@ -111,17 +103,29 @@ router.put("/me", protect, authorize("company"), async (req, res) => {
     });
 
     const profile = await CompanyProfile.findOneAndUpdate(
-      { user: req.user._id },
-      { $set: updates },
+      {
+        user: req.user._id,
+      },
+      {
+        $set: updates,
+      },
       {
         new: true,
         runValidators: true,
       },
     );
 
-    res.json({ profile });
+    if (!profile) {
+      return res.status(404).json({
+        message: "Company profile not found.",
+      });
+    }
+
+    return res.json({ profile });
   } catch (err) {
-    res.status(400).json({
+    console.error("Update company profile error:", err);
+
+    return res.status(400).json({
       message: "Failed to update company profile.",
       ...(process.env.DEBUG_ERRORS === "true" && {
         error: err.message,
@@ -130,8 +134,7 @@ router.put("/me", protect, authorize("company"), async (req, res) => {
   }
 });
 
-// @route   POST /api/companies/upload-logo
-// @desc    Upload company logo (JPG, JPEG, PNG, max 3MB)
+// POST /api/companies/upload-logo
 router.post(
   "/upload-logo",
   protect,
@@ -146,15 +149,18 @@ router.post(
         });
       }
 
-      console.log("[ASIATECH SYNC] Company logo upload received:", {
-        originalname: req.file.originalname,
-        filename: req.file.filename,
-        mimetype: req.file.mimetype,
-        path: req.file.path,
-        destination: req.file.destination,
-        uploadFolder: req.file.uploadFolder,
-        size: req.file.size,
-      });
+      console.log(
+        "[ASIATECH SYNC] Company logo upload received:",
+        {
+          originalname: req.file.originalname,
+          filename: req.file.filename,
+          mimetype: req.file.mimetype,
+          path: req.file.path,
+          destination: req.file.destination,
+          uploadFolder: req.file.uploadFolder,
+          size: req.file.size,
+        },
+      );
 
       const profile = await CompanyProfile.findOne({
         user: req.user._id,
@@ -163,7 +169,9 @@ router.post(
       if (!profile) {
         if (req.file.path) {
           await fs.promises
-            .rm(req.file.path, { force: true })
+            .rm(req.file.path, {
+              force: true,
+            })
             .catch(() => {});
         }
 
@@ -172,33 +180,39 @@ router.post(
         });
       }
 
-      /*
-       * Keep the old logo until the new logo has successfully
-       * uploaded and been saved.
-       */
       const oldLogo = profile.companyUploadedLogo;
 
-      await renameUpload(req.file, profile.companyName);
+      await renameUpload(
+        req.file,
+        profile.companyName,
+      );
 
-      const newLogoUrl = await persistUpload(req.file, {
-        folder: "company-logos",
-      });
+      const newLogoUrl = await persistUpload(
+        req.file,
+        {
+          folder: "company-logos",
+        },
+      );
 
       if (!newLogoUrl) {
-        throw new Error("Logo storage returned no file URL.");
+        throw new Error(
+          "Logo storage returned no file URL.",
+        );
       }
 
-      profile.companyUploadedLogo = newLogoUrl;
+      profile.companyUploadedLogo =
+        newLogoUrl;
 
       await profile.save();
 
-      /*
-       * Delete the old logo only after the new logo
-       * has been successfully saved.
-       */
-      if (oldLogo && oldLogo !== newLogoUrl) {
+      if (
+        oldLogo &&
+        oldLogo !== newLogoUrl
+      ) {
         try {
-          await deleteUploadedFile(oldLogo);
+          await deleteUploadedFile(
+            oldLogo,
+          );
         } catch (deleteError) {
           console.error(
             "[ASIATECH SYNC] Failed to delete old company logo:",
@@ -216,7 +230,8 @@ router.post(
       );
 
       return res.json({
-        message: "Logo uploaded successfully.",
+        message:
+          "Logo uploaded successfully.",
         profile,
       });
     } catch (err) {
@@ -225,18 +240,22 @@ router.post(
         err,
       );
 
-      /*
-       * persistUpload normally removes the temporary file.
-       * This is a fallback in case something failed before
-       * the temporary file was removed.
-       */
-      if (req.file && req.file.path) {
+      if (
+        req.file &&
+        req.file.path
+      ) {
         try {
-          await fs.promises.rm(req.file.path, {
-            force: true,
-          });
+          await fs.promises.rm(
+            req.file.path,
+            {
+              force: true,
+            },
+          );
         } catch (cleanupError) {
-          if (cleanupError.code !== "ENOENT") {
+          if (
+            cleanupError.code !==
+            "ENOENT"
+          ) {
             console.error(
               "[ASIATECH SYNC] Failed to clean staged logo:",
               cleanupError.message,
@@ -246,8 +265,10 @@ router.post(
       }
 
       return res.status(400).json({
-        message: "Failed to upload logo.",
-        ...(process.env.DEBUG_ERRORS === "true" && {
+        message:
+          "Failed to upload logo.",
+        ...(process.env.DEBUG_ERRORS ===
+          "true" && {
           error: err.message,
         }),
       });
@@ -255,33 +276,40 @@ router.post(
   },
 );
 
-// @route   DELETE /api/companies/logo
-// @desc    Delete company's uploaded logo
+// DELETE /api/companies/logo
 router.delete(
   "/logo",
   protect,
   authorize("company"),
   async (req, res) => {
     try {
-      const profile = await CompanyProfile.findOne({
-        user: req.user._id,
-      });
+      const profile =
+        await CompanyProfile.findOne({
+          user: req.user._id,
+        });
 
       if (!profile) {
         return res.status(404).json({
-          message: "Company profile not found.",
+          message:
+            "Company profile not found.",
         });
       }
 
-      if (!profile.companyUploadedLogo) {
+      if (
+        !profile.companyUploadedLogo
+      ) {
         return res.status(400).json({
-          message: "No logo to delete.",
+          message:
+            "No logo to delete.",
         });
       }
 
-      await deleteUploadedFile(profile.companyUploadedLogo);
+      await deleteUploadedFile(
+        profile.companyUploadedLogo,
+      );
 
-      profile.companyUploadedLogo = "";
+      profile.companyUploadedLogo =
+        "";
 
       await profile.save();
 
@@ -289,19 +317,22 @@ router.delete(
         `[ASIATECH SYNC] Company logo deleted: ${profile.companyName}`,
       );
 
-      res.json({
-        message: "Logo deleted successfully.",
+      return res.json({
+        message:
+          "Logo deleted successfully.",
         profile,
       });
     } catch (err) {
       console.error(
-        "[ASIATECH SYNC] Company logo deletion failed:",
+        "Delete company logo error:",
         err,
       );
 
-      res.status(400).json({
-        message: "Failed to delete logo.",
-        ...(process.env.DEBUG_ERRORS === "true" && {
+      return res.status(400).json({
+        message:
+          "Failed to delete logo.",
+        ...(process.env.DEBUG_ERRORS ===
+          "true" && {
           error: err.message,
         }),
       });
@@ -309,94 +340,164 @@ router.delete(
   },
 );
 
-// @route   GET /api/companies
-// @desc    Public directory of verified companies
+// GET /api/companies
 router.get("/", async (req, res) => {
-  const companies = await CompanyProfile.find({
-    isVerified: true,
-  }).select(
-    "companyName industry logoUrl companyUploadedLogo address website",
-  );
+  try {
+    const companies =
+      await CompanyProfile.find({
+        isVerified: true,
+      }).select(
+        "companyName industry logoUrl companyUploadedLogo address website",
+      );
 
-  const companiesWithLogos = companies.map((company) =>
-    company.toObject(),
-  );
+    const companiesWithLogos =
+      companies.map((company) =>
+        company.toObject(),
+      );
 
-  res.json({
-    companies: companiesWithLogos,
-  });
+    return res.json({
+      companies:
+        companiesWithLogos,
+    });
+  } catch (err) {
+    console.error(
+      "Get companies error:",
+      err,
+    );
+
+    return res.status(500).json({
+      message:
+        "Failed to fetch companies.",
+    });
+  }
 });
 
-// @route   GET /api/companies/ojt-students/current
+// GET /api/companies/ojt-students/current
 router.get(
   "/ojt-students/current",
   protect,
   authorize("company"),
   async (req, res) => {
     try {
-      const companyProfile = await CompanyProfile.findOne({
-        user: req.user._id,
-      });
+      const companyProfile =
+        await CompanyProfile.findOne({
+          user: req.user._id,
+        });
 
       if (!companyProfile) {
         return res.status(404).json({
-          message: "Company profile not found.",
+          message:
+            "Company profile not found.",
         });
       }
 
-      const ojtJobs = await Job.find({
-        company: companyProfile._id,
-        jobType: "OJT",
-      }).select("_id");
+      const ojtJobs =
+        await Job.find({
+          company:
+            companyProfile._id,
+          jobType: "OJT",
+        }).select("_id");
 
-      const jobIds = ojtJobs.map((j) => j._id);
+      const jobIds =
+        ojtJobs.map(
+          (job) => job._id,
+        );
 
-      const acceptedApplications = await Application.find({
-        company: companyProfile._id,
-        status: "approved",
-        job: { $in: jobIds },
-      })
-        .populate({
-          path: "student",
-          select:
-            "user course department skills phone requiredOJTHours completedOJTHours performanceGrade evaluation assessmentSubmittedAt",
-          populate: {
-            path: "user",
-            select: "_id fullName email",
+      const acceptedApplications =
+        await Application.find({
+          company:
+            companyProfile._id,
+          status: "approved",
+          job: {
+            $in: jobIds,
           },
         })
-        .populate({
-          path: "job",
-          select: "title department",
-        })
-        .sort({ createdAt: 1 });
+          .populate({
+            path: "student",
+            select:
+              "user course department skills phone requiredOJTHours completedOJTHours performanceGrade evaluation assessmentSubmittedAt",
+            populate: {
+              path: "user",
+              select:
+                "_id fullName email",
+            },
+          })
+          .populate({
+            path: "job",
+            select:
+              "title department",
+          })
+          .sort({
+            createdAt: 1,
+          });
 
-      const students = acceptedApplications.map((app) => ({
-        applicationId: app._id,
-        studentId: app.student._id,
-        userId: app.student.user._id,
-        fullName: app.student.user.fullName,
-        email: app.student.user.email,
-        phone: app.student.phone,
-        course: app.student.course,
-        department: app.student.department,
-        skills: app.student.skills,
-        requiredOJTHours: app.student.requiredOJTHours || 0,
-        completedOJTHours: app.student.completedOJTHours || 0,
-        performanceGrade: app.student.performanceGrade || "",
-        evaluation: app.student.evaluation || "",
-        assessmentSubmittedAt:
-          app.student.assessmentSubmittedAt || null,
-        jobTitle: app.job.title,
-        jobDepartment: app.job.department,
-        acceptedAt: app.createdAt,
-      }));
+      const students =
+        acceptedApplications.map(
+          (app) => ({
+            applicationId:
+              app._id,
+            studentId:
+              app.student._id,
+            userId:
+              app.student.user._id,
+            fullName:
+              app.student.user
+                .fullName,
+            email:
+              app.student.user
+                .email,
+            phone:
+              app.student.phone,
+            course:
+              app.student.course,
+            department:
+              app.student
+                .department,
+            skills:
+              app.student.skills,
+            requiredOJTHours:
+              app.student
+                .requiredOJTHours ||
+              0,
+            completedOJTHours:
+              app.student
+                .completedOJTHours ||
+              0,
+            performanceGrade:
+              app.student
+                .performanceGrade ||
+              "",
+            evaluation:
+              app.student
+                .evaluation ||
+              "",
+            assessmentSubmittedAt:
+              app.student
+                .assessmentSubmittedAt ||
+              null,
+            jobTitle:
+              app.job.title,
+            jobDepartment:
+              app.job.department,
+            acceptedAt:
+              app.createdAt,
+          }),
+        );
 
-      res.json({ students });
+      return res.json({
+        students,
+      });
     } catch (err) {
-      res.status(400).json({
-        message: "Failed to fetch students.",
-        ...(process.env.DEBUG_ERRORS === "true" && {
+      console.error(
+        "Get OJT students error:",
+        err,
+      );
+
+      return res.status(400).json({
+        message:
+          "Failed to fetch students.",
+        ...(process.env.DEBUG_ERRORS ===
+          "true" && {
           error: err.message,
         }),
       });
@@ -404,29 +505,33 @@ router.get(
   },
 );
 
-// @route   GET /api/companies/attendance/student/:studentId
-// @desc    Get attendance records for a specific student from this company
+// GET /api/companies/attendance/student/:studentId
 router.get(
   "/attendance/student/:studentId",
   protect,
   authorize("company"),
   async (req, res) => {
     try {
-      const companyProfile = await CompanyProfile.findOne({
-        user: req.user._id,
-      });
+      const companyProfile =
+        await CompanyProfile.findOne({
+          user: req.user._id,
+        });
 
       if (!companyProfile) {
         return res.status(404).json({
-          message: "Company profile not found.",
+          message:
+            "Company profile not found.",
         });
       }
 
-      const application = await Application.findOne({
-        company: companyProfile._id,
-        student: req.params.studentId,
-        status: "approved",
-      });
+      const application =
+        await Application.findOne({
+          company:
+            companyProfile._id,
+          student:
+            req.params.studentId,
+          status: "approved",
+        });
 
       if (!application) {
         return res.status(403).json({
@@ -435,21 +540,31 @@ router.get(
         });
       }
 
-      const attendanceRecords = await AttendanceLog.find({
-        student: req.params.studentId,
-        company: companyProfile._id,
-      }).sort({
-        date: -1,
-        timeIn: -1,
-      });
+      const attendanceRecords =
+        await AttendanceLog.find({
+          student:
+            req.params.studentId,
+          company:
+            companyProfile._id,
+        }).sort({
+          date: -1,
+          timeIn: -1,
+        });
 
-      res.json({
+      return res.json({
         attendanceRecords,
       });
     } catch (err) {
-      res.status(400).json({
-        message: "Failed to fetch attendance.",
-        ...(process.env.DEBUG_ERRORS === "true" && {
+      console.error(
+        "Get attendance error:",
+        err,
+      );
+
+      return res.status(400).json({
+        message:
+          "Failed to fetch attendance.",
+        ...(process.env.DEBUG_ERRORS ===
+          "true" && {
           error: err.message,
         }),
       });
@@ -457,7 +572,7 @@ router.get(
   },
 );
 
-// A completed student's company assessment is an immutable submission.
+// POST /api/companies/students/:studentId/assessment
 router.post(
   "/students/:studentId/assessment",
   protect,
@@ -466,25 +581,34 @@ router.post(
   scanUploadedFile,
   async (req, res) => {
     try {
-      const companyProfile = await CompanyProfile.findOne({
-        user: req.user._id,
-      });
+      const companyProfile =
+        await CompanyProfile.findOne({
+          user: req.user._id,
+        });
 
-      const profile = await StudentProfile.findById(
-        req.params.studentId,
-      );
+      const profile =
+        await StudentProfile.findById(
+          req.params.studentId,
+        );
 
-      if (!companyProfile || !profile) {
+      if (
+        !companyProfile ||
+        !profile
+      ) {
         return res.status(404).json({
-          message: "Student or company profile not found.",
+          message:
+            "Student or company profile not found.",
         });
       }
 
-      const application = await Application.findOne({
-        company: companyProfile._id,
-        student: profile._id,
-        status: "approved",
-      });
+      const application =
+        await Application.findOne({
+          company:
+            companyProfile._id,
+          student:
+            profile._id,
+          status: "approved",
+        });
 
       if (!application) {
         return res.status(403).json({
@@ -494,8 +618,10 @@ router.post(
       }
 
       if (
-        (profile.completedOJTHours || 0) <
-        (profile.requiredOJTHours || 0)
+        (profile.completedOJTHours ||
+          0) <
+        (profile.requiredOJTHours ||
+          0)
       ) {
         return res.status(400).json({
           message:
@@ -503,7 +629,9 @@ router.post(
         });
       }
 
-      if (profile.assessmentSubmittedAt) {
+      if (
+        profile.assessmentSubmittedAt
+      ) {
         return res.status(409).json({
           message:
             "This student's grade and evaluation are already final.",
@@ -521,42 +649,68 @@ router.post(
         });
       }
 
-      profile.performanceGrade = String(
-        req.body.performanceGrade,
-      ).trim();
+      profile.performanceGrade =
+        String(
+          req.body.performanceGrade,
+        ).trim();
 
-      profile.evaluation = String(
-        req.body.evaluation,
-      ).trim();
+      profile.evaluation =
+        String(
+          req.body.evaluation,
+        ).trim();
 
-      profile.certificateUrl = await persistUpload(req.file, {
-        folder: "certificates",
-      });
+      profile.certificateUrl =
+        await persistUpload(
+          req.file,
+          {
+            folder:
+              "certificates",
+          },
+        );
 
       profile.certificateOriginalName =
         req.file.originalname;
 
-      profile.assessmentSubmittedAt = new Date();
+      profile.assessmentSubmittedAt =
+        new Date();
 
-      profile.assessmentCompany = companyProfile._id;
+      profile.assessmentCompany =
+        companyProfile._id;
 
       profile.companyPlacement =
         companyProfile.companyName;
 
       await profile.save();
 
-      res.status(201).json({
-        message: "Assessment submitted and locked.",
+      return res.status(201).json({
+        message:
+          "Assessment submitted and locked.",
         profile,
       });
     } catch (err) {
-      if (req.file && req.file.path) {
-        await cleanupStagedFile(req.file);
+      console.error(
+        "Assessment submission error:",
+        err,
+      );
+
+      if (req.file) {
+        try {
+          await deleteUploadedFile(
+            `/uploads/${req.file.filename}`,
+          );
+        } catch (cleanupError) {
+          console.error(
+            "Assessment file cleanup error:",
+            cleanupError.message,
+          );
+        }
       }
 
-      res.status(400).json({
-        message: "Failed to submit assessment.",
-        ...(process.env.DEBUG_ERRORS === "true" && {
+      return res.status(400).json({
+        message:
+          "Failed to submit assessment.",
+        ...(process.env.DEBUG_ERRORS ===
+          "true" && {
           error: err.message,
         }),
       });
@@ -564,63 +718,81 @@ router.post(
   },
 );
 
-// @route   GET /api/companies/:id
+// GET /api/companies/:id
 router.get("/:id", async (req, res) => {
-  const profile = await CompanyProfile.findById(
-    req.params.id,
-  );
+  try {
+    const profile =
+      await CompanyProfile.findById(
+        req.params.id,
+      );
 
-  if (!profile) {
-    return res.status(404).json({
-      message: "Company not found.",
+    if (!profile) {
+      return res.status(404).json({
+        message:
+          "Company not found.",
+      });
+    }
+
+    return res.json({
+      profile:
+        profile.toObject(),
+    });
+  } catch (err) {
+    return res.status(400).json({
+      message:
+        "Failed to fetch company.",
     });
   }
-
-  const profileObj = profile.toObject();
-
-  res.json({
-    profile: profileObj,
-  });
 });
 
-// @route   GET /api/companies/attendance/student/:studentId/export/:format
-// @desc    Export one approved student's Daily Time Record as XLSX or XLS
+// GET /api/companies/attendance/student/:studentId/export/:format
 router.get(
   "/attendance/student/:studentId/export/:format",
   protect,
   authorize("company"),
   async (req, res) => {
     try {
-      const format = req.params.format.toLowerCase();
+      const format =
+        req.params.format.toLowerCase();
 
-      if (!["xlsx", "xls"].includes(format)) {
+      if (
+        !["xlsx", "xls"].includes(
+          format,
+        )
+      ) {
         return res.status(400).json({
-          message: "Format must be xlsx or xls.",
+          message:
+            "Format must be xlsx or xls.",
         });
       }
 
-      const companyProfile = await CompanyProfile.findOne({
-        user: req.user._id,
-      });
+      const companyProfile =
+        await CompanyProfile.findOne({
+          user: req.user._id,
+        });
 
       if (!companyProfile) {
         return res.status(404).json({
-          message: "Company profile not found.",
+          message:
+            "Company profile not found.",
         });
       }
 
-      const application = await Application.findOne({
-        company: companyProfile._id,
-        student: req.params.studentId,
-        status: "approved",
-      }).populate({
-        path: "student",
-        select: "user",
-        populate: {
-          path: "user",
-          select: "fullName",
-        },
-      });
+      const application =
+        await Application.findOne({
+          company:
+            companyProfile._id,
+          student:
+            req.params.studentId,
+          status: "approved",
+        }).populate({
+          path: "student",
+          select: "user",
+          populate: {
+            path: "user",
+            select: "fullName",
+          },
+        });
 
       if (!application) {
         return res.status(403).json({
@@ -629,23 +801,38 @@ router.get(
         });
       }
 
-      const records = await AttendanceLog.find({
-        student: req.params.studentId,
-        company: companyProfile._id,
-      }).sort({
-        date: -1,
-        timeIn: -1,
-      });
+      const records =
+        await AttendanceLog.find({
+          student:
+            req.params.studentId,
+          company:
+            companyProfile._id,
+        }).sort({
+          date: -1,
+          timeIn: -1,
+        });
 
-      const rows = records.map((record) => ({
-        studentName:
-          application.student.user.fullName,
-        timeIn: formatDtrTime(record.timeIn),
-        timeOut:
-          formatDtrTime(record.timeOut) ||
-          "Not recorded",
-        date: formatDtrDate(record.date),
-      }));
+      const rows =
+        records.map(
+          (record) => ({
+            studentName:
+              application.student
+                .user.fullName,
+            timeIn:
+              formatDtrTime(
+                record.timeIn,
+              ),
+            timeOut:
+              formatDtrTime(
+                record.timeOut,
+              ) ||
+              "Not recorded",
+            date:
+              formatDtrDate(
+                record.date,
+              ),
+          }),
+        );
 
       const fileName = `${application.student.user.fullName.replace(
         /[^a-z0-9]+/gi,
@@ -653,16 +840,20 @@ router.get(
       )}_DTR.${format}`;
 
       if (format === "xlsx") {
-        const workbook = new ExcelJS.Workbook();
+        const workbook =
+          new ExcelJS.Workbook();
 
-        const sheet = workbook.addWorksheet(
-          "Daily Time Record",
-        );
+        const sheet =
+          workbook.addWorksheet(
+            "Daily Time Record",
+          );
 
         sheet.columns = [
           {
-            header: "Student Name",
-            key: "studentName",
+            header:
+              "Student Name",
+            key:
+              "studentName",
             width: 28,
           },
           {
@@ -682,9 +873,10 @@ router.get(
           },
         ];
 
-        rows.forEach((row) => {
-          sheet.addRow(row);
-        });
+        rows.forEach(
+          (row) =>
+            sheet.addRow(row),
+        );
 
         sheet.getRow(1).font = {
           bold: true,
@@ -707,10 +899,13 @@ router.get(
         res.set({
           "Content-Type":
             "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-          "Content-Disposition": `attachment; filename="${fileName}"`,
+          "Content-Disposition":
+            `attachment; filename="${fileName}"`,
         });
 
-        return res.send(buffer);
+        return res.send(
+          buffer,
+        );
       }
 
       const headers = [
@@ -720,42 +915,60 @@ router.get(
         "Date",
       ];
 
-      const tableRows = rows.length
-        ? rows
-            .map(
-              (row) =>
-                `<tr>${[
-                  row.studentName,
-                  row.timeIn,
-                  row.timeOut,
-                  row.date,
-                ]
-                  .map(
-                    (value) =>
-                      `<td>${escapeHtml(value)}</td>`,
-                  )
-                  .join("")}</tr>`,
-            )
-            .join("")
-        : `<tr><td colspan="4">No attendance records yet.</td></tr>`;
+      const tableRows =
+        rows.length
+          ? rows
+              .map(
+                (row) =>
+                  `<tr>${[
+                    row.studentName,
+                    row.timeIn,
+                    row.timeOut,
+                    row.date,
+                  ]
+                    .map(
+                      (value) =>
+                        `<td>${escapeHtml(
+                          value,
+                        )}</td>`,
+                    )
+                    .join(
+                      "",
+                    )}</tr>`,
+              )
+              .join("")
+          : `<tr><td colspan="4">No attendance records yet.</td></tr>`;
 
       const html = `<table><thead><tr>${headers
         .map(
-          (header) => `<th>${header}</th>`,
+          (header) =>
+            `<th>${header}</th>`,
         )
-        .join("")}</tr></thead><tbody>${tableRows}</tbody></table>`;
+        .join(
+          "",
+        )}</tr></thead><tbody>${tableRows}</tbody></table>`;
 
       res.set({
-        "Content-Type": "application/vnd.ms-excel",
-        "Content-Disposition": `attachment; filename="${fileName}"`,
+        "Content-Type":
+          "application/vnd.ms-excel",
+        "Content-Disposition":
+          `attachment; filename="${fileName}"`,
       });
 
-      return res.send(html);
+      return res.send(
+        html,
+      );
     } catch (err) {
+      console.error(
+        "DTR export error:",
+        err,
+      );
+
       return res.status(400).json({
         message:
           "Failed to export Daily Time Record.",
-        ...(process.env.DEBUG_ERRORS === "true" && {
+        ...(process.env.DEBUG_ERRORS ===
+          "true" && {
           error: err.message,
         }),
       });
@@ -763,19 +976,21 @@ router.get(
   },
 );
 
-// @route   POST /api/companies/attendance/time-in
-// @desc    Company records time in for a student
+// POST /api/companies/attendance/time-in
 router.post(
   "/attendance/time-in",
   protect,
   authorize("company"),
   async (req, res) => {
     try {
-      const { studentId } = req.body;
+      const {
+        studentId,
+      } = req.body;
 
       if (!studentId) {
         return res.status(400).json({
-          message: "Student ID is required.",
+          message:
+            "Student ID is required.",
         });
       }
 
@@ -793,8 +1008,10 @@ router.post(
 
       const application =
         await Application.findOne({
-          company: companyProfile._id,
-          student: studentId,
+          company:
+            companyProfile._id,
+          student:
+            studentId,
           status: "approved",
         }).populate({
           path: "student",
@@ -806,4 +1023,267 @@ router.post(
           message:
             "Access denied. Student not found in your OJT roster.",
         });
-        
+      }
+
+      const studentProfile =
+        await StudentProfile.findById(
+          studentId,
+        ).populate(
+          "user",
+          "_id fullName email",
+        );
+
+      if (!studentProfile) {
+        return res.status(404).json({
+          message:
+            "Student profile not found.",
+        });
+      }
+
+      const now =
+        new Date();
+
+      const dateStr =
+        getPhilippineDateString(
+          now,
+        );
+
+      const existingOpen =
+        await AttendanceLog.findOne({
+          student:
+            studentId,
+          company:
+            companyProfile._id,
+          date:
+            dateStr,
+          status:
+            "open",
+        });
+
+      if (existingOpen) {
+        return res.status(400).json({
+          message:
+            "Student already has an open attendance record for today. Please time out first.",
+        });
+      }
+
+      const attendance =
+        await AttendanceLog.create({
+          student:
+            studentId,
+          company:
+            companyProfile._id,
+          date:
+            dateStr,
+          timeIn:
+            now,
+          status:
+            "open",
+          companyVerified:
+            true,
+        });
+
+      await createInAppNotification(
+        {
+          recipientUserId:
+            studentProfile
+              .user._id,
+          type:
+            "attendance_update",
+          title:
+            "OJT Time In recorded",
+          body:
+            `Your company recorded your OJT time in at ${getPhilippineTimeString(
+              now,
+            )} (PH Time).`,
+          link:
+            "/student/dashboard",
+        },
+      );
+
+      const populatedAttendance =
+        await AttendanceLog.findById(
+          attendance._id,
+        ).populate({
+          path: "student",
+          select: "user",
+          populate: {
+            path: "user",
+            select:
+              "fullName",
+          },
+        });
+
+      return res.status(201).json({
+        message:
+          "Time in recorded successfully.",
+        attendance:
+          populatedAttendance,
+      });
+    } catch (err) {
+      console.error(
+        "Time In Error:",
+        err,
+      );
+
+      return res.status(400).json({
+        message:
+          "Failed to record time in.",
+        ...(process.env.DEBUG_ERRORS ===
+          "true" && {
+          error: err.message,
+        }),
+      });
+    }
+  },
+);
+
+// POST /api/companies/attendance/time-out
+router.post(
+  "/attendance/time-out",
+  protect,
+  authorize("company"),
+  async (req, res) => {
+    try {
+      const {
+        attendanceId,
+      } = req.body;
+
+      const companyProfile =
+        await CompanyProfile.findOne({
+          user: req.user._id,
+        });
+
+      if (!companyProfile) {
+        return res.status(404).json({
+          message:
+            "Company profile not found.",
+        });
+      }
+
+      const attendance =
+        await AttendanceLog.findById(
+          attendanceId,
+        ).populate({
+          path: "student",
+          populate: {
+            path: "user",
+            select:
+              "_id fullName email",
+          },
+        });
+
+      if (!attendance) {
+        return res.status(404).json({
+          message:
+            "Attendance record not found.",
+        });
+      }
+
+      if (
+        attendance.company.toString() !==
+        companyProfile._id.toString()
+      ) {
+        return res.status(403).json({
+          message:
+            "Access denied. This record does not belong to your company.",
+        });
+      }
+
+      if (
+        attendance.status !==
+        "open"
+      ) {
+        return res.status(400).json({
+          message:
+            "This attendance record is already closed.",
+        });
+      }
+
+      const now =
+        new Date();
+
+      attendance.timeOut =
+        now;
+
+      const timeInMs =
+        attendance.timeIn.getTime();
+
+      const timeOutMs =
+        now.getTime();
+
+      const hoursLogged =
+        (timeOutMs -
+          timeInMs) /
+        (1000 * 60 * 60);
+
+      attendance.hoursLogged =
+        Math.round(
+          hoursLogged * 100,
+        ) / 100;
+
+      attendance.status =
+        "completed";
+
+      await attendance.save();
+
+      const studentProfile =
+        await StudentProfile.findById(
+          attendance
+            .student._id,
+        );
+
+      if (studentProfile) {
+        studentProfile.completedOJTHours =
+          (studentProfile.completedOJTHours ||
+            0) +
+          attendance.hoursLogged;
+
+        await studentProfile.save();
+
+        await createInAppNotification(
+          {
+            recipientUserId:
+              attendance
+                .student
+                .user._id,
+            type:
+              "attendance_update",
+            title:
+              "OJT Time Out recorded",
+            body:
+              `Your company recorded your OJT time out at ${getPhilippineTimeString(
+                now,
+              )} (PH Time). ${attendance.hoursLogged} hour(s) were added to your total.`,
+            link:
+              "/student/dashboard",
+          },
+        );
+      }
+
+      return res.json({
+        message:
+          "Time out recorded successfully.",
+        attendance,
+        hoursLogged:
+          attendance.hoursLogged,
+      });
+    } catch (err) {
+      console.error(
+        "Time Out Error:",
+        err,
+      );
+
+      return res.status(400).json({
+        message:
+          "Failed to record time out.",
+        ...(process.env.DEBUG_ERRORS ===
+          "true" && {
+          error: err.message,
+        }),
+      });
+    }
+  },
+);
+
+module.exports = router;

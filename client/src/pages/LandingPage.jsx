@@ -1,4 +1,4 @@
-import React, { useCallback, useState } from "react";
+import React, { useCallback, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { motion, useReducedMotion } from "framer-motion";
 import Navbar from "../components/Navbar";
@@ -14,8 +14,10 @@ import {
   ArrowRight,
   MapPin,
   ExternalLink,
+  Pause,
   ChevronLeft,
   ChevronRight,
+  Play,
 } from "lucide-react";
 
 const INTRO_DURATION = 9.2;
@@ -144,9 +146,11 @@ const ABOUT_SLIDES = [
 
 const LandingPage = ({ intro = false, onIntroComplete }) => {
   const { user } = useAuth();
+  const heroVideoRef = useRef(null);
   const [isIntroRevealed, setIsIntroRevealed] = useState(!intro);
   const [isIntroVideoPlaying, setIsIntroVideoPlaying] = useState(false);
   const [hasIntroVideoFailed, setHasIntroVideoFailed] = useState(false);
+  const [isHeroVideoPaused, setIsHeroVideoPaused] = useState(false);
   const [concern, setConcern] = useState({
     name: "",
     email: "",
@@ -275,17 +279,19 @@ const LandingPage = ({ intro = false, onIntroComplete }) => {
               fetchpriority="high"
               decoding="async"
             />
-            {intro && !prefersReducedMotion && !hasIntroVideoFailed && (
+            {!prefersReducedMotion && !hasIntroVideoFailed && (
               <video
-                className="absolute inset-0 h-full w-full object-cover object-[50%_20%]"
+                ref={heroVideoRef}
+                className="absolute inset-0 h-full w-full object-cover object-[50%_20%] transition-opacity duration-700 ease-out motion-reduce:transition-none"
+                style={{ opacity: isIntroVideoPlaying ? 1 : 0 }}
                 src="/media/hero-intro-2.mp4?v=6fd1a86a"
                 poster="/media/hero-intro-still.webp"
                 autoPlay
+                loop
                 muted
                 playsInline
-                preload="auto"
+                preload="metadata"
                 onPlaying={() => setIsIntroVideoPlaying(true)}
-                onEnded={finishIntroVideo}
                 onError={() => setHasIntroVideoFailed(true)}
               />
             )}
@@ -353,6 +359,30 @@ const LandingPage = ({ intro = false, onIntroComplete }) => {
             </button>
           </motion.div>
         </motion.div>
+        {!prefersReducedMotion && !hasIntroVideoFailed && (
+          <button
+            type="button"
+            onClick={() => {
+              const video = heroVideoRef.current;
+              if (!video) return;
+              if (video.paused) {
+                video.play().catch(() => {
+                  setIsHeroVideoPaused(true);
+                });
+                setIsHeroVideoPaused(false);
+              } else {
+                video.pause();
+                setIsHeroVideoPaused(true);
+              }
+            }}
+            aria-label={
+              isHeroVideoPaused ? "Play background video" : "Pause background video"
+            }
+            className="absolute bottom-6 right-5 z-10 flex h-10 w-10 items-center justify-center rounded-full bg-white/85 text-[#0F3D2E] shadow-sm transition hover:bg-white focus:outline-none focus:ring-2 focus:ring-[#E8C165] focus:ring-offset-2 focus:ring-offset-[#0F3D2E] sm:right-8"
+          >
+            {isHeroVideoPaused ? <Play size={17} /> : <Pause size={17} />}
+          </button>
+        )}
       </section>
 
       <section

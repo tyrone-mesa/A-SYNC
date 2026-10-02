@@ -150,7 +150,7 @@ const LandingPage = ({ intro = false, onIntroComplete }) => {
   const [isIntroRevealed, setIsIntroRevealed] = useState(!intro);
   const [isIntroVideoPlaying, setIsIntroVideoPlaying] = useState(false);
   const [hasIntroVideoFailed, setHasIntroVideoFailed] = useState(false);
-  const [isHeroVideoPaused, setIsHeroVideoPaused] = useState(false);
+  const [isHeroVideoPaused, setIsHeroVideoPaused] = useState(true);
   const [concern, setConcern] = useState({
     name: "",
     email: "",
@@ -279,19 +279,27 @@ const LandingPage = ({ intro = false, onIntroComplete }) => {
               fetchpriority="high"
               decoding="async"
             />
-            {!prefersReducedMotion && !hasIntroVideoFailed && (
+            {!hasIntroVideoFailed && (
               <video
                 ref={heroVideoRef}
                 className="absolute inset-0 h-full w-full object-cover object-[50%_20%] transition-opacity duration-700 ease-out motion-reduce:transition-none"
-                style={{ opacity: isIntroVideoPlaying ? 1 : 0 }}
+                style={{
+                  opacity:
+                    prefersReducedMotion && isHeroVideoPaused ? 0 : 1,
+                }}
                 src="/media/hero-intro-2.mp4?v=6fd1a86a"
                 poster="/media/hero-intro-still.webp"
-                autoPlay
+                autoPlay={!prefersReducedMotion}
                 loop
                 muted
                 playsInline
                 preload="metadata"
-                onPlaying={() => setIsIntroVideoPlaying(true)}
+                onPlay={() => setIsIntroVideoPlaying(true)}
+                onPlaying={() => {
+                  setIsIntroVideoPlaying(true);
+                  setIsHeroVideoPaused(false);
+                }}
+                onPause={() => setIsHeroVideoPaused(true)}
                 onError={() => setHasIntroVideoFailed(true)}
               />
             )}
@@ -359,7 +367,7 @@ const LandingPage = ({ intro = false, onIntroComplete }) => {
             </button>
           </motion.div>
         </motion.div>
-        {!prefersReducedMotion && !hasIntroVideoFailed && (
+        {!hasIntroVideoFailed && (
           <button
             type="button"
             onClick={() => {
@@ -369,7 +377,6 @@ const LandingPage = ({ intro = false, onIntroComplete }) => {
                 video.play().catch(() => {
                   setIsHeroVideoPaused(true);
                 });
-                setIsHeroVideoPaused(false);
               } else {
                 video.pause();
                 setIsHeroVideoPaused(true);
@@ -378,7 +385,7 @@ const LandingPage = ({ intro = false, onIntroComplete }) => {
             aria-label={
               isHeroVideoPaused ? "Play background video" : "Pause background video"
             }
-            className="absolute bottom-6 right-5 z-10 flex h-10 w-10 items-center justify-center rounded-full bg-white/85 text-[#0F3D2E] shadow-sm transition hover:bg-white focus:outline-none focus:ring-2 focus:ring-[#E8C165] focus:ring-offset-2 focus:ring-offset-[#0F3D2E] sm:right-8"
+            className="absolute bottom-24 right-5 z-20 flex h-10 w-10 items-center justify-center rounded-full bg-white/90 text-[#0F3D2E] shadow-sm transition hover:bg-white focus:outline-none focus:ring-2 focus:ring-[#E8C165] focus:ring-offset-2 focus:ring-offset-[#0F3D2E] sm:right-8"
           >
             {isHeroVideoPaused ? <Play size={17} /> : <Pause size={17} />}
           </button>

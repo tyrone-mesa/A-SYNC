@@ -1,318 +1,621 @@
 const fs = require("fs");
 const path = require("path");
+const crypto = require("crypto");
 const { execFile } = require("child_process");
-const { recordAudit } = require("../utils/securityAudit");
+const util = require("util");
 
-function getActualFilePath(file) {
-  if (!file) return null;
+const execFileAsync = util.promisify(execFile);
 
-  // Normal Multer diskStorage path
-  if (file.path && fs.existsSync(file.path)) {
-    return file.path;
+const REJECTION_MESSAGE =
+  "The uploaded file could not be inspected and was rejected.";
+
+const ALLOWED_EXTENSIONS = new Set([
+  ".jpg",
+  ".jpeg",
+  ".png",
+]);
+
+const ALLOWED_MIMETYPES = new Set([
+  "image/jpeg",
+  "image/png",
+]);
+
+const CLOUDINARY_HOSTS = new Set([
+  "res.cloudinary.com",
+  "cloudinary.com",
+]);
+
+const MAX_FILE_SIZE = 3 * 1024 * 1024;
+
+function isCloudinaryFile(file) {
+  if (!file) return false;
+
+  if (
+    String(file.destination || "")
+      .toLowerCase()
+      .includes("cloudinary")
+  ) {
+    return true;
   }
 
-  // Try destination + filename
-  if (file.destination && file.filename) {
-    const candidate = path.join(file.destination, file.filename);
+  const possibleUrls = [
+    file.path,
+    file.secure_url,
+    file.secureUrl,
+    file.url,
+  ].filter(Boolean);
 
-    if (fs.existsSync(candidate)) {
-      file.path = candidate;
-      return candidate;
+  return possibleUrls.some((value) => {
+    try {
+      const url = new URL(String(value));
+
+      return CLOUDINARY_HOSTS.has(
+        url.hostname.toLowerCase(),
+      );
+    } catch {
+      return false;
     }
-  }
-
-  // Try destination + uploadFolder + filename
-  if (file.destination && file.uploadFolder && file.filename) {
-    const candidate = path.join(
-      file.destination,
-      file.uploadFolder,
-      file.filename,
-    );
-
-    if (fs.existsSync(candidate)) {
-      file.path = candidate;
-      return candidate;
-    }
-  }
-
-  return null;
-}
-
-function matchesSignature(filePath, extension) {
-  if (!filePath || !fs.existsSync(filePath)) {
-    return false;
-  }
-
-  const header = fs.readFileSync(filePath).subarray(0, 16);
-
-  // JPEG
-  if (extension === ".jpg" || extension === ".jpeg") {
-    return (
-      header.length >= 3 &&
-      header[0] === 0xff &&
-      header[1] === 0xd8 &&
-      header[2] === 0xff
-    );
-  }
-
-  // PNG
-  if (extension === ".png") {
-    return header.equals(
-      Buffer.from([
-        0x89,
-        0x50,
-        0x4e,
-        0x47,
-        0x0d,
-        0x0a,
-        0x1a,
-        0x0a,
-      ]),
-    );
-  }
-
-  // PDF
-  if (extension === ".pdf") {
-    return header.toString("ascii", 0, 5) === "%PDF-";
-  }
-
-  // DOC
-  if (extension === ".doc") {
-    return (
-      header.length >= 4 &&
-      header[0] === 0xd0 &&
-      header[1] === 0xcf &&
-      header[2] === 0x11 &&
-      header[3] === 0xe0
-    );
-  }
-
-  // DOCX
-  if (extension === ".docx") {
-    return (
-      header.length >= 4 &&
-      header[0] === 0x50 &&
-      header[1] === 0x4b &&
-      header[2] === 0x03 &&
-      header[3] === 0x04
-    );
-  }
-
-  return false;
-}
-
-function audit(req, outcome, details) {
-  try {
-    recordAudit(req, {
-      action: "file_upload",
-      outcome,
-      user: req.user,
-      details,
-    });
-  } catch (error) {
-    console.error(
-      "[ASIATECH SYNC] Upload audit failed:",
-      error.message,
-    );
-  }
-}
-
-function removeRejectedFile(filePath) {
-  if (!filePath) return;
-
-  try {
-    if (fs.existsSync(filePath)) {
-      fs.unlinkSync(filePath);
-    }
-  } catch (error) {
-    console.error(
-      "[ASIATECH SYNC] Failed to remove rejected upload:",
-      error.message,
-    );
-  }
-}
-
-function reject(req, res, file, status, message) {
-  const filePath = getActualFilePath(file);
-
-  removeRejectedFile(filePath);
-
-  audit(req, "failure", message);
-
-  return res.status(status).json({
-    message,
   });
 }
 
-const scanUploadedFile = (req, res, next) => {
-  const file = req.file;
+function getExtension(file) {
+  const originalName = String(
+    file.originalname || "",
+  ).toLowerCase();
 
-  // Nothing uploaded
+  const originalExt =
+    path.extname(originalName);
+
+  if (originalExt) {
+    return originalExt;
+  }
+
+  const possiblePath =
+    file.path ||
+    file.secure_url ||
+    file.secureUrl ||
+    file.url ||
+    "";
+
+  try {
+    const url = new URL(
+      String(possiblePath),
+    );
+
+    const pathname =
+      url.pathname.toLowerCase();
+
+    return path.extname(pathname);
+  } catch {
+    return "";
+  }
+}
+
+function validateBasicImageInfo(file) {
   if (!file) {
-    return next();
+    return {
+      valid: false,
+      reason: "No uploaded file.",
+    };
+  }
+
+  if (
+    file.size &&
+    Number(file.size) > MAX_FILE_SIZE
+  ) {
+    return {
+      valid: false,
+      reason: "File exceeds the 3MB limit.",
+    };
+  }
+
+  const extension =
+    getExtension(file);
+
+  const mimetype =
+    String(
+      file.mimetype || "",
+    ).toLowerCase();
+
+  if (
+    !ALLOWED_EXTENSIONS.has(
+      extension,
+    )
+  ) {
+    return {
+      valid: false,
+      reason:
+        "File extension is not allowed.",
+    };
+  }
+
+  if (
+    !ALLOWED_MIMETYPES.has(
+      mimetype,
+    )
+  ) {
+    return {
+      valid: false,
+      reason:
+        "File MIME type is not allowed.",
+    };
+  }
+
+  return {
+    valid: true,
+    extension,
+    mimetype,
+  };
+}
+
+function readFileHeader(
+  filePath,
+  length = 16,
+) {
+  return new Promise(
+    (resolve, reject) => {
+      const stream =
+        fs.createReadStream(
+          filePath,
+          {
+            start: 0,
+            end: length - 1,
+          },
+        );
+
+      const chunks = [];
+
+      stream.on(
+        "data",
+        (chunk) => {
+          chunks.push(chunk);
+        },
+      );
+
+      stream.on(
+        "end",
+        () => {
+          resolve(
+            Buffer.concat(chunks),
+          );
+        },
+      );
+
+      stream.on(
+        "error",
+        reject,
+      );
+    },
+  );
+}
+
+function isJpeg(buffer) {
+  return (
+    buffer.length >= 3 &&
+    buffer[0] === 0xff &&
+    buffer[1] === 0xd8 &&
+    buffer[2] === 0xff
+  );
+}
+
+function isPng(buffer) {
+  return (
+    buffer.length >= 8 &&
+    buffer[0] === 0x89 &&
+    buffer[1] === 0x50 &&
+    buffer[2] === 0x4e &&
+    buffer[3] === 0x47 &&
+    buffer[4] === 0x0d &&
+    buffer[5] === 0x0a &&
+    buffer[6] === 0x1a &&
+    buffer[7] === 0x0a
+  );
+}
+
+async function inspectLocalFile(file) {
+  if (!file.path) {
+    return {
+      valid: false,
+      reason:
+        "Uploaded file has no local path.",
+    };
+  }
+
+  if (
+    !fs.existsSync(file.path)
+  ) {
+    console.error(
+      "[ASIATECH SYNC] Could not locate uploaded file on disk:",
+      file.path,
+    );
+
+    return {
+      valid: false,
+      reason:
+        "Uploaded file does not exist on disk.",
+    };
+  }
+
+  const basic =
+    validateBasicImageInfo(file);
+
+  if (!basic.valid) {
+    return basic;
+  }
+
+  let header;
+
+  try {
+    header =
+      await readFileHeader(
+        file.path,
+        16,
+      );
+  } catch (error) {
+    console.error(
+      "[ASIATECH SYNC] Failed to read uploaded file:",
+      error.message,
+    );
+
+    return {
+      valid: false,
+      reason:
+        "Uploaded file could not be read.",
+    };
+  }
+
+  let signatureValid = false;
+
+  if (
+    basic.extension === ".jpg" ||
+    basic.extension === ".jpeg"
+  ) {
+    signatureValid =
+      isJpeg(header);
+  } else if (
+    basic.extension === ".png"
+  ) {
+    signatureValid =
+      isPng(header);
+  }
+
+  if (!signatureValid) {
+    console.error(
+      "[ASIATECH SYNC] File signature does not match extension.",
+      {
+        filename:
+          file.originalname,
+        extension:
+          basic.extension,
+        mimetype:
+          basic.mimetype,
+      },
+    );
+
+    return {
+      valid: false,
+      reason:
+        "File signature does not match its extension.",
+    };
+  }
+
+  return {
+    valid: true,
+    ...basic,
+  };
+}
+
+async function scanWithClamAV(
+  filePath,
+) {
+  const enabled =
+    String(
+      process.env.CLAMAV_ENABLED || "",
+    ).toLowerCase() === "true";
+
+  if (!enabled) {
+    return {
+      clean: true,
+      skipped: true,
+    };
+  }
+
+  if (
+    !filePath ||
+    !fs.existsSync(filePath)
+  ) {
+    return {
+      clean: false,
+      skipped: false,
+      reason:
+        "File does not exist for antivirus scanning.",
+    };
   }
 
   try {
-    console.log("[ASIATECH SYNC] Inspecting uploaded file:", {
-      originalname: file.originalname,
-      filename: file.filename,
-      mimetype: file.mimetype,
-      destination: file.destination,
-      uploadFolder: file.uploadFolder,
-      path: file.path,
-    });
-
-    /*
-     * Make absolutely sure we have the real local file.
-     */
-    const actualPath = getActualFilePath(file);
-
-    if (!actualPath) {
-      console.error(
-        "[ASIATECH SYNC] Could not locate uploaded file on disk.",
-      );
-
-      return reject(
-        req,
-        res,
-        file,
-        400,
-        "The uploaded file could not be inspected and was rejected.",
-      );
-    }
-
-    file.path = actualPath;
-
-    const stats = fs.statSync(actualPath);
-
-    if (!stats.isFile() || stats.size <= 0) {
-      return reject(
-        req,
-        res,
-        file,
-        400,
-        "The uploaded file could not be inspected and was rejected.",
-      );
-    }
-
-    const extension = path
-      .extname(file.originalname || file.filename || "")
-      .toLowerCase();
-
-    /*
-     * Company logos are JPG/JPEG/PNG.
-     * Other upload routes may also pass through this middleware.
-     */
-    const validExtensions = [
-      ".jpg",
-      ".jpeg",
-      ".png",
-      ".pdf",
-      ".doc",
-      ".docx",
-    ];
-
-    if (!validExtensions.includes(extension)) {
-      return reject(
-        req,
-        res,
-        file,
-        400,
-        "The uploaded file type is not allowed.",
-      );
-    }
-
-    /*
-     * Verify the actual binary signature.
-     */
-    if (!matchesSignature(actualPath, extension)) {
-      console.error(
-        "[ASIATECH SYNC] File signature mismatch:",
-        extension,
-        actualPath,
-      );
-
-      return reject(
-        req,
-        res,
-        file,
-        400,
-        "The uploaded file failed its type validation and was rejected.",
-      );
-    }
-
-    /*
-     * ClamAV is optional.
-     * Railway currently has ClamAV disabled, so continue normally.
-     */
-    if (process.env.CLAMAV_SCAN !== "true") {
-      console.log(
-        `[ASIATECH SYNC] File inspection passed: ${file.originalname}`,
-      );
-
-      audit(
-        req,
-        "success",
-        `Validated ${file.originalname}`,
-      );
-
-      return next();
-    }
-
-    /*
-     * Optional ClamAV scan.
-     */
-    execFile(
-      process.env.CLAMSCAN_PATH || "clamscan",
-      ["--no-summary", actualPath],
-      (error) => {
-        if (!error) {
-          console.log(
-            `[ASIATECH SYNC] ClamAV passed: ${file.originalname}`,
-          );
-
-          audit(
-            req,
-            "success",
-            `ClamAV cleared ${file.originalname}`,
-          );
-
-          return next();
-        }
-
-        if (error.code === "ENOENT") {
-          return reject(
-            req,
-            res,
-            file,
-            503,
-            "Malware scanning is unavailable. Please contact the administrator.",
-          );
-        }
-
-        return reject(
-          req,
-          res,
-          file,
-          400,
-          "The uploaded file was rejected because it failed malware scanning.",
-        );
+    await execFileAsync(
+      "clamdscan",
+      [
+        "--no-summary",
+        filePath,
+      ],
+      {
+        timeout: 30000,
       },
     );
+
+    return {
+      clean: true,
+      skipped: false,
+    };
+  } catch (error) {
+    const exitCode =
+      typeof error.code ===
+      "number"
+        ? error.code
+        : null;
+
+    if (exitCode === 1) {
+      return {
+        clean: false,
+        skipped: false,
+        reason:
+          "ClamAV detected a threat.",
+      };
+    }
+
+    if (
+      exitCode === 127 ||
+      String(
+        error.message || "",
+      ).includes("not found")
+    ) {
+      console.warn(
+        "[ASIATECH SYNC] ClamAV is enabled but clamdscan is unavailable. Upload rejected.",
+      );
+
+      return {
+        clean: false,
+        skipped: false,
+        reason:
+          "Antivirus scanner is unavailable.",
+      };
+    }
+
+    console.error(
+      "[ASIATECH SYNC] ClamAV scan failed:",
+      error.message,
+    );
+
+    return {
+      clean: false,
+      skipped: false,
+      reason:
+        "Antivirus scan failed.",
+    };
+  }
+}
+
+async function scanCloudinaryFile(
+  file,
+) {
+  console.log(
+    "[ASIATECH SYNC] Cloudinary upload detected. Skipping local-disk inspection.",
+  );
+
+  const basic =
+    validateBasicImageInfo(file);
+
+  if (!basic.valid) {
+    console.error(
+      "[ASIATECH SYNC] Cloudinary file rejected:",
+      basic.reason,
+    );
+
+    return basic;
+  }
+
+  const cloudinaryUrl =
+    file.secure_url ||
+    file.secureUrl ||
+    file.path ||
+    file.url;
+
+  if (!cloudinaryUrl) {
+    return {
+      valid: false,
+      reason:
+        "Cloudinary upload has no URL.",
+    };
+  }
+
+  let parsedUrl;
+
+  try {
+    parsedUrl =
+      new URL(
+        String(cloudinaryUrl),
+      );
+  } catch {
+    return {
+      valid: false,
+      reason:
+        "Cloudinary returned an invalid URL.",
+    };
+  }
+
+  if (
+    !CLOUDINARY_HOSTS.has(
+      parsedUrl.hostname.toLowerCase(),
+    )
+  ) {
+    return {
+      valid: false,
+      reason:
+        "Uploaded file is not stored on an approved Cloudinary host.",
+    };
+  }
+
+  const pathname =
+    parsedUrl.pathname.toLowerCase();
+
+  if (
+    !pathname.includes(
+      "/image/upload/",
+    )
+  ) {
+    return {
+      valid: false,
+      reason:
+        "Cloudinary resource is not an image upload.",
+    };
+  }
+
+  file.secure_url =
+    cloudinaryUrl;
+
+  file.secureUrl =
+    cloudinaryUrl;
+
+  file.scanStatus =
+    "cloudinary-validated";
+
+  file.scanPassed =
+    true;
+
+  file.inspected =
+    true;
+
+  console.log(
+    "[ASIATECH SYNC] Cloudinary image accepted:",
+    {
+      originalname:
+        file.originalname,
+      mimetype:
+        file.mimetype,
+      size:
+        file.size,
+      url:
+        cloudinaryUrl,
+    },
+  );
+
+  return {
+    valid: true,
+    ...basic,
+  };
+}
+
+async function scanUploadedFile(
+  req,
+  res,
+  next,
+) {
+  try {
+    if (!req.file) {
+      return res.status(400).json({
+        message:
+          "No file uploaded.",
+      });
+    }
+
+    console.log(
+      "[ASIATECH SYNC] Inspecting uploaded file:",
+      {
+        originalname:
+          req.file.originalname,
+        filename:
+          req.file.filename,
+        mimetype:
+          req.file.mimetype,
+        destination:
+          req.file.destination,
+        uploadFolder:
+          req.file.uploadFolder,
+        path:
+          req.file.path,
+        size:
+          req.file.size,
+      },
+    );
+
+    let result;
+
+    /*
+     * IMPORTANT:
+     * Company logos are currently uploaded directly
+     * to Cloudinary by Multer.
+     *
+     * Therefore we MUST NOT call fs.existsSync()
+     * against the Cloudinary URL.
+     */
+    if (
+      isCloudinaryFile(
+        req.file,
+      )
+    ) {
+      result =
+        await scanCloudinaryFile(
+          req.file,
+        );
+    } else {
+      result =
+        await inspectLocalFile(
+          req.file,
+        );
+
+      if (result.valid) {
+        const antivirus =
+          await scanWithClamAV(
+            req.file.path,
+          );
+
+        if (!antivirus.clean) {
+          result = {
+            valid: false,
+            reason:
+              antivirus.reason ||
+              "Antivirus scan failed.",
+          };
+        }
+      }
+    }
+
+    if (!result.valid) {
+      console.error(
+        "[ASIATECH SYNC] Upload rejected:",
+        result.reason,
+      );
+
+      return res.status(400).json({
+        message:
+          REJECTION_MESSAGE,
+      });
+    }
+
+    req.file.scanStatus =
+      req.file.scanStatus ||
+      "validated";
+
+    req.file.scanPassed =
+      true;
+
+    req.file.inspected =
+      true;
+
+    return next();
   } catch (error) {
     console.error(
       "[ASIATECH SYNC] Upload inspection error:",
       error,
     );
 
-    return reject(
-      req,
-      res,
-      file,
-      400,
-      "The uploaded file could not be inspected and was rejected.",
-    );
+    return res.status(400).json({
+      message:
+        REJECTION_MESSAGE,
+    });
   }
-};
+}
 
-module.exports = scanUploadedFile;
+module.exports =
+  scanUploadedFile;

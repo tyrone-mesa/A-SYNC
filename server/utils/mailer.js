@@ -1,31 +1,42 @@
-const nodemailer = require("nodemailer");
 const { Resend } = require("resend");
 
-// Shared email client for automated mail. Prefers the modern Resend REST API when
-// RESEND_API_KEY is configured, and seamlessly falls back to standard SMTP.
-let transporter = null;
+// ============================================================
+// A-SYNC MAILER
+// Resend API only
+// ============================================================
+
 let resendClient = null;
 
-const getResendClient = () => {
-  if (resendClient) return resendClient;
+// ------------------------------------------------------------
+// Resend client
+// ------------------------------------------------------------
 
-  if ((process.env.MAIL_PROVIDER || "").toLowerCase() === "gmail") {
-    return null;
+const getResendClient = () => {
+  if (resendClient) {
+    return resendClient;
   }
 
   const apiKey = String(process.env.RESEND_API_KEY || "").trim();
 
-  if (apiKey) {
-    resendClient = new Resend(apiKey);
+  if (!apiKey) {
+    return null;
   }
+
+  resendClient = new Resend(apiKey);
 
   return resendClient;
 };
 
+// ------------------------------------------------------------
+// Detect temporary email service errors
+// ------------------------------------------------------------
+
 const isMailUnavailableError = (error) => {
   const message = String(error?.message || error || "");
 
-  if (!message) return false;
+  if (!message) {
+    return false;
+  }
 
   const patterns = [
     /daily user sending limit exceeded/i,
@@ -42,66 +53,9 @@ const isMailUnavailableError = (error) => {
   return patterns.some((pattern) => pattern.test(message));
 };
 
-const getMailConfig = () => {
-  const provider = (
-    process.env.MAIL_PROVIDER || "custom-smtp"
-  ).toLowerCase();
-
-  const host = process.env.SMTP_HOST || "smtp.gmail.com";
-
-  const port =
-    Number(process.env.SMTP_PORT) ||
-    (provider === "gmail" ? 465 : 587);
-
-  const user = process.env.SMTP_USER || "";
-  const pass = process.env.SMTP_PASS || "";
-
-  return {
-    provider,
-    host,
-    port,
-    user,
-    pass: /gmail\.com$/i.test(host)
-      ? pass.replace(/\s+/g, "")
-      : pass,
-    secure: port === 465,
-    recommendsCustomProvider: provider !== "gmail",
-  };
-};
-
-const getTransporter = () => {
-  if (transporter) return transporter;
-
-  const config = getMailConfig();
-
-  if (!config.user || !config.pass) {
-    return null;
-  }
-
-  if (
-    config.host.includes("gmail.com") ||
-    config.provider === "gmail"
-  ) {
-    console.warn(
-      "[ASIATECH SYNC] Gmail SMTP is configured. This is convenient for testing, but Gmail enforces daily sending limits and can block OTP/password-reset emails in production.",
-    );
-  }
-
-  transporter = nodemailer.createTransport({
-    host: config.host,
-    port: config.port,
-    secure: config.secure,
-    connectionTimeout: 10000,
-    greetingTimeout: 10000,
-    socketTimeout: 15000,
-    auth: {
-      user: config.user,
-      pass: config.pass,
-    },
-  });
-
-  return transporter;
-};
+// ------------------------------------------------------------
+// Send email using Resend
+// ------------------------------------------------------------
 
 const sendMail = async ({
   to,
@@ -114,8 +68,12 @@ const sendMail = async ({
   let targetSubject = subject;
   let targetHtml = html;
 
+  // ----------------------------------------------------------
+  // Development email override
+  // ----------------------------------------------------------
+
   const devOverride = String(
-    process.env.DEV_EMAIL_OVERRIDE || "",
+    process.env.DEV_EMAIL_OVERRIDE || ""
   ).trim();
 
   const redirectEnabled =
@@ -137,153 +95,163 @@ const sendMail = async ({
       `[DEV to: ${originalRecipient}] ${subject}`;
 
     targetHtml = `
-      <div style="background:#fef3c7;border:1px solid #f59e0b;padding:10px 14px;margin-bottom:18px;border-radius:8px;font-family:sans-serif;font-size:13px;color:#92400e;">
+      <div
+        style="
+          background:#fef3c7;
+          border:1px solid #f59e0b;
+          padding:10px 14px;
+          margin-bottom:18px;
+          border-radius:8px;
+          font-family:sans-serif;
+          font-size:13px;
+          color:#92400e;
+        "
+      >
         <strong>[DEV EMAIL REDIRECT]</strong>
+        <br>
         This email was originally addressed to:
         <code>${originalRecipient}</code>
       </div>
+
       ${html}
     `;
 
     console.log(
-      `[ASIATECH SYNC] DEV_EMAIL_OVERRIDE active: redirecting email for "${originalRecipient}" to "${devOverride}"`,
+      `[A-SYNC] DEV_EMAIL_OVERRIDE active: redirecting email for "${originalRecipient}" to "${devOverride}"`
     );
   }
 
-  // Use Resend API when RESEND_API_KEY is configured.
+  // ----------------------------------------------------------
+  // Get Resend client
+  // ----------------------------------------------------------
+
   const resend = getResendClient();
 
-  if (resend) {
-    try {
-      const fromAddress =
-        process.env.RESEND_FROM ||
-        process.env.SMTP_FROM ||
-        "ASIATECH SYNC <onboarding@resend.dev>";
+  if (!resend) {
+    const error =
+      "RESEND_API_KEY is not configured.";
 
-      const formattedAttachments = attachments?.map((att) => ({
-        filename: att.filename,
-        content: att.content,
-        path: att.path,
-      }));
+    console.error(`[A-SYNC] ${error}`);
 
-      const response = await resend.emails.send({
-        from: fromAddress,
-        to: Array.isArray(targetTo)
-          ? targetTo
-          : [targetTo],
-        subject: targetSubject,
-        html: targetHtml,
-        ...(formattedAttachments?.length
-          ? { attachments: formattedAttachments }
-          : {}),
-      });
-
-      if (response.error) {
-        console.error(
-          `[ASIATECH SYNC] Resend API error sending to ${targetTo}:`,
-          response.error,
-        );
-
-        return {
-          sent: false,
-          unavailable: false,
-          error:
-            response.error.message ||
-            String(response.error),
-          message: response.error.message,
-        };
-      }
-
-      console.log(
-        `[ASIATECH SYNC] Email sent via Resend API to ${targetTo} (id: ${response.data?.id})`,
-      );
-
-      return {
-        sent: true,
-        messageId: response.data?.id,
-      };
-    } catch (err) {
-      console.error(
-        `[ASIATECH SYNC] Exception sending email via Resend to ${targetTo}:`,
-        err.message,
-      );
-
-      return {
-        sent: false,
-        unavailable: false,
-        error: err.message,
-        message: err.message,
-      };
-    }
-  }
-
-  // Fall back to SMTP.
-  const t = getTransporter();
-
-  if (!t) {
     return {
       sent: false,
-      skipped: true,
       unavailable: false,
-      error:
-        "Neither RESEND_API_KEY nor SMTP credentials are configured.",
+      error,
+      message: error,
     };
   }
 
+  // ----------------------------------------------------------
+  // Verified sender
+  // ----------------------------------------------------------
+
+  const fromAddress =
+    String(
+      process.env.RESEND_FROM ||
+        "A-Sync <no-reply@a-sync.online>"
+    ).trim();
+
+  // ----------------------------------------------------------
+  // Format attachments
+  // ----------------------------------------------------------
+
+  const formattedAttachments = Array.isArray(attachments)
+    ? attachments.map((att) => ({
+        filename: att.filename,
+        content: att.content,
+        ...(att.path ? { path: att.path } : {}),
+      }))
+    : [];
+
+  // ----------------------------------------------------------
+  // Send through Resend
+  // ----------------------------------------------------------
+
   try {
-    const fromAddress =
-      process.env.SMTP_FROM || process.env.SMTP_USER;
-
-    const info = await t.sendMail({
-      from: `"ASIATECH SYNC" <${fromAddress}>`,
-      to: targetTo,
-      subject: targetSubject,
-      html: targetHtml,
-      attachments,
-    });
-
-    const accepted = info.accepted || [];
-    const rejected = info.rejected || [];
-
     console.log(
-      `[ASIATECH SYNC] Email accepted by SMTP for ${targetTo} (messageId: ${
-        info.messageId || "unknown"
-      }; accepted: ${accepted.length}; rejected: ${rejected.length})`,
+      `[A-SYNC] Sending email via Resend to ${targetTo}`
     );
 
-    if (!accepted.includes(targetTo)) {
+    const response = await resend.emails.send({
+      from: fromAddress,
+
+      to: Array.isArray(targetTo)
+        ? targetTo
+        : [targetTo],
+
+      subject: targetSubject,
+
+      html: targetHtml,
+
+      ...(formattedAttachments.length > 0
+        ? {
+            attachments: formattedAttachments,
+          }
+        : {}),
+    });
+
+    // --------------------------------------------------------
+    // Resend returned an error
+    // --------------------------------------------------------
+
+    if (response?.error) {
+      console.error(
+        `[A-SYNC] Resend API error sending to ${targetTo}:`,
+        response.error
+      );
+
       return {
         sent: false,
-        unavailable: false,
-        error: `SMTP did not accept recipient ${targetTo}.`,
-        messageId: info.messageId,
+        unavailable: isMailUnavailableError(
+          response.error
+        ),
+        error:
+          response.error.message ||
+          String(response.error),
+        message:
+          response.error.message ||
+          String(response.error),
       };
     }
+
+    // --------------------------------------------------------
+    // Success
+    // --------------------------------------------------------
+
+    const messageId = response?.data?.id || null;
+
+    console.log(
+      `[A-SYNC] Email sent successfully via Resend to ${targetTo}` +
+        (messageId ? ` (id: ${messageId})` : "")
+    );
 
     return {
       sent: true,
-      messageId: info.messageId,
-      accepted,
-      rejected,
+      messageId,
     };
   } catch (err) {
-    const unavailable = isMailUnavailableError(err);
+    const unavailable =
+      isMailUnavailableError(err);
 
     console.error(
-      `[ASIATECH SYNC] Failed to send email to ${targetTo}:`,
-      err.message,
+      `[A-SYNC] Resend failed to send email to ${targetTo}:`,
+      err?.message || err
     );
 
     return {
       sent: false,
       unavailable,
-      error: err.message,
+      error: err?.message || String(err),
       message: unavailable
-        ? "Email delivery is temporarily unavailable. Please contact the admin office or try again later."
-        : err.message,
+        ? "Email delivery is temporarily unavailable. Please try again later."
+        : err?.message || String(err),
     };
   }
 };
+
+// ------------------------------------------------------------
+// Exports
+// ------------------------------------------------------------
 
 module.exports = {
   sendMail,

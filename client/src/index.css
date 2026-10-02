@@ -68,41 +68,6 @@
   }
 }
 
-@keyframes landing-intro-pan-zoom {
-  0% {
-    transform: scale(1);
-    animation-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
-  }
-  46% {
-    transform: scale(var(--landing-intro-zoom, 1.42));
-    animation-timing-function: ease-in-out;
-  }
-  64% {
-    transform: scale(var(--landing-intro-zoom, 1.42));
-    animation-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
-  }
-  100% { transform: scale(1); }
-}
-
-.landing-intro-video {
-  --landing-intro-zoom: 1.42;
-  transform-origin: 50% 35%;
-  backface-visibility: hidden;
-  animation: landing-intro-pan-zoom 9.2s both;
-}
-
-@media (max-width: 639px) {
-  .landing-intro-video {
-    --landing-intro-zoom: 1.18;
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .landing-intro-video {
-    animation: none;
-  }
-}
-
 @layer components {
   .btn-primary {
     @apply bg-[#dfeecf] text-forest border border-[#bfd9a8]/50 font-black px-7 py-3.5 rounded-full 

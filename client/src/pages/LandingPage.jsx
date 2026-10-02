@@ -21,8 +21,6 @@ import {
 } from "lucide-react";
 
 const HERO_AUDIO_PREF_KEY = "asiatechsync_hero_audio_unmuted";
-const INTRO_DURATION = 9.2;
-const INTRO_CONTENT_REVEAL_DELAY = 7.85;
 
 const openPartnerSignup = () => {
   window.dispatchEvent(new CustomEvent("asiatech:partner-signup"));
@@ -152,7 +150,6 @@ const LandingPage = ({ intro = false, onIntroComplete }) => {
   const [isMuted, setIsMuted] = useState(true);
   const [isVideoReady, setIsVideoReady] = useState(false);
   const [isIntroRevealed, setIsIntroRevealed] = useState(!intro);
-  const [hasIntroAnimation, setHasIntroAnimation] = useState(false);
   const [isSoundPressed, setIsSoundPressed] = useState(false);
   const [concern, setConcern] = useState({
     name: "",
@@ -170,26 +167,10 @@ const LandingPage = ({ intro = false, onIntroComplete }) => {
   React.useEffect(() => {
     if (!intro || !isVideoReady) return undefined;
 
-    if (prefersReducedMotion) {
-      setIsIntroRevealed(true);
-      onIntroComplete();
-      return undefined;
-    }
-
-    setHasIntroAnimation(true);
-    const revealTimeout = window.setTimeout(
-      () => setIsIntroRevealed(true),
-      INTRO_CONTENT_REVEAL_DELAY * 1000,
-    );
-    const completeTimeout = window.setTimeout(
-      onIntroComplete,
-      INTRO_DURATION * 1000,
-    );
-    return () => {
-      window.clearTimeout(revealTimeout);
-      window.clearTimeout(completeTimeout);
-    };
-  }, [intro, isVideoReady, onIntroComplete, prefersReducedMotion]);
+    setIsIntroRevealed(true);
+    onIntroComplete();
+    return undefined;
+  }, [intro, isVideoReady, onIntroComplete]);
 
   const submitConcern = async (event) => {
     event.preventDefault();
@@ -315,11 +296,7 @@ const LandingPage = ({ intro = false, onIntroComplete }) => {
           variants={fadeIn}
           className="absolute inset-0"
         >
-          <div
-            className={`absolute inset-0 ${
-              hasIntroAnimation ? "landing-intro-video" : ""
-            }`}
-          >
+          <div className="absolute inset-0">
             <motion.video
               ref={heroVideoRef}
               className="absolute inset-0 h-full w-full object-cover object-[50%_20%] motion-reduce:transition-none"
@@ -336,7 +313,7 @@ const LandingPage = ({ intro = false, onIntroComplete }) => {
             />
           </div>
           {!isVideoReady && (
-            <div className="absolute inset-0 animate-pulse bg-gradient-to-br from-[#0B2E22] via-[#0F3D2E] to-[#0B2E22]" />
+            <div className="absolute inset-0 bg-gradient-to-br from-[#0B2E22] via-[#0F3D2E] to-[#0B2E22]" />
           )}
           <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-[#0F3D2E]/95 via-[#0F3D2E]/15 to-[#0F3D2E]/10" />
         </motion.div>

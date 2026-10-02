@@ -4,6 +4,7 @@ import { motion, useReducedMotion } from "framer-motion";
 import Navbar from "../components/Navbar";
 import api from "../api/axios";
 import { useAuth } from "../context/AuthContext";
+import { hasHomeIntroPlayedThisSession } from "../utils/homeIntroSession";
 import {
   Briefcase,
   Users,
@@ -144,7 +145,9 @@ const ABOUT_SLIDES = [
 
 const LandingPage = ({ intro = false, onIntroComplete }) => {
   const { user } = useAuth();
-  const [shouldRenderHeroVideo] = useState(intro);
+  const [shouldRenderHeroVideo] = useState(
+    () => intro || hasHomeIntroPlayedThisSession(),
+  );
   const [hasHeroIntro] = useState(intro);
   const [isIntroRevealed, setIsIntroRevealed] = useState(!intro);
   const [isIntroVideoPlaying, setIsIntroVideoPlaying] = useState(false);

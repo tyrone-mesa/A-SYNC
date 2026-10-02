@@ -5,6 +5,11 @@ import { AnimatePresence, motion, MotionConfig } from "framer-motion";
 import Navbar from "./components/Navbar";
 import ProtectedRoute from "./components/ProtectedRoute";
 import FloatingMessageCircle from "./components/FloatingMessageCircle";
+import {
+  hasHomeIntroPlayedThisSession,
+  markHomeIntroPlayedThisSession,
+  resetHomeIntroPlayedThisSession,
+} from "./utils/homeIntroSession";
 
 const LandingPage = React.lazy(() => import("./pages/LandingPage"));
 const Login = React.lazy(() => import("./pages/Login"));
@@ -17,7 +22,6 @@ const TermsAndConditions = React.lazy(
   () => import("./pages/TermsAndConditions"),
 );
 const CookiesPolicy = React.lazy(() => import("./pages/CookiesPolicy"));
-const HOME_INTRO_PLAYED_SESSION_KEY = "asiatechsync-home-intro-played";
 
 const BrowseJobs = React.lazy(() => import("./pages/student/BrowseJobs"));
 const JobDetail = React.lazy(() => import("./pages/student/JobDetail"));
@@ -94,12 +98,9 @@ function App() {
       try {
         const navigation = window.performance.getEntriesByType("navigation")[0];
         if (navigation?.type === "reload") {
-          window.sessionStorage.removeItem(HOME_INTRO_PLAYED_SESSION_KEY);
+          resetHomeIntroPlayedThisSession();
         }
-        return (
-          window.sessionStorage.getItem(HOME_INTRO_PLAYED_SESSION_KEY) !==
-          "true"
-        );
+        return !hasHomeIntroPlayedThisSession();
       } catch (error) {
         return true;
       }
@@ -108,11 +109,7 @@ function App() {
   const completeHomeIntro = React.useCallback(
     () => {
       setShowHomeIntro(false);
-      try {
-        window.sessionStorage.setItem(HOME_INTRO_PLAYED_SESSION_KEY, "true");
-      } catch (error) {
-        return;
-      }
+      markHomeIntroPlayedThisSession();
     },
     [],
   );

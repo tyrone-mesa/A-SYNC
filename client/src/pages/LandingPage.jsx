@@ -300,6 +300,15 @@ const LandingPage = ({ intro = false, onIntroComplete }) => {
         >
           <Navbar variant="overlay" />
         </motion.div>
+        {intro && (
+          <button
+            type="button"
+            onClick={() => onIntroComplete?.()}
+            className="absolute right-5 top-24 z-20 rounded-full border border-white/60 bg-[#0F3D2E]/75 px-5 py-2.5 text-sm font-semibold text-white shadow-md backdrop-blur-sm transition hover:bg-[#0F3D2E] focus:outline-none focus:ring-2 focus:ring-[#E8C165] focus:ring-offset-2 focus:ring-offset-[#0F3D2E] sm:right-8"
+          >
+            Skip intro
+          </button>
+        )}
         <motion.div
           initial="hidden"
           animate="visible"

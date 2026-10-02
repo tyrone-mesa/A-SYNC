@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { AnimatePresence, motion } from "framer-motion";
-import { Eye, EyeOff } from "lucide-react";
+import { Eye, EyeOff, X } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 import api from "../api/axios";
 import Logo from "../components/Logo";
@@ -189,14 +189,11 @@ const Login = ({
             </div>
             <button
               type="button"
-              onClick={() => {
-                onClose?.();
-                navigate("/");
-              }}
-              className="absolute right-5 top-5 z-10 text-xl leading-none text-navy/65 transition hover:text-navy"
+              onClick={onClose}
+              className="absolute right-4 top-4 z-20 inline-flex h-10 w-10 items-center justify-center rounded-full bg-white/95 text-[#0F3D2E] shadow-md transition hover:bg-white hover:text-[#0B2E22] focus:outline-none focus:ring-2 focus:ring-[#1E5D46] focus:ring-offset-2"
               aria-label="Close login"
             >
-              ×
+              <X size={20} aria-hidden="true" />
             </button>
           </>
         )}

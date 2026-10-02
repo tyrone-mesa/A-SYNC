@@ -53,11 +53,8 @@ const escapeHtml = (value) =>
     .replace(/>/g, "&gt;")
     .replace(/"/g, "&quot;");
 
-// Provider-aware deletion for files already persisted
-// to local storage or Cloudinary.
 const deleteUploadedFile = (fileUrl) => removeFile(fileUrl);
 
-// Safely remove a Multer staging file from local disk.
 const cleanupStagedFile = async (file) => {
   if (!file) return;
 
@@ -164,7 +161,11 @@ router.post(
       });
 
       if (!profile) {
-        await cleanupStagedFile(req.file);
+        if (req.file.path) {
+          await fs.promises
+            .rm(req.file.path, { force: true })
+            .catch(() => {});
+        }
 
         return res.status(404).json({
           message: "Company profile not found.",
@@ -172,15 +173,10 @@ router.post(
       }
 
       /*
-       * IMPORTANT:
-       *
-       * Upload the new file first.
-       *
-       * We do NOT delete the old logo until the new file has successfully
-       * passed validation and has been persisted to Cloudinary/local storage.
-       *
-       * This prevents a failed upload from deleting the company's existing logo.
+       * Keep the old logo until the new logo has successfully
+       * uploaded and been saved.
        */
+      const oldLogo = profile.companyUploadedLogo;
 
       await renameUpload(req.file, profile.companyName);
 
@@ -189,19 +185,20 @@ router.post(
       });
 
       if (!newLogoUrl) {
-        return res.status(400).json({
-          message: "The company logo could not be saved.",
-        });
+        throw new Error("Logo storage returned no file URL.");
       }
 
-      /*
-       * Now that the new logo exists, delete the old logo.
-       */
-      const oldLogoUrl = profile.companyUploadedLogo;
+      profile.companyUploadedLogo = newLogoUrl;
 
-      if (oldLogoUrl) {
+      await profile.save();
+
+      /*
+       * Delete the old logo only after the new logo
+       * has been successfully saved.
+       */
+      if (oldLogo && oldLogo !== newLogoUrl) {
         try {
-          await deleteUploadedFile(oldLogoUrl);
+          await deleteUploadedFile(oldLogo);
         } catch (deleteError) {
           console.error(
             "[ASIATECH SYNC] Failed to delete old company logo:",
@@ -209,13 +206,6 @@ router.post(
           );
         }
       }
-
-      /*
-       * Save the new Cloudinary URL/local path in MongoDB.
-       */
-      profile.companyUploadedLogo = newLogoUrl;
-
-      await profile.save();
 
       console.log(
         `[ASIATECH SYNC] Company logo uploaded successfully: ${profile.companyName}`,
@@ -236,11 +226,23 @@ router.post(
       );
 
       /*
-       * If persistUpload() failed before deleting the local staging file,
-       * clean that staging file now.
+       * persistUpload normally removes the temporary file.
+       * This is a fallback in case something failed before
+       * the temporary file was removed.
        */
-      if (req.file) {
-        await cleanupStagedFile(req.file);
+      if (req.file && req.file.path) {
+        try {
+          await fs.promises.rm(req.file.path, {
+            force: true,
+          });
+        } catch (cleanupError) {
+          if (cleanupError.code !== "ENOENT") {
+            console.error(
+              "[ASIATECH SYNC] Failed to clean staged logo:",
+              cleanupError.message,
+            );
+          }
+        }
       }
 
       return res.status(400).json({
@@ -548,7 +550,7 @@ router.post(
         profile,
       });
     } catch (err) {
-      if (req.file) {
+      if (req.file && req.file.path) {
         await cleanupStagedFile(req.file);
       }
 
@@ -699,7 +701,8 @@ router.get(
           },
         };
 
-        const buffer = await workbook.xlsx.writeBuffer();
+        const buffer =
+          await workbook.xlsx.writeBuffer();
 
         res.set({
           "Content-Type":
@@ -737,7 +740,9 @@ router.get(
         : `<tr><td colspan="4">No attendance records yet.</td></tr>`;
 
       const html = `<table><thead><tr>${headers
-        .map((header) => `<th>${header}</th>`)
+        .map(
+          (header) => `<th>${header}</th>`,
+        )
         .join("")}</tr></thead><tbody>${tableRows}</tbody></table>`;
 
       res.set({
@@ -748,7 +753,8 @@ router.get(
       return res.send(html);
     } catch (err) {
       return res.status(400).json({
-        message: "Failed to export Daily Time Record.",
+        message:
+          "Failed to export Daily Time Record.",
         ...(process.env.DEBUG_ERRORS === "true" && {
           error: err.message,
         }),
@@ -773,33 +779,31 @@ router.post(
         });
       }
 
-      const companyProfile = await CompanyProfile.findOne({
-        user: req.user._id,
-      });
+      const companyProfile =
+        await CompanyProfile.findOne({
+          user: req.user._id,
+        });
 
       if (!companyProfile) {
         return res.status(404).json({
-          message: "Company profile not found.",
+          message:
+            "Company profile not found.",
         });
       }
 
-      const application = await Application.findOne({
-        company: companyProfile._id,
-        student: studentId,
-        status: "approved",
-      }).populate({
-        path: "student",
-        select: "_id user",
-      });
+      const application =
+        await Application.findOne({
+          company: companyProfile._id,
+          student: studentId,
+          status: "approved",
+        }).populate({
+          path: "student",
+          select: "_id user",
+        });
 
       if (!application) {
         return res.status(403).json({
           message:
             "Access denied. Student not found in your OJT roster.",
         });
-      }
-
-      const studentProfile =
-        await StudentProfile.findById(
-          studentId,
-        ).populate(
+        

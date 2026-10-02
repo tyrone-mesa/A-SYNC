@@ -323,15 +323,18 @@ const Login = ({
                       id="login-otp"
                       type="text"
                       name="otp"
-                      onPaste={(event) => event.preventDefault()}
                       inputMode="numeric"
                       pattern="[0-9]{6}"
-                      maxLength={6}
                       autoComplete="one-time-code"
                       className="input-field numeric-value text-center font-semibold tracking-[0.5em]"
                       placeholder="Enter Code"
                       value={form.otp}
-                      onChange={handleChange}
+                      onChange={(event) =>
+                        setForm((previous) => ({
+                          ...previous,
+                          otp: event.target.value.replace(/\D/g, "").slice(0, 6),
+                        }))
+                      }
                     />
                     <button
                       type="button"

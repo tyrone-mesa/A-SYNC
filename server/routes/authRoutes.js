@@ -149,6 +149,9 @@ router.post(
     body("password").notEmpty().withMessage("Password is required."),
     body("otp")
       .optional({ checkFalsy: true })
+      .customSanitizer((value) =>
+        typeof value === "string" ? value.replace(/[\s-]/g, "") : value,
+      )
       .matches(/^\d{6}$/)
       .withMessage("Enter the 6-digit monthly login code."),
     body("portal")

@@ -266,16 +266,6 @@ const LandingPage = ({ intro = false, onIntroComplete }) => {
       });
   }, [isVideoReady]);
 
-  React.useEffect(() => {
-    if (prefersReducedMotion) return undefined;
-
-    const interval = window.setInterval(() => {
-      setFeatureSlide((current) => (current + 1) % FEATURES.length);
-    }, 4200);
-
-    return () => window.clearInterval(interval);
-  }, [prefersReducedMotion]);
-
   const moveAboutSlide = (direction) => {
     setAboutDirection(direction);
     setAboutSlide(

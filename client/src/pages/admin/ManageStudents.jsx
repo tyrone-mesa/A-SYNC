@@ -380,16 +380,18 @@ const ManageStudents = () => {
               <Link
                 key={s._id}
                 to={`/admin/students/${s._id}`}
-                className="flex items-center justify-between gap-4 py-4 transition hover:bg-navy/5 first:pt-0 last:pb-0"
+                className="flex min-w-0 flex-col items-start gap-3 py-4 transition hover:bg-navy/5 first:pt-0 last:pb-0 sm:flex-row sm:items-center sm:justify-between sm:gap-4"
               >
-                <div>
-                  <p className="font-medium text-navy">{s.user?.fullName}</p>
-                  <p className="text-sm text-navy/65">
+                <div className="w-full min-w-0 sm:w-auto">
+                  <p className="break-words font-medium text-navy">
+                    {s.user?.fullName}
+                  </p>
+                  <p className="break-words text-sm text-navy/65">
                     {renderNumericEmail(s.user?.email)} ·{" "}
                     {s.course || "No course set"}
                   </p>
                 </div>
-                <div className="flex items-center gap-3 shrink-0">
+                <div className="flex w-full min-w-0 flex-wrap items-center gap-2 sm:w-auto sm:flex-nowrap sm:shrink-0 sm:gap-3">
                   {isAdmin && (
                     <button
                       type="button"
@@ -398,7 +400,7 @@ const ManageStudents = () => {
                         event.stopPropagation();
                         resetOtp(s);
                       }}
-                      className="text-[#5E7867] text-xs font-medium hover:underline"
+                      className="max-w-full text-left text-xs font-medium text-[#5E7867] hover:underline"
                     >
                       Reset &amp; Resend OTP
                     </button>

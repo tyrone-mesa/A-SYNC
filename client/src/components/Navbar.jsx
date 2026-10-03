@@ -84,6 +84,11 @@ const Navbar = ({ variant = "static" }) => {
     setAuthModal({ type: "register", from: "partner" });
   };
 
+  // Close mobile menu when route changes
+  useEffect(() => {
+    setMobileMenuOpen(false);
+  }, [location.pathname]);
+
   useEffect(() => {
     const handlePartnerSignup = () => {
       setMobileMenuOpen(false);
@@ -109,7 +114,7 @@ const Navbar = ({ variant = "static" }) => {
     variant === "overlay" ? "" : "animate-nav-fade";
 
   const mobileNavLinkClass = (isActive) =>
-    `relative text-[14px] font-semibold text-white transition-colors duration-150 hover:text-white/80 pb-1 ${
+    `relative text-[14px] font-semibold text-white transition-all duration-200 hover:text-white/80 pb-1 cursor-pointer ${
       isActive ? "border-b-2 border-[#F6C744]" : "border-b-2 border-transparent"
     }`;
 
@@ -118,7 +123,7 @@ const Navbar = ({ variant = "static" }) => {
       className={`${headerPositionClass} ${headerAnimationClass} z-40 px-3 py-3 sm:px-6`}
     >
       <nav className="w-full">
-        <div className="glass-panel mx-auto flex min-h-[60px] w-full max-w-7xl items-center justify-between rounded-[28px] px-3 shadow-[0_12px_30px_rgba(15,30,53,0.14)] sm:px-5 lg:w-fit lg:max-w-none lg:px-5">
+        <div className="glass-panel mx-auto flex min-h-[60px] w-full max-w-7xl items-center justify-between rounded-[28px] px-3 shadow-[0_12px_30px_rgba(15,30,53,0.14)] sm:px-5 lg:w-fit lg:max-w-[...]">
           <a
             href="/"
             aria-label="Go to ASIATECH SYNC home page"
@@ -160,7 +165,7 @@ const Navbar = ({ variant = "static" }) => {
                   <button
                     type="button"
                     onClick={openPartnerSignup}
-                    className="nav-slide btn-lift bg-white text-[#0b5d3d] font-bold text-[13px] px-4 py-2 rounded-full shadow-[0_6px_18px_rgba(255,255,255,0.2)] hover:shadow-[0_10px_22px_rgba(255,255,255,0.22)] transition duration-200"
+                    className="nav-slide btn-lift bg-white text-[#0b5d3d] font-bold text-[13px] px-4 py-2 rounded-full shadow-[0_6px_18px_rgba(255,255,255,0.2)] hover:shadow-[0_10px_22px_rgba(255[...]"
                   >
                     Become a Partner
                   </button>
@@ -201,52 +206,64 @@ const Navbar = ({ variant = "static" }) => {
           </div>
         </div>
 
+        {/* Mobile Navigation */}
         <div className="lg:hidden">
           <div className="mt-3 flex justify-center">
-            <div className="flex items-center gap-6 whitespace-nowrap">
-              <div className="relative">
+            <div className="flex items-center gap-4 whitespace-nowrap overflow-x-auto sm:gap-6 pb-2">
+              {/* Home Dropdown Button */}
+              <div className="relative flex-shrink-0">
                 <button
                   type="button"
                   onClick={() => setMobileMenuOpen((open) => !open)}
                   className={mobileNavLinkClass(false)}
+                  aria-expanded={mobileMenuOpen}
+                  aria-haspopup="true"
                 >
                   Home
-                  <span
-                    className={`inline-block ml-1 transition-transform duration-200 ${
-                      mobileMenuOpen ? "rotate-180" : ""
-                    }`}
+                  <motion.span
+                    className="inline-block ml-1 transition-transform duration-300"
+                    animate={{ rotate: mobileMenuOpen ? 180 : 0 }}
+                    transition={{ type: "spring", stiffness: 300, damping: 25 }}
                   >
                     ▼
-                  </span>
+                  </motion.span>
                 </button>
 
                 <AnimatePresence>
                   {mobileMenuOpen && (
                     <motion.div
-                      initial={{ opacity: 0, y: -6, scale: 0.98 }}
+                      initial={{ opacity: 0, y: -8, scale: 0.96 }}
                       animate={{ opacity: 1, y: 0, scale: 1 }}
-                      exit={{ opacity: 0, y: -6, scale: 0.98 }}
-                      transition={{ duration: 0.2, ease: [0.22, 1, 0.36, 1] }}
-                      className="absolute left-0 top-full z-50 mt-2 w-48 overflow-hidden rounded-2xl border border-white/10 bg-[#123d32]/95 shadow-[0_14px_28px_rgba(9,31,28,0.2)] backdrop-blur-sm"
+                      exit={{ opacity: 0, y: -8, scale: 0.96 }}
+                      transition={{
+                        duration: 0.25,
+                        ease: [0.34, 1.56, 0.64, 1],
+                      }}
+                      className="absolute left-0 top-full z-50 mt-2 w-48 overflow-hidden rounded-xl border border-white/20 bg-gradient-to-b from-[#1a4d42] to-[#0f3d35] shadow-[0_20px_40px_rgba(9,31,28,0.4)] backdrop-blur-md"
                     >
+                      {/* Home Link */}
                       <Link
                         to="/"
                         onClick={() => setMobileMenuOpen(false)}
-                        className="block px-4 py-3 text-left text-sm font-medium text-white/90 hover:bg-white/10 transition"
+                        className="block px-4 py-3 text-left text-sm font-medium text-white/90 hover:bg-white/15 transition-all duration-200 active:bg-white/20"
                       >
                         Home
                       </Link>
+
+                      {/* About Us Link */}
                       <Link
                         to="/#about"
                         onClick={() => setMobileMenuOpen(false)}
-                        className="block px-4 py-3 text-left text-sm font-medium text-white/90 hover:bg-white/10 transition border-t border-white/10"
+                        className="block px-4 py-3 text-left text-sm font-medium text-white/90 hover:bg-white/15 transition-all duration-200 active:bg-white/20 border-t border-white/10"
                       >
                         About Us
                       </Link>
+
+                      {/* Contact Us Link */}
                       <Link
                         to="/#contact"
                         onClick={() => setMobileMenuOpen(false)}
-                        className="block px-4 py-3 text-left text-sm font-medium text-white/90 hover:bg-white/10 transition border-t border-white/10"
+                        className="block px-4 py-3 text-left text-sm font-medium text-white/90 hover:bg-white/15 transition-all duration-200 active:bg-white/20 border-t border-white/10"
                       >
                         Contact Us
                       </Link>
@@ -255,16 +272,20 @@ const Navbar = ({ variant = "static" }) => {
                 </AnimatePresence>
               </div>
 
+              {/* Opportunities Link */}
               <Link
                 to="/jobs"
+                onClick={() => setMobileMenuOpen(false)}
                 className={mobileNavLinkClass(location.pathname === "/jobs")}
               >
                 Opportunities
               </Link>
 
+              {/* Dashboard Link (User Only) */}
               {user && (
                 <Link
                   to={roleHome[user.role]}
+                  onClick={() => setMobileMenuOpen(false)}
                   className={mobileNavLinkClass(
                     location.pathname.startsWith(roleHome[user.role])
                   )}
@@ -273,10 +294,13 @@ const Navbar = ({ variant = "static" }) => {
                 </Link>
               )}
 
+              {/* Logout / Login Button */}
               {user ? (
                 <button
                   type="button"
-                  onClick={handleLogout}
+                  onClick={() => {
+                    handleLogout();
+                  }}
                   className={mobileNavLinkClass(false)}
                 >
                   Logout

@@ -151,9 +151,10 @@ const Login = ({
 
   return (
     <motion.div
-      initial={modal ? { opacity: 0 } : false}
-      animate={modal ? { opacity: 1 } : undefined}
-      transition={{ duration: 0.28, ease: "easeOut" }}
+      initial={modal ? { opacity: 0, scale: 0.98, y: 12 } : false}
+      animate={modal ? { opacity: 1, scale: 1, y: 0 } : undefined}
+      exit={modal ? { opacity: 0, scale: 0.99, y: 10 } : undefined}
+      transition={{ duration: 0.32, ease: [0.22, 1, 0.36, 1] }}
       className={
         modal
           ? "fixed inset-0 z-[70] flex items-center justify-center overflow-y-auto overscroll-contain bg-[#102f25]/60 px-4 py-4 sm:py-8"
@@ -164,13 +165,14 @@ const Login = ({
       }}
     >
       <div
-        className={`${modal ? "relative isolate box-border grid max-h-[calc(100dvh-2rem)] w-full max-w-4xl grid-cols-1 overflow-y-auto rounded-[28px] border border-[#b8d2c0] bg-white p-0 shadow-[0_24px_70px_rgba(11,31,28,0.18)]" : ""}`}
+        className={`${modal ? "relative isolate box-border grid max-h-[calc(100dvh-2rem)] w-full max-w-4xl grid-cols-1 overflow-y-auto rounded-[28px] border border-[#b8d2c0] bg-white p-0 shadow-[0_25px_80px_rgba(14,34,28,0.18)]" : "w-full max-w-md"} ${modal ? "sm:grid-cols-[0.9fr_1.1fr]" : ""}`}
       >
         {modal && (
           <>
-            <div className="pointer-events-none relative hidden h-full overflow-hidden bg-[#0f3d2e] sm:block">
+            <div className="pointer-events-none relative hidden max-h-[50vh] overflow-hidden bg-[#0f3d2e] sm:block">
               <video
                 className="h-full w-full object-cover object-[50%_20%]"
+                style={{ clipPath: "inset(0 0 0 0 round 28px 0 0 28px)" }}
                 src="/media/hero-intro-2.mp4"
                 autoPlay
                 muted
@@ -190,7 +192,7 @@ const Login = ({
             <button
               type="button"
               onClick={onClose}
-              className="absolute right-4 top-4 z-20 inline-flex h-10 w-10 items-center justify-center rounded-full bg-white/95 text-[#0F3D2E] shadow-md transition hover:bg-white hover:text-[#0B2F2A]"
+              className="absolute right-4 top-4 z-20 inline-flex h-10 w-10 items-center justify-center rounded-full bg-white/95 text-[#0F3D2E] shadow-md transition hover:bg-white hover:text-[#0B2D28]"
               aria-label="Close login"
             >
               <X size={20} aria-hidden="true" />
@@ -297,7 +299,7 @@ const Login = ({
                 initial={{ opacity: 0, x: 12 }}
                 animate={{ opacity: 1, x: 0 }}
                 exit={{ opacity: 0, x: -12 }}
-                transition={{ duration: 0.2, ease: "easeOut" }}
+                transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }}
                 className={modal ? "flex flex-col gap-4" : "space-y-4"}
               >
                 {studentStep === "credentials" && (
@@ -351,7 +353,7 @@ const Login = ({
                         !form.email ||
                         !form.password
                       }
-                      className="mt-2 w-full rounded-lg border border-[#1a5c46]/25 bg-white/50 px-4 py-2 text-sm font-semibold text-[#1a5c46] transition hover:bg-white/80 disabled:cursor-not-allowed disabled:opacity-50"
+                      className="mt-2 w-full rounded-lg border border-[#1a5c46]/25 bg-white/50 px-4 py-2 text-sm font-semibold text-[#1a5c46] transition hover:bg-white/80 disabled:cursor-not-allowed disabled:opacity-60"
                     >
                       {loading
                         ? "Sending OTP..."

@@ -168,7 +168,9 @@ const LandingPage = ({ intro = false, onIntroComplete }) => {
 
   const finishIntroVideo = useCallback(() => {
     setIsIntroRevealed(true);
-    onIntroComplete();
+    if (onIntroComplete) {
+      onIntroComplete();
+    }
   }, [onIntroComplete]);
 
   const ensureHeroVideoPlaying = useCallback(() => {
@@ -275,33 +277,9 @@ const LandingPage = ({ intro = false, onIntroComplete }) => {
 
   return (
     <div className="min-h-screen bg-[#FBF8F3]">
+      {/* Hero Section with Video Background */}
       <section className="relative flex min-h-[calc(100svh-24px)] items-center justify-start overflow-hidden bg-[#0F3D2E] px-5 py-24 sm:px-8 lg:px-12">
-        {/* Navbar lives inside the Hero section (which is `position: relative`) so it is
-            absolutely positioned relative to the Hero, not the viewport. It scrolls away
-            with the Hero naturally — no fixed, no sticky, no scroll listeners. */}
-        <motion.div
-          initial={intro ? { opacity: 0, y: -8 } : false}
-          animate={{
-            opacity: intro && !isIntroRevealed ? 0 : 1,
-            y: 0,
-          }}
-          transition={{
-            duration: hasHeroIntro ? 1.05 : 0,
-            delay: intro && isIntroRevealed ? 0.16 : 0,
-            ease: [0.22, 1, 0.36, 1],
-          }}
-        >
-          <Navbar variant="overlay" />
-        </motion.div>
-        {intro && (
-          <button
-            type="button"
-            onClick={finishIntroVideo}
-            className="absolute right-5 top-24 z-20 rounded-full border border-white/60 bg-[#0F3D2E]/75 px-5 py-2.5 text-sm font-semibold text-white shadow-md backdrop-blur-sm transition hover:bg-white/10"
-          >
-            Skip intro
-          </button>
-        )}
+        {/* Video Background Layer */}
         <div className="absolute inset-0 bg-gradient-to-br from-[#0B2E22] via-[#0F3D2E] to-[#0B2E22]">
           <div
             className={`absolute inset-0 ${
@@ -340,6 +318,35 @@ const LandingPage = ({ intro = false, onIntroComplete }) => {
           </div>
           <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-[#0F3D2E]/95 via-[#0F3D2E]/15 to-[#0F3D2E]/10" />
         </div>
+
+        {/* Navigation - Fade In */}
+        <motion.div
+          initial={intro ? { opacity: 0, y: -8 } : false}
+          animate={{
+            opacity: intro && !isIntroRevealed ? 0 : 1,
+            y: 0,
+          }}
+          transition={{
+            duration: hasHeroIntro ? 1.05 : 0,
+            delay: intro && isIntroRevealed ? 0.16 : 0,
+            ease: [0.22, 1, 0.36, 1],
+          }}
+        >
+          <Navbar variant="overlay" />
+        </motion.div>
+
+        {/* Skip Intro Button */}
+        {intro && (
+          <button
+            type="button"
+            onClick={finishIntroVideo}
+            className="absolute right-5 top-24 z-20 rounded-full border border-white/60 bg-[#0F3D2E]/75 px-5 py-2.5 text-sm font-semibold text-white shadow-md backdrop-blur-sm transition hover:bg-white/20"
+          >
+            Skip intro
+          </button>
+        )}
+
+        {/* Hero Content - Fade In After Video */}
         <motion.div
           initial={intro ? { opacity: 0, y: 10 } : "hidden"}
           animate={
@@ -395,7 +402,7 @@ const LandingPage = ({ intro = false, onIntroComplete }) => {
             <button
               type="button"
               onClick={openPartnerSignup}
-              className="rounded-full border border-white/50 bg-white/10 px-7 py-3.5 text-center font-bold text-white shadow-sm backdrop-blur-sm transition duration-200 hover:-translate-y-1 hover:scale-[1.03] hover:bg-white/15"
+              className="rounded-full border border-white/50 bg-white/10 px-7 py-3.5 text-center font-bold text-white shadow-sm backdrop-blur-sm transition duration-200 hover:-translate-y-1 hover:scale-[1.03] hover:bg-white/20"
             >
               Partner With Us
             </button>
@@ -403,6 +410,7 @@ const LandingPage = ({ intro = false, onIntroComplete }) => {
         </motion.div>
       </section>
 
+      {/* About Section */}
       <section
         id="about"
         className="relative z-0 scroll-mt-24 overflow-hidden px-4 py-14 sm:px-8 sm:py-20 md:px-16 lg:px-20"
@@ -442,7 +450,7 @@ const LandingPage = ({ intro = false, onIntroComplete }) => {
                 </p>
               </div>
             )}
-            <div className="relative mx-auto grid h-[250px] min-h-0 w-full max-w-[22rem] grid-cols-[2.5rem_minmax(0,1fr)_2.5rem] items-center gap-1 py-3 sm:h-[320px] sm:max-w-none sm:grid-cols-[3rem_minmax(0,1fr)_3rem] md:hidden">
+            <div className="relative mx-auto grid h-[250px] min-h-0 w-full max-w-[22rem] grid-cols-[2.5rem_minmax(0,1fr)_2.5rem] items-center gap-1 py-3 sm:h-[320px] sm:max-w-none sm:grid-cols-[3rem_minmax(0,1fr)_3rem] md:h-auto md:grid-cols-1 md:gap-0">
               <button
                 type="button"
                 onClick={() => moveAboutSlide(-1)}
@@ -529,6 +537,7 @@ const LandingPage = ({ intro = false, onIntroComplete }) => {
         </button>
       </section>
 
+      {/* Commitment Section */}
       <section
         id="commitment"
         className="bg-[#0F3D2E] px-5 py-20 text-white sm:px-8 lg:px-12"
@@ -567,6 +576,7 @@ const LandingPage = ({ intro = false, onIntroComplete }) => {
         </motion.div>
       </section>
 
+      {/* How ASIATECHSYNC Works Section */}
       <section className="px-5 py-20 sm:px-8 lg:px-12">
         <motion.div
           initial="hidden"
@@ -575,7 +585,7 @@ const LandingPage = ({ intro = false, onIntroComplete }) => {
           variants={staggerContainer}
           className="mx-auto max-w-6xl"
         >
-          <motion.div variants={fadeUp} className="mb-12">
+          <motion.div variants={fadeUp} className="mb-10">
             <p className="mb-3 text-xs font-bold uppercase tracking-[0.2em] text-[#1E5D46]">
               How ASIATECHSYNC Works
             </p>
@@ -583,44 +593,27 @@ const LandingPage = ({ intro = false, onIntroComplete }) => {
               A simple path to your next step.
             </h2>
           </motion.div>
-          <div className="md:hidden">
-            <div className="-mx-1 flex snap-x snap-mandatory gap-4 overflow-x-auto px-1 pb-4 [scrollbar-width:none]">
-              {FEATURES.map((feature) => {
-                const Icon = feature.icon;
-                return (
-                  <motion.div
-                    key={feature.number}
-                    variants={fadeUp}
-                    className="min-w-[84%] snap-center self-stretch rounded-2xl border border-[#ECE7DD] bg-white p-7 shadow-[0_14px_30px_-12px_rgba(29,41,57,0.22)]"
-                  >
-                    <p className="mb-6 text-sm font-black text-[#E8C165]">
-                      {feature.number}
-                    </p>
-                    <Icon className="mb-5 text-[#1E5D46]" size={30} />
-                    <h3 className="mb-3 text-xl font-bold text-[#1D2939]">
-                      {feature.title}
-                    </h3>
-                    <p className="text-[#4B5768]">{feature.description}</p>
-                  </motion.div>
-                );
-              })}
-            </div>
-          </div>
-          <div className="hidden md:grid md:grid-cols-3 md:gap-6">
+
+          <div className="grid gap-4 md:grid-cols-3">
             {FEATURES.map((feature) => {
               const Icon = feature.icon;
               return (
                 <motion.div
                   key={feature.number}
                   variants={fadeUp}
-                  whileHover={prefersReducedMotion ? undefined : { y: -6 }}
+                  whileHover={prefersReducedMotion ? undefined : { y: -4 }}
                   transition={{ duration: 0.25, ease: "easeOut" }}
-                  className="min-w-[84%] snap-center rounded-2xl border border-[#ECE7DD] bg-white p-7 shadow-[0_4px_20px_-8px_rgba(29,41,57,0.12)] transition-shadow duration-300 hover:shadow-[0_12px_30px_-16px_rgba(29,41,57,0.18)]"
+                  className="flex h-full flex-col rounded-2xl border border-[#ECE7DD] bg-white p-6 shadow-sm transition-shadow duration-300 hover:shadow-md"
                 >
-                  <p className="mb-6 text-sm font-black text-[#E8C165]">
-                    {feature.number}
-                  </p>
-                  <Icon className="mb-5 text-[#1E5D46]" size={30} />
+                  <div className="mb-5 flex items-center gap-3">
+                    <span className="flex h-11 w-11 items-center justify-center rounded-full bg-[#EAF3EA] text-[#1E5D46]">
+                      <Icon size={22} />
+                    </span>
+                    <p className="text-sm font-black text-[#E8C165]">
+                      {feature.number}
+                    </p>
+                  </div>
+
                   <h3 className="mb-3 text-xl font-bold text-[#1D2939]">
                     {feature.title}
                   </h3>
@@ -632,6 +625,7 @@ const LandingPage = ({ intro = false, onIntroComplete }) => {
         </motion.div>
       </section>
 
+      {/* Student Testimonials Section */}
       <section className="bg-[#E6EFE6] px-5 py-20 sm:px-8 lg:px-12">
         <motion.div
           initial="hidden"
@@ -656,17 +650,17 @@ const LandingPage = ({ intro = false, onIntroComplete }) => {
             {[
               {
                 quote:
-                  "Before using AsiatechSync, I wasn't sure where to start looking for internship opportunities. The platform made everything easier by showing opportunities that matched my interests and needs.",
+                  "Before using AsiatechSync, I wasn't sure where to start looking for internship opportunities. The platform made everything easier by showing opportunities that matched my interests.",
                 attribution: "BS Information Technology Student",
               },
               {
                 quote:
-                  "What I liked most about AsiatechSync was having everything in one place. I could explore opportunities, review company information, and submit applications without jumping between multiple sites.",
+                  "What I liked most about AsiatechSync was having everything in one place. I could explore opportunities, review company information, and submit applications without jumping between websites.",
                 attribution: "OJT Student",
               },
               {
                 quote:
-                  "AsiatechSync gave me access to opportunities I might not have found on my own. Through the platform, I connected with an industry partner that allowed me to apply what I learned in school.",
+                  "AsiatechSync gave me access to opportunities I might not have found on my own. Through the platform, I connected with an industry partner that allowed me to apply what I learned in class.",
                 attribution: "Internship Applicant",
               },
             ].map((testimonial) => (
@@ -678,7 +672,7 @@ const LandingPage = ({ intro = false, onIntroComplete }) => {
                 }
                 className="min-w-[84%] snap-center rounded-2xl border border-white/60 bg-white/45 p-7 backdrop-blur-md transition duration-300 hover:-translate-y-1 hover:bg-white/60 md:min-w-0"
               >
-                <p className="mb-8 text-[#4B5768]">“{testimonial.quote}”</p>
+                <p className="mb-8 text-[#4B5768]">"{testimonial.quote}"</p>
                 <p className="text-sm font-bold text-[#1E5D46]">
                   — {testimonial.attribution}
                 </p>
@@ -688,6 +682,7 @@ const LandingPage = ({ intro = false, onIntroComplete }) => {
         </motion.div>
       </section>
 
+      {/* Opportunities Section */}
       <section id="opportunities" className="px-5 py-20 sm:px-8 lg:px-12">
         <motion.div
           initial="hidden"
@@ -739,6 +734,7 @@ const LandingPage = ({ intro = false, onIntroComplete }) => {
         </motion.div>
       </section>
 
+      {/* Partners Section */}
       <section
         id="partners"
         className="bg-[#0F3D2E] px-5 py-20 text-white sm:px-8 lg:px-12"
@@ -767,7 +763,7 @@ const LandingPage = ({ intro = false, onIntroComplete }) => {
             <button
               type="button"
               onClick={openPartnerSignup}
-              className="inline-flex items-center gap-2 rounded-full bg-[#E8C165] px-7 py-3.5 font-bold text-[#0F3D2E] transition duration-200 hover:-translate-y-1 hover:scale-[1.03] hover:bg-[#DEB24E] hover:shadow-md"
+              className="inline-flex items-center gap-2 rounded-full bg-[#E8C165] px-7 py-3.5 font-bold text-[#0F3D2E] transition duration-200 hover:-translate-y-1 hover:scale-[1.03] hover:bg-[#DEB24E]"
             >
               Become a Partner <ArrowRight size={17} />
             </button>
@@ -775,6 +771,7 @@ const LandingPage = ({ intro = false, onIntroComplete }) => {
         </motion.div>
       </section>
 
+      {/* Why Partner With Us Section */}
       <section className="px-5 py-20 sm:px-8 lg:px-12">
         <motion.div
           initial="hidden"
@@ -788,14 +785,14 @@ const LandingPage = ({ intro = false, onIntroComplete }) => {
               Why Partner With Us?
             </h2>
           </motion.div>
-          <div className="homepage-mobile-carousel -mx-1 flex snap-x snap-mandatory gap-4 overflow-x-auto px-1 pb-4 md:mx-0 md:grid md:grid-cols-2 md:gap-5 md:overflow-visible md:px-0 md:pb-0">
+          <div className="grid gap-4 md:grid-cols-2">
             {PARTNER_BENEFITS.map(([title, description]) => (
               <motion.div
                 variants={fadeUp}
                 key={title}
                 whileHover={prefersReducedMotion ? undefined : { y: -4 }}
                 transition={{ duration: 0.25, ease: "easeOut" }}
-                className="min-w-[84%] snap-center flex gap-4 rounded-2xl border border-[#ECE7DD] bg-white p-6 shadow-sm transition-shadow duration-300 hover:shadow-md md:min-w-0"
+                className="flex gap-4 rounded-2xl border border-[#ECE7DD] bg-white p-6 shadow-sm transition-shadow duration-300 hover:shadow-md"
               >
                 <CheckCircle
                   className="mt-1 shrink-0 text-[#1E5D46]"
@@ -813,6 +810,7 @@ const LandingPage = ({ intro = false, onIntroComplete }) => {
         </motion.div>
       </section>
 
+      {/* About School Section */}
       <section id="school" className="bg-[#E6EFE6] px-5 py-20 sm:px-8 lg:px-12">
         <motion.div
           initial="hidden"
@@ -869,6 +867,7 @@ const LandingPage = ({ intro = false, onIntroComplete }) => {
         </motion.div>
       </section>
 
+      {/* CTA Section */}
       <section className="px-5 py-24 sm:px-8 lg:px-12">
         <motion.div
           initial="hidden"
@@ -903,6 +902,7 @@ const LandingPage = ({ intro = false, onIntroComplete }) => {
         </motion.div>
       </section>
 
+      {/* Footer */}
       <footer
         id="contact"
         className="scroll-mt-24 bg-[#0F3D2E] px-5 py-14 text-white sm:px-8 lg:px-12"

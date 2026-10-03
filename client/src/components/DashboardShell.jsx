@@ -45,7 +45,6 @@ const navMap = {
   ],
 };
 
-// Animation variants for smooth transitions
 const animationVariants = {
   navItem: {
     inactive: { opacity: 0.75 },
@@ -92,7 +91,6 @@ const DashboardShell = ({
     return pathname === item.to || pathname.startsWith(`${item.to}/`);
   };
 
-  // Auto-scroll active mobile tab into view
   useEffect(() => {
     const activeButton = mobileMenuRef.current?.querySelector("[data-active='true']");
     if (activeButton) {
@@ -112,14 +110,12 @@ const DashboardShell = ({
       transition={{ duration: 0.18 }}
     >
       <div className="mx-auto flex min-h-full min-w-0 max-w-[1380px] flex-col gap-4 lg:h-full lg:min-h-0 lg:flex-row lg:items-stretch">
-        {/* Desktop Sidebar - Desktop Only */}
         <motion.aside
           className="hidden lg:flex lg:flex-col w-64 rounded-[20px] bg-gradient-to-b from-[#5a8c7e] via-[#4a7d72] to-[#3a6e66] border border-[#4a8876]/40 shadow-[0_12px_40px_rgba(23,61,52,0.18)]"
           initial={{ opacity: 0, x: -30 }}
           animate={{ opacity: 1, x: 0 }}
           transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
         >
-          {/* Header with Logo */}
           <div className="flex items-center justify-between px-4 py-4 border-b border-white/15">
             <div className="flex items-center gap-3">
               <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-white/20 ring-1 ring-white/30 shadow-sm">
@@ -133,7 +129,6 @@ const DashboardShell = ({
             </div>
           </div>
 
-          {/* Navigation Menu */}
           <nav className="flex-1 overflow-y-auto py-4 px-3 space-y-2">
             {items.map((item, idx) => {
               const active = isItemActive(item, location.pathname);
@@ -155,7 +150,6 @@ const DashboardShell = ({
                   >
                     {({ isActive }) => (
                       <>
-                        {/* Background highlight for active state */}
                         {isActive && (
                           <motion.span
                             layoutId={`dashboard-nav-highlight-${currentRole}`}
@@ -168,15 +162,13 @@ const DashboardShell = ({
                             }}
                           />
                         )}
-                        
-                        {/* Text content */}
+
                         <motion.span
                           className="relative z-10 flex items-center gap-2.5 w-full"
                           animate={isActive ? "active" : "inactive"}
                           variants={animationVariants.navItem}
                           transition={{ duration: 0.2 }}
                         >
-                          {/* Left accent indicator */}
                           {isActive && (
                             <motion.div
                               className="h-1 w-1 rounded-full bg-[#7fffcf] flex-shrink-0"
@@ -207,7 +199,6 @@ const DashboardShell = ({
             })}
           </nav>
 
-          {/* Footer Logout Button */}
           <div className="border-t border-white/15 p-3">
             <motion.button
               type="button"
@@ -221,18 +212,14 @@ const DashboardShell = ({
           </div>
         </motion.aside>
 
-        {/* Main Content */}
         <motion.main
           className="glass-panel flex min-w-0 flex-1 flex-col overflow-visible rounded-[22px] border border-white/25 bg-[rgba(255,255,255,0.16)] shadow-[0_20px_45px_rgba(15,30,53,0.10)]"
           initial={{ opacity: 0, y: 6 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.24, ease: [0.22, 1, 0.36, 1] }}
         >
-          {/* Mobile & Desktop Header */}
-          <header className="flex min-w-0 flex-col gap-3 border-b border-white/15 bg-gradient-to-b from-[rgba(33,76,63,0.82)] to-[rgba(33,76,63,0.68)] px-3 py-3 text-white backdrop-blur-md sm:px-[...]
-            {/* Line 1: Horizontal Menu (Mobile Only) / User Info (Desktop) */}
+          <header className="flex min-w-0 flex-col gap-3 border-b border-white/15 bg-gradient-to-b from-[rgba(33,76,63,0.82)] to-[rgba(33,76,63,0.68)] px-3 py-3 text-white backdrop-blur-md sm:px-6 sm:py-4">
             <div className="flex min-w-0 items-center justify-between gap-3 lg:justify-start">
-              {/* Mobile: Horizontal Scrollable Menu with Smooth Animation */}
               <div className="flex lg:hidden min-w-0 flex-1">
                 <div
                   ref={mobileMenuRef}
@@ -252,6 +239,7 @@ const DashboardShell = ({
                         }
                         className="shrink-0 snap-center"
                         data-active={isActive}
+                        aria-current={isActive ? "page" : undefined}
                       >
                         {({ isActive: linkActive }) => (
                           <motion.div
@@ -280,12 +268,14 @@ const DashboardShell = ({
                               duration: 0.35,
                               ease: [0.34, 1.56, 0.64, 1],
                             }}
-                            className="relative whitespace-nowrap rounded-full px-4 py-2.5 text-xs sm:text-sm font-medium focus:outline-none focus:ring-2 focus:ring-white/30 focus:ring-offset-2 f[...]
+                            className="relative whitespace-nowrap rounded-full px-4 py-2.5 text-xs sm:text-sm font-medium focus:outline-none focus:ring-2 focus:ring-white/30 focus:ring-offset-2 focus:ring-offset-[rgba(33,76,63,0.68)]"
                             style={{
                               border: linkActive
                                 ? "1px solid rgba(210, 233, 225, 0.5)"
                                 : "1px solid transparent",
                               transition: "all 0.35s cubic-bezier(0.34, 1.56, 0.64, 1)",
+                              pointerEvents: "auto",
+                              cursor: "pointer",
                             }}
                           >
                             <span className="relative z-10 flex items-center gap-2">
@@ -311,7 +301,6 @@ const DashboardShell = ({
                 </div>
               </div>
 
-              {/* Desktop: Title and Role */}
               <motion.div
                 className="hidden lg:flex lg:items-start lg:gap-3"
                 initial={{ opacity: 0, y: -10 }}
@@ -338,7 +327,6 @@ const DashboardShell = ({
                 </div>
               </motion.div>
 
-              {/* User Info Pill */}
               {user && (
                 <motion.div
                   className="ml-auto rounded-full border border-white/20 bg-white/10 px-3 py-1.5 text-xs sm:text-sm text-white backdrop-blur-sm whitespace-nowrap shadow-sm"
@@ -360,7 +348,6 @@ const DashboardShell = ({
               )}
             </div>
 
-            {/* Line 2: Page Title & Breadcrumb (Mobile) */}
             <motion.div
               className="flex lg:hidden min-w-0 items-center justify-between gap-2"
               initial={{ opacity: 0 }}
@@ -379,7 +366,6 @@ const DashboardShell = ({
               )}
             </motion.div>
 
-            {/* Desktop: Actions Row */}
             {actions && (
               <motion.div
                 className="hidden lg:flex min-w-0 flex-wrap items-center gap-3"
@@ -394,7 +380,6 @@ const DashboardShell = ({
             )}
           </header>
 
-          {/* Page Content */}
           <div className="min-w-0 flex-1 px-3 py-4 sm:px-6 sm:py-6 lg:min-h-0 lg:overflow-y-auto">
             <AnimatePresence mode="wait" initial={false}>
               <motion.div
@@ -425,7 +410,6 @@ const DashboardShell = ({
         </motion.main>
       </div>
 
-      {/* Global Styles */}
       <style>{`
         .scrollbar-hide::-webkit-scrollbar {
           display: none;
@@ -435,21 +419,18 @@ const DashboardShell = ({
           scrollbar-width: none;
         }
 
-        /* Smooth scroll behavior for mobile menu */
         @supports (scroll-behavior: smooth) {
           .scroll-smooth {
             scroll-behavior: smooth;
           }
         }
 
-        /* Focus visible styles for accessibility */
         button:focus-visible,
         a:focus-visible {
           outline: 2px solid rgba(255, 255, 255, 0.5);
           outline-offset: 2px;
         }
 
-        /* Reduced motion support */
         @media (prefers-reduced-motion: reduce) {
           * {
             animation-duration: 0.01ms !important;

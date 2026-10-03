@@ -56,8 +56,9 @@ const Navbar = ({ variant = "static" }) => {
   const { user, logout } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
-  const [menuOpen, setMenuOpen] = useState(false);
+  const [mobileHomeOpen, setMobileHomeOpen] = useState(false);
   const [authModal, setAuthModal] = useState(null);
+
   const showMessaging = false;
   const showNotifications =
     user &&
@@ -67,7 +68,7 @@ const Navbar = ({ variant = "static" }) => {
 
   const handleLogout = () => {
     logout();
-    setMenuOpen(false);
+    setMobileHomeOpen(false);
     window.location.replace("/");
   };
 
@@ -77,18 +78,20 @@ const Navbar = ({ variant = "static" }) => {
       navigate("/", { replace: true });
     }
   };
+
   const openLogin = () => {
-    setMenuOpen(false);
+    setMobileHomeOpen(false);
     setAuthModal({ type: "login", portal: "student" });
   };
+
   const openPartnerSignup = () => {
-    setMenuOpen(false);
+    setMobileHomeOpen(false);
     setAuthModal({ type: "register", from: "partner" });
   };
 
   useEffect(() => {
     const handlePartnerSignup = () => {
-      setMenuOpen(false);
+      setMobileHomeOpen(false);
       setAuthModal({ type: "register", from: "partner" });
     };
     window.addEventListener("asiatech:partner-signup", handlePartnerSignup);
@@ -110,30 +113,25 @@ const Navbar = ({ variant = "static" }) => {
   const headerAnimationClass =
     variant === "overlay" ? "" : "animate-nav-fade";
 
-  const mobileNavItems = [
-    { label: "Home", href: "/", active: location.pathname === "/" && !location.hash },
-    { label: "Opportunities", href: "/jobs", active: location.pathname === "/jobs" },
-    { label: "About Us", href: "/#about", active: location.pathname === "/" && location.hash === "#about" },
-    { label: "Contact Us", href: "/#contact", active: location.pathname === "/" && location.hash === "#contact" },
-  ];
+  const mobileNavButtonClass =
+    "inline-flex shrink-0 items-center justify-center gap-1.5 rounded-full border border-white/20 bg-white/10 px-3.5 py-2.5 text-[14px] font-semibold text-white transition hover:bg-white/15 focus:outline-none focus:ring-2 focus:ring-white/40";
 
   return (
     <header
       className={`${headerPositionClass} ${headerAnimationClass} z-40 px-3 py-3 sm:px-6`}
     >
       <nav className="w-full">
-        <div className="glass-panel mobile-nav-shell mx-auto flex min-h-[58px] w-full max-w-7xl items-center justify-between rounded-[22px] px-3 shadow-[0_12px_30px_rgba(15,30,53,0.14)] sm:px-5 lg:w-fit lg:max-w-none lg:px-5">
+        <div className="glass-panel mx-auto flex min-h-[60px] w-full max-w-7xl items-center justify-between rounded-[28px] px-3 shadow-[0_12px_30px_rgba(15,30,53,0.14)] sm:px-5 lg:w-fit lg:max-w-none lg:px-5">
           <a
             href="/"
             aria-label="Go to ASIATECH SYNC home page"
             title="Go to home page"
-            onClick={() => setMenuOpen(false)}
             className="group flex shrink-0 items-center gap-2.5"
           >
             <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-white/15 shadow-sm sm:h-10 sm:w-10">
               <Logo size={28} />
             </div>
-            <span className="hidden text-base font-semibold leading-tight tracking-[-0.03em] text-white sm:inline-block sm:text-lg">
+            <span className="font-display font-semibold tracking-[-0.02em] text-lg leading-tight text-white">
               ASIATECH <span className="text-[#c4e1c1]">SYNC</span>
             </span>
           </a>
@@ -214,98 +212,102 @@ const Navbar = ({ variant = "static" }) => {
               )}
             </div>
 
-            <div className="flex items-center gap-2 lg:hidden">
+            <div className="ml-auto flex items-center gap-2 lg:hidden">
+              {showNotifications && <NotificationBell />}
               {user && (
                 <span className="shrink-0 text-[12px] font-semibold text-white/80">
                   {user.fullName.split(" ")[0]}
                 </span>
               )}
-              {showNotifications && <NotificationBell />}
-              <button
-                className="mobile-menu-button shrink-0 rounded-full border border-white/20 bg-white/10 p-2 text-white transition duration-150 hover:bg-white/15"
-                onClick={() => setMenuOpen((o) => !o)}
-                aria-label="Toggle navigation menu"
-                aria-expanded={menuOpen}
-              >
-                <svg
-                  width="18"
-                  height="18"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    d="M4 6h16M4 12h16M4 18h16"
-                  />
-                </svg>
-              </button>
             </div>
           </div>
         </div>
 
-        {menuOpen && (
-          <div className="mobile-drawer-menu mt-3 flex flex-col gap-2 rounded-[22px] border border-white/10 bg-[#1e4a3d]/95 px-3 py-3 shadow-[0_16px_36px_rgba(15,45,37,0.28)] backdrop-blur-sm lg:hidden">
-            {mobileNavItems.map((item) => (
-              <a
-                key={item.label}
-                href={item.href}
-                className={`mobile-nav-menu-item ${item.active ? "active" : ""} text-white hover:text-white`}
-                onClick={() => setMenuOpen(false)}
-              >
-                {item.label}
-              </a>
-            ))}
+        <div className="lg:hidden">
+          <div className="mt-3 overflow-x-auto pb-1">
+            <div className="flex min-w-max items-center gap-2">
+              <div className="relative">
+                <button
+                  type="button"
+                  onClick={() => setMobileHomeOpen((value) => !value)}
+                  className={`${mobileNavButtonClass} ${location.pathname === "/" ? "bg-[#e7d19a]/20 text-[#f7f0d9]" : ""}`}
+                >
+                  <span>Home</span>
+                  <span
+                    className={`text-[10px] transition-transform duration-200 ${mobileHomeOpen ? "rotate-180" : ""}`}
+                  >
+                    ▾
+                  </span>
+                </button>
 
-            {!user ? (
-              <>
-                <button
-                  type="button"
-                  onClick={openLogin}
-                  className="mobile-nav-menu-item text-left text-white hover:text-white"
-                >
-                  Log in
-                </button>
-                <button
-                  type="button"
-                  onClick={openPartnerSignup}
-                  className="mobile-nav-cta border border-white/20 bg-white/10 text-white hover:text-white"
-                >
-                  Become a Partner
-                </button>
-              </>
-            ) : (
-              <>
+                <AnimatePresence>
+                  {mobileHomeOpen && (
+                    <motion.div
+                      initial={{ opacity: 0, y: -6, scale: 0.98 }}
+                      animate={{ opacity: 1, y: 0, scale: 1 }}
+                      exit={{ opacity: 0, y: -6, scale: 0.98 }}
+                      transition={{ duration: 0.16, ease: "easeOut" }}
+                      className="absolute left-0 top-full z-50 mt-2 w-44 overflow-hidden rounded-2xl border border-white/10 bg-[#123d32]/95 shadow-[0_14px_28px_rgba(9,31,28,0.28)] backdrop-blur-md"
+                    >
+                      <Link
+                        to="/#about"
+                        onClick={() => setMobileHomeOpen(false)}
+                        className="block px-3 py-2.5 text-left text-sm font-medium text-white/90 hover:bg-white/10"
+                      >
+                        About Us
+                      </Link>
+                      <Link
+                        to="/#contact"
+                        onClick={() => setMobileHomeOpen(false)}
+                        className="block px-3 py-2.5 text-left text-sm font-medium text-white/90 hover:bg-white/10"
+                      >
+                        Contact Us
+                      </Link>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
+
+              <Link
+                to="/jobs"
+                className={mobileNavButtonClass}
+                onClick={() => setMobileHomeOpen(false)}
+              >
+                Opportunities
+              </Link>
+
+              {user && (
                 <Link
                   to={roleHome[user.role]}
-                  className="mobile-nav-menu-item text-white hover:text-white"
-                  onClick={() => setMenuOpen(false)}
+                  className={mobileNavButtonClass}
+                  onClick={() => setMobileHomeOpen(false)}
                 >
                   Dashboard
                 </Link>
-                {showMessaging && (
-                  <Link
-                    to="/messages"
-                    className="mobile-nav-menu-item text-white hover:text-white"
-                    onClick={() => setMenuOpen(false)}
-                  >
-                    Messages
-                  </Link>
-                )}
+              )}
+
+              {user ? (
                 <button
                   type="button"
                   onClick={handleLogout}
-                  className="mobile-nav-logout border border-white/20 bg-white/10 text-white hover:text-white"
+                  className={mobileNavButtonClass}
                 >
-                  Log Out
+                  Logout
                 </button>
-              </>
-            )}
+              ) : (
+                <button
+                  type="button"
+                  onClick={openLogin}
+                  className={mobileNavButtonClass}
+                >
+                  Login
+                </button>
+              )}
+            </div>
           </div>
-        )}
+        </div>
       </nav>
+
       <AnimatePresence initial={false} mode="sync">
         {authModal?.type === "login" && (
           <motion.div

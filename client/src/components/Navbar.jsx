@@ -1,13 +1,3 @@
-import React, { useEffect, useState, useRef } from "react";
-import { AnimatePresence, motion } from "framer-motion";
-import { Link, useLocation, useNavigate } from "react-router-dom";
-import { useAuth } from "../context/AuthContext";
-import Logo from "./Logo";
-import NotificationBell from "./NotificationBell";
-import Login from "../pages/Login";
-import Register from "../pages/Register";
-import ForgotPassword from "../pages/ForgotPassword";
-
 const roleHome = {
   student: "/student/dashboard",
   company: "/company/dashboard",
@@ -182,7 +172,7 @@ const Navbar = ({ variant = "static" }) => {
                   <button
                     type="button"
                     onClick={openPartnerSignup}
-                    className="nav-slide btn-lift bg-white text-[#0b5d3d] font-bold text-[13px] px-4 py-2 rounded-full shadow-[0_6px_18px_rgba(255,255,255,0.2)] hover:shadow-[0_10px_22px_rgba(255,255,255,0.3)] transition duration-150"
+                    className="nav-slide btn-lift bg-white text-[#0b5d3d] font-bold text-[13px] px-4 py-2 rounded-full shadow-[0_6px_18px_rgba(255,255,255,0.2)] hover:shadow-[0_10px_22px_rgba(255,255,255,0.22)] transition duration-200"
                   >
                     Become a Partner
                   </button>
@@ -259,7 +249,7 @@ const Navbar = ({ variant = "static" }) => {
                       initial={{ opacity: 0, y: -6, scale: 0.98 }}
                       animate={{ opacity: 1, y: 0, scale: 1 }}
                       exit={{ opacity: 0, y: -6, scale: 0.98 }}
-                      transition={{ duration: 0.16, ease: "easeOut" }}
+                      transition={{ duration: 0.2, ease: [0.22, 1, 0.36, 1] }}
                       className="absolute left-0 top-full z-50 mt-2 w-48 overflow-hidden rounded-2xl border border-white/10 bg-[#123d32]/95 shadow-[0_14px_28px_rgba(9,31,28,0.2)] backdrop-blur-sm"
                     >
                       <Link
@@ -337,10 +327,10 @@ const Navbar = ({ variant = "static" }) => {
         {authModal?.type === "login" && (
           <motion.div
             key="login-modal"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.18, ease: "easeOut" }}
+            initial={{ opacity: 0, scale: 0.98, y: 10 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.985, y: 8 }}
+            transition={{ duration: 0.28, ease: [0.22, 1, 0.36, 1] }}
             className="contents"
           >
             <Login
@@ -357,10 +347,10 @@ const Navbar = ({ variant = "static" }) => {
         {authModal?.type === "forgot" && (
           <motion.div
             key="forgot-modal"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.18, ease: "easeOut" }}
+            initial={{ opacity: 0, scale: 0.985, y: 10 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.985, y: 8 }}
+            transition={{ duration: 0.28, ease: [0.22, 1, 0.36, 1] }}
             className="contents"
           >
             <ForgotPassword

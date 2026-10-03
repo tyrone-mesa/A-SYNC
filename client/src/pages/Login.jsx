@@ -156,7 +156,7 @@ const Login = ({
       transition={{ duration: 0.28, ease: "easeOut" }}
       className={
         modal
-          ? "fixed inset-0 z-[70] flex items-center justify-center overflow-y-auto overscroll-contain bg-[#102f25]/60 px-4 py-4 transition-colors duration-300 sm:py-8"
+          ? "fixed inset-0 z-[70] flex items-center justify-center overflow-y-auto overscroll-contain bg-[#102f25]/60 px-4 py-4 sm:py-8"
           : "min-h-screen bg-[radial-gradient(circle_at_top,_#edf8f2_0%,_#dfeae3_24%,_#cfe0d3_48%,_#bfd3c7_70%,_#b3c8bc_100%)] flex items-center justify-center px-4 py-12"
       }
       onMouseDown={(event) => {
@@ -164,7 +164,7 @@ const Login = ({
       }}
     >
       <div
-        className={`${modal ? "relative isolate box-border grid max-h-[calc(100dvh-2rem)] w-full max-w-4xl grid-cols-1 overflow-y-auto rounded-[28px] border border-[#b8d2c0] bg-white p-0 shadow-[0_24px_60px_rgba(15,61,46,0.24)] sm:h-[min(720px,calc(100dvh-4rem))] sm:max-h-none sm:grid-cols-[23rem_minmax(0,1fr)] sm:overflow-hidden" : "card relative w-full max-w-md p-8"}`}
+        className={`${modal ? "relative isolate box-border grid max-h-[calc(100dvh-2rem)] w-full max-w-4xl grid-cols-1 overflow-y-auto rounded-[28px] border border-[#b8d2c0] bg-white p-0 shadow-[0_24px_70px_rgba(11,31,28,0.18)]" : ""}`}
       >
         {modal && (
           <>
@@ -190,7 +190,7 @@ const Login = ({
             <button
               type="button"
               onClick={onClose}
-              className="absolute right-4 top-4 z-20 inline-flex h-10 w-10 items-center justify-center rounded-full bg-white/95 text-[#0F3D2E] shadow-md transition hover:bg-white hover:text-[#0B2E22] focus:outline-none focus:ring-2 focus:ring-[#1E5D46] focus:ring-offset-2"
+              className="absolute right-4 top-4 z-20 inline-flex h-10 w-10 items-center justify-center rounded-full bg-white/95 text-[#0F3D2E] shadow-md transition hover:bg-white hover:text-[#0B2F2A]"
               aria-label="Close login"
             >
               <X size={20} aria-hidden="true" />

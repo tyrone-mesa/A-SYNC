@@ -78,10 +78,6 @@ const Navbar = ({ variant = "static" }) => {
     setMobileMenuOpen(false);
   };
 
-  const handleGoBack = () => {
-    navigate(-1);
-  };
-
   const closeAuthModal = () => {
     setAuthModal(null);
     if (location.search.includes("auth=")) {
@@ -123,11 +119,9 @@ const Navbar = ({ variant = "static" }) => {
   const headerAnimationClass =
     variant === "overlay" ? "" : "animate-nav-fade";
 
-  const mobileNavTextClass = (isActive) =>
-    `shrink-0 whitespace-nowrap rounded-full px-4 py-2 text-xs sm:text-sm font-medium transition-all duration-200 ${
-      isActive
-        ? "bg-[#eaf3ee] text-[#173d34] shadow-sm"
-        : "bg-white/10 text-white/80 hover:bg-white/20 hover:text-white"
+  const mobileNavLinkClass = (isActive) =>
+    `relative text-[14px] font-semibold text-white transition-colors duration-150 hover:text-white/80 pb-1 ${
+      isActive ? "border-b-2 border-[#F6C744]" : "border-b-2 border-transparent"
     }`;
 
   return (
@@ -237,19 +231,67 @@ const Navbar = ({ variant = "static" }) => {
           </div>
         </div>
 
-        {/* Mobile Navigation - Horizontal Scrollable Menu */}
+        {/* Mobile Navigation - Text-based menu */}
         <div className="lg:hidden">
-          {/* Line 1: Horizontal Scrollable Menu */}
-          <div className="mt-3 flex justify-center pb-2">
-            <div
-              ref={scrollContainerRef}
-              className="flex gap-2 overflow-x-auto scrollbar-hide scroll-smooth"
-              style={{ WebkitOverflowScrolling: "touch" }}
-            >
+          <div className="mt-3 flex justify-center">
+            <div className="flex items-center gap-6 whitespace-nowrap">
+              {/* Home with dropdown */}
+              <div className="relative">
+                <button
+                  type="button"
+                  onClick={() => setMobileMenuOpen((open) => !open)}
+                  className={mobileNavLinkClass(false)}
+                >
+                  Home
+                  <span
+                    className={`inline-block ml-1 transition-transform duration-200 ${
+                      mobileMenuOpen ? "rotate-180" : ""
+                    }`}
+                  >
+                    ▼
+                  </span>
+                </button>
+
+                {/* Dropdown Menu */}
+                <AnimatePresence>
+                  {mobileMenuOpen && (
+                    <motion.div
+                      initial={{ opacity: 0, y: -6, scale: 0.98 }}
+                      animate={{ opacity: 1, y: 0, scale: 1 }}
+                      exit={{ opacity: 0, y: -6, scale: 0.98 }}
+                      transition={{ duration: 0.16, ease: "easeOut" }}
+                      className="absolute left-0 top-full z-50 mt-2 w-48 overflow-hidden rounded-2xl border border-white/10 bg-[#123d32]/95 shadow-[0_14px_28px_rgba(9,31,28,0.2)] backdrop-blur-sm"
+                    >
+                      <Link
+                        to="/"
+                        onClick={() => setMobileMenuOpen(false)}
+                        className="block px-4 py-3 text-left text-sm font-medium text-white/90 hover:bg-white/10 transition"
+                      >
+                        Home
+                      </Link>
+                      <Link
+                        to="/#about"
+                        onClick={() => setMobileMenuOpen(false)}
+                        className="block px-4 py-3 text-left text-sm font-medium text-white/90 hover:bg-white/10 transition border-t border-white/10"
+                      >
+                        About Us
+                      </Link>
+                      <Link
+                        to="/#contact"
+                        onClick={() => setMobileMenuOpen(false)}
+                        className="block px-4 py-3 text-left text-sm font-medium text-white/90 hover:bg-white/10 transition border-t border-white/10"
+                      >
+                        Contact Us
+                      </Link>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
+
               {/* Opportunities */}
               <Link
                 to="/jobs"
-                className={mobileNavTextClass(
+                className={mobileNavLinkClass(
                   location.pathname === "/jobs"
                 )}
               >
@@ -260,7 +302,7 @@ const Navbar = ({ variant = "static" }) => {
               {user && (
                 <Link
                   to={roleHome[user.role]}
-                  className={mobileNavTextClass(
+                  className={mobileNavLinkClass(
                     location.pathname.startsWith(roleHome[user.role])
                   )}
                 >
@@ -268,12 +310,12 @@ const Navbar = ({ variant = "static" }) => {
                 </Link>
               )}
 
-              {/* Logout/Login Button */}
+              {/* Logout/Login */}
               {user ? (
                 <button
                   type="button"
                   onClick={handleLogout}
-                  className={mobileNavTextClass(false)}
+                  className={mobileNavLinkClass(false)}
                 >
                   Logout
                 </button>
@@ -281,98 +323,12 @@ const Navbar = ({ variant = "static" }) => {
                 <button
                   type="button"
                   onClick={openLogin}
-                  className={mobileNavTextClass(false)}
+                  className={mobileNavLinkClass(false)}
                 >
                   Login
                 </button>
               )}
             </div>
-          </div>
-
-          {/* Line 2: Home Button - STANDALONE */}
-          <div className="flex items-center justify-center gap-2 pb-3">
-            <motion.button
-              type="button"
-              onClick={handleGoHome}
-              aria-label="Go to homepage"
-              title="Go to home page"
-              className="shrink-0 flex items-center justify-center h-9 w-9 rounded-lg border border-white/20 bg-white/10 text-white transition-all duration-200 hover:bg-white/20 hover:scale-105"
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-            >
-              <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-3m0 0l7-4 7 4M5 9v10a1 1 0 001 1h2a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1h2a1 1 0 001-1V9" />
-              </svg>
-            </motion.button>
-          </div>
-
-          {/* Line 3: Dropdown Menu & Back Button */}
-          <div className="flex items-center justify-center gap-2 pb-1">
-            {/* Dropdown Menu Button */}
-            <div className="relative">
-              <motion.button
-                type="button"
-                onClick={() => setMobileMenuOpen((open) => !open)}
-                aria-label="Open menu"
-                aria-expanded={mobileMenuOpen}
-                className="shrink-0 flex items-center justify-center h-9 w-9 rounded-lg border border-white/20 bg-white/10 text-white transition-all duration-200 hover:bg-white/20 hover:scale-105"
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-              >
-                <svg
-                  className={`h-5 w-5 transition-transform duration-200 ${
-                    mobileMenuOpen ? "rotate-180" : ""
-                  }`}
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 14l-7 7m0 0l-7-7m7 7V3" />
-                </svg>
-              </motion.button>
-
-              {/* Dropdown Menu - About Us, Contact Us */}
-              <AnimatePresence>
-                {mobileMenuOpen && (
-                  <motion.div
-                    initial={{ opacity: 0, y: -6, scale: 0.98 }}
-                    animate={{ opacity: 1, y: 0, scale: 1 }}
-                    exit={{ opacity: 0, y: -6, scale: 0.98 }}
-                    transition={{ duration: 0.16, ease: "easeOut" }}
-                    className="absolute left-1/2 top-full z-50 mt-2 w-44 -translate-x-1/2 overflow-hidden rounded-2xl border border-white/10 bg-[#123d32]/95 shadow-[0_14px_28px_rgba(9,31,28,0.2)] backdrop-blur-sm"
-                  >
-                    <Link
-                      to="/#about"
-                      onClick={() => setMobileMenuOpen(false)}
-                      className="block px-4 py-3 text-left text-sm font-medium text-white/90 hover:bg-white/10 transition"
-                    >
-                      About Us
-                    </Link>
-                    <Link
-                      to="/#contact"
-                      onClick={() => setMobileMenuOpen(false)}
-                      className="block px-4 py-3 text-left text-sm font-medium text-white/90 hover:bg-white/10 transition border-t border-white/10"
-                    >
-                      Contact Us
-                    </Link>
-                  </motion.div>
-                )}
-              </AnimatePresence>
-            </div>
-
-            {/* Back Arrow Button */}
-            <motion.button
-              type="button"
-              onClick={handleGoBack}
-              aria-label="Go back"
-              className="shrink-0 flex items-center justify-center h-9 w-9 rounded-lg border border-white/20 bg-white/10 text-white transition-all duration-200 hover:bg-white/20 hover:scale-105"
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-            >
-              <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-              </svg>
-            </motion.button>
           </div>
         </div>
       </nav>
@@ -427,17 +383,6 @@ const Navbar = ({ variant = "static" }) => {
           onLogin={() => setAuthModal({ type: "login", portal: "company" })}
         />
       )}
-
-      {/* Custom Scrollbar Styles */}
-      <style>{`
-        .scrollbar-hide::-webkit-scrollbar {
-          display: none;
-        }
-        .scrollbar-hide {
-          -ms-overflow-style: none;
-          scrollbar-width: none;
-        }
-      `}</style>
     </header>
   );
 };

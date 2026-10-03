@@ -87,7 +87,7 @@
   }
   /* Show mobile carousels in landscape */
   .homepage-mobile-carousel {
-    @apply !flex !overflow-x-auto !md\:grid;
+    @apply !flex !overflow-x-auto;
   }
 }
 

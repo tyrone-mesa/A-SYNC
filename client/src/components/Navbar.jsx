@@ -142,7 +142,7 @@ const Navbar = ({ variant = "static" }) => {
       className={`${headerPositionClass} ${headerAnimationClass} z-40 px-3 py-3 sm:px-6`}
     >
       <nav className="w-full">
-        <div className="glass-panel mx-auto flex min-h-[60px] w-full max-w-7xl items-center justify-between rounded-[28px] px-3 shadow-[0_12px_30px_rgba(15,30,53,0.14)] sm:px-5 lg:w-fit lg:max-w-none">
+        <div className="glass-panel mx-auto flex min-h-[60px] w-full max-w-7xl items-center justify-between rounded-[28px] px-3 shadow-[0_12px_30px_rgba(15,30,53,0.14)] sm:px-5 lg:w-fit lg:max-w-[1200px]">
           <a
             href="/"
             aria-label="Go to ASIATECH SYNC home page"
@@ -229,7 +229,6 @@ const Navbar = ({ variant = "static" }) => {
         <div className="lg:hidden">
           <div className="mt-3 flex justify-center">
             <div className="flex items-center gap-4 whitespace-nowrap overflow-x-auto sm:gap-6 pb-2">
-              {/* Home Dropdown Button */}
               <div className="relative flex-shrink-0" ref={dropdownRef}>
                 <button
                   type="button"
@@ -261,7 +260,6 @@ const Navbar = ({ variant = "static" }) => {
                       }}
                       className="absolute left-1/2 -translate-x-1/2 top-full z-50 mt-2 w-48 overflow-hidden rounded-xl border border-white/20 bg-gradient-to-b from-[#1a4d42] to-[#0f3d35] shadow-[0_20px_40px_rgba(9,31,28,0.4)] backdrop-blur-md"
                     >
-                      {/* Home Link */}
                       <Link
                         to="/"
                         onClick={() => setMobileMenuOpen(false)}
@@ -270,7 +268,6 @@ const Navbar = ({ variant = "static" }) => {
                         Home
                       </Link>
 
-                      {/* About Us Link */}
                       <Link
                         to="/#about"
                         onClick={() => setMobileMenuOpen(false)}
@@ -279,7 +276,6 @@ const Navbar = ({ variant = "static" }) => {
                         About Us
                       </Link>
 
-                      {/* Contact Us Link */}
                       <Link
                         to="/#contact"
                         onClick={() => setMobileMenuOpen(false)}
@@ -292,7 +288,6 @@ const Navbar = ({ variant = "static" }) => {
                 </AnimatePresence>
               </div>
 
-              {/* Opportunities Link */}
               <Link
                 to="/jobs"
                 onClick={() => setMobileMenuOpen(false)}
@@ -301,7 +296,6 @@ const Navbar = ({ variant = "static" }) => {
                 Opportunities
               </Link>
 
-              {/* Dashboard Link (User Only) */}
               {user && (
                 <Link
                   to={roleHome[user.role]}
@@ -314,7 +308,6 @@ const Navbar = ({ variant = "static" }) => {
                 </Link>
               )}
 
-              {/* Logout / Login Button */}
               {user ? (
                 <button
                   type="button"

@@ -54,6 +54,7 @@ const Navbar = ({ variant = "static" }) => {
   const navigate = useNavigate();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [authModal, setAuthModal] = useState(null);
+  const dropdownRef = useRef(null);
 
   const showNotifications =
     user &&
@@ -89,6 +90,24 @@ const Navbar = ({ variant = "static" }) => {
     setMobileMenuOpen(false);
   }, [location.pathname]);
 
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setMobileMenuOpen(false);
+      }
+    };
+
+    if (mobileMenuOpen) {
+      document.addEventListener("mousedown", handleClickOutside);
+      document.addEventListener("touchstart", handleClickOutside);
+      return () => {
+        document.removeEventListener("mousedown", handleClickOutside);
+        document.removeEventListener("touchstart", handleClickOutside);
+      };
+    }
+  }, [mobileMenuOpen]);
+
   useEffect(() => {
     const handlePartnerSignup = () => {
       setMobileMenuOpen(false);
@@ -123,7 +142,7 @@ const Navbar = ({ variant = "static" }) => {
       className={`${headerPositionClass} ${headerAnimationClass} z-40 px-3 py-3 sm:px-6`}
     >
       <nav className="w-full">
-        <div className="glass-panel mx-auto flex min-h-[60px] w-full max-w-7xl items-center justify-between rounded-[28px] px-3 shadow-[0_12px_30px_rgba(15,30,53,0.14)] sm:px-5 lg:w-fit lg:max-w-[...]">
+        <div className="glass-panel mx-auto flex min-h-[60px] w-full max-w-7xl items-center justify-between rounded-[28px] px-3 shadow-[0_12px_30px_rgba(15,30,53,0.14)] sm:px-5 lg:w-fit lg:max-w-none">
           <a
             href="/"
             aria-label="Go to ASIATECH SYNC home page"
@@ -165,7 +184,7 @@ const Navbar = ({ variant = "static" }) => {
                   <button
                     type="button"
                     onClick={openPartnerSignup}
-                    className="nav-slide btn-lift bg-white text-[#0b5d3d] font-bold text-[13px] px-4 py-2 rounded-full shadow-[0_6px_18px_rgba(255,255,255,0.2)] hover:shadow-[0_10px_22px_rgba(255[...]"
+                    className="nav-slide btn-lift bg-white text-[#0b5d3d] font-bold text-[13px] px-4 py-2 rounded-full shadow-[0_6px_18px_rgba(255,255,255,0.2)] hover:shadow-[0_10px_22px_rgba(255,255,255,0.3)]"
                   >
                     Become a Partner
                   </button>
@@ -208,16 +227,17 @@ const Navbar = ({ variant = "static" }) => {
 
         {/* Mobile Navigation */}
         <div className="lg:hidden">
-          <div className="mt-3 flex justify-center">
-            <div className="flex items-center gap-4 whitespace-nowrap overflow-x-auto sm:gap-6 pb-2">
+          <div className="mt-3 flex justify-center px-2">
+            <div className="w-full flex items-center gap-2 sm:gap-4 whitespace-nowrap overflow-x-auto pb-2 scrollbar-hide">
               {/* Home Dropdown Button */}
-              <div className="relative flex-shrink-0">
+              <div className="relative flex-shrink-0" ref={dropdownRef}>
                 <button
                   type="button"
                   onClick={() => setMobileMenuOpen((open) => !open)}
                   className={mobileNavLinkClass(false)}
                   aria-expanded={mobileMenuOpen}
                   aria-haspopup="true"
+                  aria-label="Home menu"
                 >
                   Home
                   <motion.span

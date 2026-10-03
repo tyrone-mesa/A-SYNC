@@ -144,7 +144,8 @@ function App() {
             "linear-gradient(135deg, #596869 0%, #6C8976 26%, #79B791 52%, #ABD1B5 72%, #E6EFE6 100%)",
         }}
       >
-        {!isHome && <Navbar />}
+        {/* Navbar is now visible on all pages EXCEPT home (which has its own navbar in the hero) */}
+        {!isHome && <Navbar variant={isDashboardRoute ? "dashboard" : "static"} />}
         <main className="flex-1">
           <AnimatePresence mode="wait">
             <motion.div

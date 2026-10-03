@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
@@ -56,7 +56,8 @@ const Navbar = ({ variant = "static" }) => {
   const { user, logout } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
-  const [mobileHomeOpen, setMobileHomeOpen] = useState(false);
+  const scrollContainerRef = useRef(null);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [authModal, setAuthModal] = useState(null);
 
   const showMessaging = false;
@@ -68,8 +69,17 @@ const Navbar = ({ variant = "static" }) => {
 
   const handleLogout = () => {
     logout();
-    setMobileHomeOpen(false);
+    setMobileMenuOpen(false);
     window.location.replace("/");
+  };
+
+  const handleGoHome = () => {
+    navigate("/");
+    setMobileMenuOpen(false);
+  };
+
+  const handleGoBack = () => {
+    navigate(-1);
   };
 
   const closeAuthModal = () => {
@@ -80,18 +90,18 @@ const Navbar = ({ variant = "static" }) => {
   };
 
   const openLogin = () => {
-    setMobileHomeOpen(false);
+    setMobileMenuOpen(false);
     setAuthModal({ type: "login", portal: "student" });
   };
 
   const openPartnerSignup = () => {
-    setMobileHomeOpen(false);
+    setMobileMenuOpen(false);
     setAuthModal({ type: "register", from: "partner" });
   };
 
   useEffect(() => {
     const handlePartnerSignup = () => {
-      setMobileHomeOpen(false);
+      setMobileMenuOpen(false);
       setAuthModal({ type: "register", from: "partner" });
     };
     window.addEventListener("asiatech:partner-signup", handlePartnerSignup);
@@ -114,8 +124,10 @@ const Navbar = ({ variant = "static" }) => {
     variant === "overlay" ? "" : "animate-nav-fade";
 
   const mobileNavTextClass = (isActive) =>
-    `relative text-[14px] font-semibold text-white transition-colors duration-150 hover:text-white/80 pb-1 ${
-      isActive ? "border-b-2 border-[#E8C165]" : "border-b-2 border-transparent hover:border-[#E8C165]/40"
+    `shrink-0 whitespace-nowrap rounded-full px-4 py-2 text-xs sm:text-sm font-medium transition-all duration-200 ${
+      isActive
+        ? "bg-[#eaf3ee] text-[#173d34] shadow-sm"
+        : "bg-white/10 text-white/80 hover:bg-white/20 hover:text-white"
     }`;
 
   return (
@@ -123,7 +135,8 @@ const Navbar = ({ variant = "static" }) => {
       className={`${headerPositionClass} ${headerAnimationClass} z-40 px-3 py-3 sm:px-6`}
     >
       <nav className="w-full">
-        <div className="glass-panel mx-auto flex min-h-[60px] w-full max-w-7xl items-center justify-between rounded-[28px] px-3 shadow-[0_12px_30px_rgba(15,30,53,0.14)] sm:px-5 lg:w-fit lg:max-w-none lg:px-5">
+        <div className="glass-panel mx-auto flex min-h-[60px] w-full max-w-7xl items-center justify-between rounded-[28px] px-3 shadow-[0_12px_30px_rgba(15,30,53,0.14)] sm:px-5 lg:w-fit lg:max-w-none"
+        >
           <a
             href="/"
             aria-label="Go to ASIATECH SYNC home page"
@@ -176,7 +189,7 @@ const Navbar = ({ variant = "static" }) => {
                   <button
                     type="button"
                     onClick={openPartnerSignup}
-                    className="nav-slide btn-lift bg-white text-[#0b5d3d] font-bold text-[13px] px-4 py-2 rounded-full shadow-[0_6px_18px_rgba(255,255,255,0.2)] hover:shadow-[0_10px_22px_rgba(255,255,255,0.24)] transition duration-150"
+                    className="nav-slide btn-lift bg-white text-[#0b5d3d] font-bold text-[13px] px-4 py-2 rounded-full shadow-[0_6px_18px_rgba(255,255,255,0.2)] hover:shadow-[0_10px_22px_rgba(255,255,255,0.3)] transition duration-150"
                   >
                     Become a Partner
                   </button>
@@ -225,77 +238,38 @@ const Navbar = ({ variant = "static" }) => {
           </div>
         </div>
 
+        {/* Mobile Navigation - Horizontal Scrollable Menu */}
         <div className="lg:hidden">
-          <div className="mt-3 flex justify-center pb-1">
-            <div className="flex flex-wrap items-center justify-center gap-6">
-              <div className="relative">
-                <button
-                  type="button"
-                  onClick={() => setMobileHomeOpen((value) => !value)}
-                  className={mobileNavTextClass(
-                    location.pathname === "/" && !location.hash
-                  )}
-                >
-                  <span className="flex items-center gap-1">
-                    Home
-                    <span
-                      className={`text-[10px] transition-transform duration-200 ${mobileHomeOpen ? "rotate-180" : ""}`}
-                    >
-                      ▾
-                    </span>
-                  </span>
-                </button>
-
-                <AnimatePresence>
-                  {mobileHomeOpen && (
-                    <motion.div
-                      initial={{ opacity: 0, y: -6, scale: 0.98 }}
-                      animate={{ opacity: 1, y: 0, scale: 1 }}
-                      exit={{ opacity: 0, y: -6, scale: 0.98 }}
-                      transition={{ duration: 0.16, ease: "easeOut" }}
-                      className="absolute left-1/2 top-full z-50 mt-2 w-44 -translate-x-1/2 overflow-hidden rounded-2xl border border-white/10 bg-[#123d32]/95 shadow-[0_14px_28px_rgba(9,31,28,0.28)] backdrop-blur-md"
-                    >
-                      <Link
-                        to="/#about"
-                        onClick={() => setMobileHomeOpen(false)}
-                        className="block px-3 py-2.5 text-left text-sm font-medium text-white/90 hover:bg-white/10 transition"
-                      >
-                        About Us
-                      </Link>
-                      <Link
-                        to="/#contact"
-                        onClick={() => setMobileHomeOpen(false)}
-                        className="block px-3 py-2.5 text-left text-sm font-medium text-white/90 hover:bg-white/10 transition"
-                      >
-                        Contact Us
-                      </Link>
-                    </motion.div>
-                  )}
-                </AnimatePresence>
-              </div>
-
+          {/* Line 1: Horizontal Scrollable Menu */}
+          <div className="mt-3 flex justify-center pb-2">
+            <div
+              ref={scrollContainerRef}
+              className="flex gap-2 overflow-x-auto scrollbar-hide scroll-smooth"
+              style={{ WebkitOverflowScrolling: "touch" }}
+            >
+              {/* Opportunities */}
               <Link
                 to="/jobs"
                 className={mobileNavTextClass(
                   location.pathname === "/jobs"
                 )}
-                onClick={() => setMobileHomeOpen(false)}
               >
                 Opportunities
               </Link>
 
+              {/* Dashboard (if logged in) */}
               {user && (
                 <Link
                   to={roleHome[user.role]}
                   className={mobileNavTextClass(
                     location.pathname.startsWith(roleHome[user.role])
                   )}
-                  onClick={() => setMobileHomeOpen(false)}
                 >
                   Dashboard
                 </Link>
               )}
 
+              {/* Logout/Login Button */}
               {user ? (
                 <button
                   type="button"
@@ -314,6 +288,90 @@ const Navbar = ({ variant = "static" }) => {
                 </button>
               )}
             </div>
+          </div>
+
+          {/* Line 2: Home Button, Dropdown Menu, & Back Button */}
+          <div className="flex items-center justify-center gap-2 pb-1">
+            {/* Home Button */}
+            <motion.button
+              type="button"
+              onClick={handleGoHome}
+              aria-label="Go to homepage"
+              title="Go to home page"
+              className="shrink-0 flex items-center justify-center h-9 w-9 rounded-lg border border-white/20 bg-white/10 text-white transition-all duration-200 hover:bg-white/20 hover:scale-105"
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+            >
+              <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-3m0 0l7-4 7 4M5 9v10a1 1 0 001 1h2a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1h2a1 1 0 001-1V9m-9 13l-4-4m0 0l-2-2m2 2l2-2m-2 2v-8" />
+              </svg>
+            </motion.button>
+
+            {/* Dropdown Menu Button */}
+            <div className="relative">
+              <motion.button
+                type="button"
+                onClick={() => setMobileMenuOpen((open) => !open)}
+                aria-label="Open menu"
+                aria-expanded={mobileMenuOpen}
+                className="shrink-0 flex items-center justify-center h-9 w-9 rounded-lg border border-white/20 bg-white/10 text-white transition-all duration-200 hover:bg-white/20 hover:scale-105"
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+              >
+                <svg
+                  className={`h-5 w-5 transition-transform duration-200 ${
+                    mobileMenuOpen ? "rotate-180" : ""
+                  }`}
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 14l-7 7m0 0l-7-7m7 7V3" />
+                </svg>
+              </motion.button>
+
+              {/* Dropdown Menu - About Us, Contact Us */}
+              <AnimatePresence>
+                {mobileMenuOpen && (
+                  <motion.div
+                    initial={{ opacity: 0, y: -6, scale: 0.98 }}
+                    animate={{ opacity: 1, y: 0, scale: 1 }}
+                    exit={{ opacity: 0, y: -6, scale: 0.98 }}
+                    transition={{ duration: 0.16, ease: "easeOut" }}
+                    className="absolute left-1/2 top-full z-50 mt-2 w-44 -translate-x-1/2 overflow-hidden rounded-2xl border border-white/10 bg-[#123d32]/95 shadow-[0_14px_28px_rgba(9,31,28,0.2)] backdrop-blur-xl"
+                  >
+                    <Link
+                      to="/#about"
+                      onClick={() => setMobileMenuOpen(false)}
+                      className="block px-4 py-3 text-left text-sm font-medium text-white/90 hover:bg-white/10 transition"
+                    >
+                      About Us
+                    </Link>
+                    <Link
+                      to="/#contact"
+                      onClick={() => setMobileMenuOpen(false)}
+                      className="block px-4 py-3 text-left text-sm font-medium text-white/90 hover:bg-white/10 transition border-t border-white/10"
+                    >
+                      Contact Us
+                    </Link>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
+
+            {/* Back Arrow Button */}
+            <motion.button
+              type="button"
+              onClick={handleGoBack}
+              aria-label="Go back"
+              className="shrink-0 flex items-center justify-center h-9 w-9 rounded-lg border border-white/20 bg-white/10 text-white transition-all duration-200 hover:bg-white/20 hover:scale-105"
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+            >
+              <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+              </svg>
+            </motion.button>
           </div>
         </div>
       </nav>
@@ -368,6 +426,17 @@ const Navbar = ({ variant = "static" }) => {
           onLogin={() => setAuthModal({ type: "login", portal: "company" })}
         />
       )}
+
+      {/* Custom Scrollbar Styles */}
+      <style>{`
+        .scrollbar-hide::-webkit-scrollbar {
+          display: none;
+        }
+        .scrollbar-hide {
+          -ms-overflow-style: none;
+          scrollbar-width: none;
+        }
+      `}</style>
     </header>
   );
 };

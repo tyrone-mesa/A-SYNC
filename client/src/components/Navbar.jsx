@@ -135,8 +135,7 @@ const Navbar = ({ variant = "static" }) => {
       className={`${headerPositionClass} ${headerAnimationClass} z-40 px-3 py-3 sm:px-6`}
     >
       <nav className="w-full">
-        <div className="glass-panel mx-auto flex min-h-[60px] w-full max-w-7xl items-center justify-between rounded-[28px] px-3 shadow-[0_12px_30px_rgba(15,30,53,0.14)] sm:px-5 lg:w-fit lg:max-w-none"
-        >
+        <div className="glass-panel mx-auto flex min-h-[60px] w-full max-w-7xl items-center justify-between rounded-[28px] px-3 shadow-[0_12px_30px_rgba(15,30,53,0.14)] sm:px-5 lg:w-fit lg:max-w-none lg:px-5">
           <a
             href="/"
             aria-label="Go to ASIATECH SYNC home page"
@@ -290,9 +289,8 @@ const Navbar = ({ variant = "static" }) => {
             </div>
           </div>
 
-          {/* Line 2: Home Button, Dropdown Menu, & Back Button */}
-          <div className="flex items-center justify-center gap-2 pb-1">
-            {/* Home Button */}
+          {/* Line 2: Home Button - STANDALONE */}
+          <div className="flex items-center justify-center gap-2 pb-3">
             <motion.button
               type="button"
               onClick={handleGoHome}
@@ -303,10 +301,13 @@ const Navbar = ({ variant = "static" }) => {
               whileTap={{ scale: 0.95 }}
             >
               <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-3m0 0l7-4 7 4M5 9v10a1 1 0 001 1h2a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1h2a1 1 0 001-1V9m-9 13l-4-4m0 0l-2-2m2 2l2-2m-2 2v-8" />
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-3m0 0l7-4 7 4M5 9v10a1 1 0 001 1h2a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1h2a1 1 0 001-1V9" />
               </svg>
             </motion.button>
+          </div>
 
+          {/* Line 3: Dropdown Menu & Back Button */}
+          <div className="flex items-center justify-center gap-2 pb-1">
             {/* Dropdown Menu Button */}
             <div className="relative">
               <motion.button
@@ -338,7 +339,7 @@ const Navbar = ({ variant = "static" }) => {
                     animate={{ opacity: 1, y: 0, scale: 1 }}
                     exit={{ opacity: 0, y: -6, scale: 0.98 }}
                     transition={{ duration: 0.16, ease: "easeOut" }}
-                    className="absolute left-1/2 top-full z-50 mt-2 w-44 -translate-x-1/2 overflow-hidden rounded-2xl border border-white/10 bg-[#123d32]/95 shadow-[0_14px_28px_rgba(9,31,28,0.2)] backdrop-blur-xl"
+                    className="absolute left-1/2 top-full z-50 mt-2 w-44 -translate-x-1/2 overflow-hidden rounded-2xl border border-white/10 bg-[#123d32]/95 shadow-[0_14px_28px_rgba(9,31,28,0.2)] backdrop-blur-sm"
                   >
                     <Link
                       to="/#about"

@@ -113,8 +113,10 @@ const Navbar = ({ variant = "static" }) => {
   const headerAnimationClass =
     variant === "overlay" ? "" : "animate-nav-fade";
 
-  const mobileNavButtonClass =
-    "inline-flex shrink-0 items-center justify-center gap-1.5 rounded-full border border-white/20 bg-white/10 px-3.5 py-2.5 text-[14px] font-semibold text-white transition hover:bg-white/15 focus:outline-none focus:ring-2 focus:ring-white/40";
+  const mobileNavTextClass = (isActive) =>
+    `relative text-[14px] font-semibold text-white transition-colors duration-150 hover:text-white/80 pb-1 ${
+      isActive ? "border-b-2 border-[#E8C165]" : "border-b-2 border-transparent hover:border-[#E8C165]/40"
+    }`;
 
   return (
     <header
@@ -224,19 +226,23 @@ const Navbar = ({ variant = "static" }) => {
         </div>
 
         <div className="lg:hidden">
-          <div className="mt-3 overflow-x-auto pb-1">
-            <div className="flex min-w-max items-center gap-2">
+          <div className="mt-3 flex justify-center pb-1">
+            <div className="flex flex-wrap items-center justify-center gap-6">
               <div className="relative">
                 <button
                   type="button"
                   onClick={() => setMobileHomeOpen((value) => !value)}
-                  className={`${mobileNavButtonClass} ${location.pathname === "/" ? "bg-[#e7d19a]/20 text-[#f7f0d9]" : ""}`}
+                  className={mobileNavTextClass(
+                    location.pathname === "/" && !location.hash
+                  )}
                 >
-                  <span>Home</span>
-                  <span
-                    className={`text-[10px] transition-transform duration-200 ${mobileHomeOpen ? "rotate-180" : ""}`}
-                  >
-                    ▾
+                  <span className="flex items-center gap-1">
+                    Home
+                    <span
+                      className={`text-[10px] transition-transform duration-200 ${mobileHomeOpen ? "rotate-180" : ""}`}
+                    >
+                      ▾
+                    </span>
                   </span>
                 </button>
 
@@ -247,19 +253,19 @@ const Navbar = ({ variant = "static" }) => {
                       animate={{ opacity: 1, y: 0, scale: 1 }}
                       exit={{ opacity: 0, y: -6, scale: 0.98 }}
                       transition={{ duration: 0.16, ease: "easeOut" }}
-                      className="absolute left-0 top-full z-50 mt-2 w-44 overflow-hidden rounded-2xl border border-white/10 bg-[#123d32]/95 shadow-[0_14px_28px_rgba(9,31,28,0.28)] backdrop-blur-md"
+                      className="absolute left-1/2 top-full z-50 mt-2 w-44 -translate-x-1/2 overflow-hidden rounded-2xl border border-white/10 bg-[#123d32]/95 shadow-[0_14px_28px_rgba(9,31,28,0.28)] backdrop-blur-md"
                     >
                       <Link
                         to="/#about"
                         onClick={() => setMobileHomeOpen(false)}
-                        className="block px-3 py-2.5 text-left text-sm font-medium text-white/90 hover:bg-white/10"
+                        className="block px-3 py-2.5 text-left text-sm font-medium text-white/90 hover:bg-white/10 transition"
                       >
                         About Us
                       </Link>
                       <Link
                         to="/#contact"
                         onClick={() => setMobileHomeOpen(false)}
-                        className="block px-3 py-2.5 text-left text-sm font-medium text-white/90 hover:bg-white/10"
+                        className="block px-3 py-2.5 text-left text-sm font-medium text-white/90 hover:bg-white/10 transition"
                       >
                         Contact Us
                       </Link>
@@ -270,7 +276,9 @@ const Navbar = ({ variant = "static" }) => {
 
               <Link
                 to="/jobs"
-                className={mobileNavButtonClass}
+                className={mobileNavTextClass(
+                  location.pathname === "/jobs"
+                )}
                 onClick={() => setMobileHomeOpen(false)}
               >
                 Opportunities
@@ -279,7 +287,9 @@ const Navbar = ({ variant = "static" }) => {
               {user && (
                 <Link
                   to={roleHome[user.role]}
-                  className={mobileNavButtonClass}
+                  className={mobileNavTextClass(
+                    location.pathname.startsWith(roleHome[user.role])
+                  )}
                   onClick={() => setMobileHomeOpen(false)}
                 >
                   Dashboard
@@ -290,7 +300,7 @@ const Navbar = ({ variant = "static" }) => {
                 <button
                   type="button"
                   onClick={handleLogout}
-                  className={mobileNavButtonClass}
+                  className={mobileNavTextClass(false)}
                 >
                   Logout
                 </button>
@@ -298,7 +308,7 @@ const Navbar = ({ variant = "static" }) => {
                 <button
                   type="button"
                   onClick={openLogin}
-                  className={mobileNavButtonClass}
+                  className={mobileNavTextClass(false)}
                 >
                   Login
                 </button>

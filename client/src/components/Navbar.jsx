@@ -111,12 +111,35 @@ const Navbar = ({ variant = "static" }) => {
   const headerAnimationClass =
     variant === "overlay" ? "" : "animate-nav-fade";
 
+  const mobileNavItems = [
+    {
+      label: "Home",
+      href: "/",
+      active: location.pathname === "/" && !location.hash,
+    },
+    {
+      label: "Opportunities",
+      href: "/jobs",
+      active: location.pathname === "/jobs",
+    },
+    {
+      label: "About Us",
+      href: "/#about",
+      active: location.pathname === "/" && location.hash === "#about",
+    },
+    {
+      label: "Contact Us",
+      href: "/#contact",
+      active: location.pathname === "/" && location.hash === "#contact",
+    },
+  ];
+
   return (
     <header
-      className={`${headerPositionClass} ${headerAnimationClass} z-40 px-4 py-4 sm:px-6`}
+      className={`${headerPositionClass} ${headerAnimationClass} z-40 px-3 py-3 sm:px-6`}
     >
       <nav className="w-full">
-        <div className="glass-panel mx-auto flex min-h-[64px] w-full max-w-7xl items-center justify-between rounded-full px-4 shadow-[0_12px_30px_rgba(15,30,53,0.14)] sm:px-6 lg:w-fit lg:max-w-none">
+        <div className="glass-panel mobile-nav-shell mx-auto flex min-h-[58px] w-full max-w-7xl items-center justify-between rounded-[22px] px-3 shadow-[0_12px_30px_rgba(15,30,53,0.14)] sm:px-5 lg:w-fit lg:max-w-none lg:px-5">
           <a
             href="/"
             aria-label="Go to ASIATECH SYNC home page"
@@ -124,16 +147,15 @@ const Navbar = ({ variant = "static" }) => {
             onClick={() => setMenuOpen(false)}
             className="group flex shrink-0 items-center gap-2.5"
           >
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-white/15 shadow-sm">
-              <Logo size={30} />
+            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-white/15 shadow-sm sm:h-10 sm:w-10">
+              <Logo size={28} />
             </div>
-            <span className="font-display font-semibold tracking-[-0.02em] text-lg leading-tight text-white">
+            <span className="hidden text-base font-semibold leading-tight tracking-[-0.03em] text-white sm:inline-block sm:text-lg">
               ASIATECH <span className="text-[#c4e1c1]">SYNC</span>
             </span>
           </a>
 
           <div className="flex min-w-0 items-center gap-3 sm:gap-6 lg:ml-8">
-            {/* Desktop Navigation (lg screens and up) */}
             <div className="hidden items-center gap-6 whitespace-nowrap lg:flex">
               <NavbarLink
                 href="/"
@@ -171,7 +193,7 @@ const Navbar = ({ variant = "static" }) => {
                   <button
                     type="button"
                     onClick={openPartnerSignup}
-                    className="nav-slide btn-lift bg-white text-[#0b5d3d] font-bold text-[13px] px-4 py-2 rounded-full shadow-[0_6px_18px_rgba(255,255,255,0.2)] hover:shadow-[0_10px_22px_rgba(255,255,255,0.3)] transition duration-150"
+                    className="nav-slide btn-lift bg-white text-[#0b5d3d] font-bold text-[13px] px-4 py-2 rounded-full shadow-[0_6px_18px_rgba(255,255,255,0.2)] hover:shadow-[0_10px_22px_rgba(255,255,255,0.24)] transition duration-150"
                   >
                     Become a Partner
                   </button>
@@ -191,16 +213,16 @@ const Navbar = ({ variant = "static" }) => {
                       Messages
                     </NavbarLink>
                   )}
-                  <div className="flex items-center gap-3 pl-8 border-l border-white/15">
+                  <div className="flex items-center gap-3 border-l border-white/15 pl-8">
                     <span className="text-[13px] text-white/70">
-                      <span className="text-white font-semibold">
+                      <span className="font-semibold text-white">
                         {user.fullName.split(" ")[0]}
                       </span>
                     </span>
                     <button
                       type="button"
                       onClick={handleLogout}
-                      className="text-[13px] font-medium text-white border border-white/30 rounded-full px-3.5 py-1.5 transition hover:bg-white/15 hover:border-white/50 duration-150"
+                      className="rounded-full border border-white/30 px-3.5 py-1.5 text-[13px] font-medium text-white transition duration-150 hover:border-white/50 hover:bg-white/15"
                     >
                       Log Out
                     </button>
@@ -209,85 +231,64 @@ const Navbar = ({ variant = "static" }) => {
               )}
             </div>
 
-            {/* Mobile User Name & Notifications (sm/md screens) */}
             <div className="flex items-center gap-2 lg:hidden">
               {user && (
-                <span className="text-[13px] text-white/70 font-semibold shrink-0">
+                <span className="shrink-0 text-[12px] font-semibold text-white/80">
                   {user.fullName.split(" ")[0]}
                 </span>
               )}
               {showNotifications && <NotificationBell />}
-            </div>
-
-            {/* Mobile Menu Button */}
-            <button
-              className="lg:hidden text-white hover:text-white/80 transition duration-150 shrink-0"
-              onClick={() => setMenuOpen((o) => !o)}
-              aria-label="Toggle navigation menu"
-              aria-expanded={menuOpen}
-            >
-              <svg
-                width="24"
-                height="24"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-                strokeWidth="2"
+              <button
+                className="mobile-menu-button shrink-0 rounded-full border border-white/20 bg-white/10 p-2 text-white transition duration-150 hover:bg-white/15"
+                onClick={() => setMenuOpen((o) => !o)}
+                aria-label="Toggle navigation menu"
+                aria-expanded={menuOpen}
               >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  d="M4 6h16M4 12h16M4 18h16"
-                />
-              </svg>
-            </button>
+                <svg
+                  width="18"
+                  height="18"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M4 6h16M4 12h16M4 18h16"
+                  />
+                </svg>
+              </button>
+            </div>
           </div>
         </div>
 
-        {/* Mobile Menu */}
         {menuOpen && (
-          <div className="lg:hidden mt-3 flex flex-col gap-2 rounded-3xl border border-[#9acaa9]/30 bg-[#214c3f] px-4 py-4 shadow-[0_14px_32px_rgba(15,45,37,0.28)]">
-            <a
-              href="/"
-              className="nav-slide rounded-xl px-3 py-2.5 text-sm font-semibold tracking-[-0.01em] text-white hover:bg-white/15"
-              onClick={() => setMenuOpen(false)}
-            >
-              Home
-            </a>
-            <a
-              href="/jobs"
-              className="nav-slide rounded-xl px-3 py-2.5 text-sm font-semibold tracking-[-0.01em] text-white hover:bg-white/15"
-              onClick={() => setMenuOpen(false)}
-            >
-              Opportunities
-            </a>
-            <a
-              href="/#about"
-              className="nav-slide rounded-xl px-3 py-2.5 text-sm font-semibold tracking-[-0.01em] text-white hover:bg-white/15"
-              onClick={() => setMenuOpen(false)}
-            >
-              About Us
-            </a>
-            <a
-              href="/#contact"
-              className="nav-slide rounded-xl px-3 py-2.5 text-sm font-semibold tracking-[-0.01em] text-white hover:bg-white/15"
-              onClick={() => setMenuOpen(false)}
-            >
-              Contact Us
-            </a>
+          <div className="mobile-drawer-menu mt-3 flex flex-col gap-2 rounded-[22px] border border-white/10 bg-[#1e4a3d]/95 px-3 py-3 shadow-[0_16px_36px_rgba(15,45,37,0.28)] backdrop-blur-sm lg:hidden">
+            {mobileNavItems.map((item) => (
+              <a
+                key={item.label}
+                href={item.href}
+                className={`mobile-nav-menu-item ${item.active ? "active" : ""}`}
+                onClick={() => setMenuOpen(false)}
+              >
+                {item.label}
+              </a>
+            ))}
+
             {!user ? (
               <>
                 <button
                   type="button"
                   onClick={openLogin}
-                  className="nav-slide rounded-xl px-3 py-2.5 text-sm font-semibold tracking-[-0.01em] text-white hover:bg-white/15"
+                  className="mobile-nav-menu-item text-left"
                 >
                   Log in
                 </button>
                 <button
                   type="button"
                   onClick={openPartnerSignup}
-                  className="nav-slide rounded-full bg-[#dfeecf] px-4 py-2.5 text-center text-sm font-bold text-[#214c3f]"
+                  className="mobile-nav-cta"
                 >
                   Become a Partner
                 </button>
@@ -296,7 +297,7 @@ const Navbar = ({ variant = "static" }) => {
               <>
                 <Link
                   to={roleHome[user.role]}
-                  className="nav-slide rounded-xl px-3 py-2.5 text-sm font-semibold tracking-[-0.01em] text-white hover:bg-white/15"
+                  className="mobile-nav-menu-item"
                   onClick={() => setMenuOpen(false)}
                 >
                   Dashboard
@@ -304,7 +305,7 @@ const Navbar = ({ variant = "static" }) => {
                 {showMessaging && (
                   <Link
                     to="/messages"
-                    className="rounded-xl px-3 py-2.5 text-sm font-semibold tracking-[-0.01em] text-white hover:bg-white/15"
+                    className="mobile-nav-menu-item"
                     onClick={() => setMenuOpen(false)}
                   >
                     Messages
@@ -313,7 +314,7 @@ const Navbar = ({ variant = "static" }) => {
                 <button
                   type="button"
                   onClick={handleLogout}
-                  className="rounded-full border border-[#c4e1c1]/50 bg-white/10 px-3.5 py-2.5 text-left text-sm font-semibold text-white transition hover:bg-white/20 hover:border-[#c4e1c1] duration-150"
+                  className="mobile-nav-logout"
                 >
                   Log Out
                 </button>

@@ -49,6 +49,48 @@
   }
 }
 
+/* Mobile landscape protection: Keep mobile layout on small screens in landscape orientation */
+@media (max-height: 500px) and (orientation: landscape) {
+  /* Force single-column, mobile-like layouts on landscape devices with height < 500px */
+  .sm\:px-8 {
+    @apply px-5;
+  }
+  .sm\:py-24 {
+    @apply py-12;
+  }
+  .sm\:text-6xl {
+    @apply text-4xl;
+  }
+  .md\:grid-cols-2 {
+    @apply grid-cols-1;
+  }
+  .md\:grid-cols-3 {
+    @apply grid-cols-1;
+  }
+  .md\:grid-cols-4 {
+    @apply grid-cols-2;
+  }
+  .md\:flex-row {
+    @apply flex-col;
+  }
+  .md\:items-center {
+    @apply items-start;
+  }
+  .md\:hidden {
+    @apply hidden;
+  }
+  .md\:flex {
+    @apply hidden;
+  }
+  .sm\:max-w-none {
+    @apply max-w-sm;
+  }
+  /* Show mobile carousels in landscape */
+  .homepage-mobile-carousel {
+    @apply !flex !overflow-x-auto !md\:grid;
+  }
+}
+
 @media (max-width: 639px) {
   body {
     font-size: 14px;

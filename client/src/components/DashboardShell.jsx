@@ -1,9 +1,8 @@
 import React, { useState, useRef, useEffect } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import { NavLink, useLocation, useNavigate } from "react-router-dom";
+import { NavLink, useLocation } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import Logo from "./Logo";
-import { ChevronDown } from "lucide-react";
 
 const navMap = {
   student: [
@@ -54,28 +53,6 @@ const animationVariants = {
   },
 };
 
-const dropdownVariants = {
-  hidden: { opacity: 0, y: -8, scaleY: 0.95 },
-  visible: {
-    opacity: 1,
-    y: 0,
-    scaleY: 1,
-    transition: {
-      duration: 0.15,
-      ease: [0.34, 1.56, 0.64, 1],
-    },
-  },
-  exit: {
-    opacity: 0,
-    y: -8,
-    scaleY: 0.95,
-    transition: {
-      duration: 0.1,
-      ease: [0.34, 1.56, 0.64, 1],
-    },
-  },
-};
-
 const DashboardShell = ({
   role,
   title,
@@ -86,12 +63,9 @@ const DashboardShell = ({
 }) => {
   const { user, logout } = useAuth();
   const location = useLocation();
-  const navigate = useNavigate();
   const currentRole = role || user?.role || "student";
   const items = navMap[currentRole] || navMap.student;
   const mobileMenuRef = useRef(null);
-  const [homeDropdownOpen, setHomeDropdownOpen] = useState(false);
-  const homeDropdownRef = useRef(null);
 
   const handleLogout = () => {
     logout();
@@ -117,37 +91,6 @@ const DashboardShell = ({
 
     return pathname === item.to || pathname.startsWith(`${item.to}/`);
   };
-
-  const handleHomeDropdownItemClick = (href) => {
-    setHomeDropdownOpen(false);
-    if (href.startsWith("#")) {
-      // For hash links to landing page sections
-      window.location.href = "/" + href;
-    } else {
-      navigate(href);
-    }
-  };
-
-  // Close dropdown when clicking outside
-  useEffect(() => {
-    const handleClickOutside = (event) => {
-      if (
-        homeDropdownRef.current &&
-        !homeDropdownRef.current.contains(event.target)
-      ) {
-        setHomeDropdownOpen(false);
-      }
-    };
-
-    if (homeDropdownOpen) {
-      document.addEventListener("mousedown", handleClickOutside);
-      document.addEventListener("touchstart", handleClickOutside);
-      return () => {
-        document.removeEventListener("mousedown", handleClickOutside);
-        document.removeEventListener("touchstart", handleClickOutside);
-      };
-    }
-  }, [homeDropdownOpen]);
 
   // Auto-scroll active mobile tab into view
   useEffect(() => {
@@ -286,7 +229,7 @@ const DashboardShell = ({
           transition={{ duration: 0.24, ease: [0.22, 1, 0.36, 1] }}
         >
           {/* Mobile & Desktop Header */}
-          <header className="flex min-w-0 flex-col gap-3 border-b border-white/15 bg-gradient-to-b from-[rgba(33,76,63,0.82)] to-[rgba(33,76,63,0.68)] px-3 py-3 text-white backdrop-blur-md sm:px-6 sm:py-4">
+          <header className="flex min-w-0 flex-col gap-3 border-b border-white/15 bg-gradient-to-b from-[rgba(33,76,63,0.82)] to-[rgba(33,76,63,0.68)] px-3 py-3 text-white backdrop-blur-md sm:px-[...]
             {/* Line 1: Horizontal Menu (Mobile Only) / User Info (Desktop) */}
             <div className="flex min-w-0 items-center justify-between gap-3 lg:justify-start">
               {/* Mobile: Horizontal Scrollable Menu with Smooth Animation */}
@@ -296,148 +239,75 @@ const DashboardShell = ({
                   className="flex min-w-0 flex-1 gap-2 overflow-x-auto scrollbar-hide pb-1 snap-x snap-mandatory"
                   style={{ WebkitOverflowScrolling: "touch" }}
                 >
-                  {/* Home Dropdown Button */}
-                  <div ref={homeDropdownRef} className="relative shrink-0 snap-center">
-                    <motion.button
-                      type="button"
-                      onClick={() => setHomeDropdownOpen(!homeDropdownOpen)}
-                      className="shrink-0 snap-center rounded-full px-4 py-2.5 text-xs sm:text-sm font-medium focus:outline-none focus:ring-2 focus:ring-white/30 focus:ring-offset-2 focus:ring-offset-[rgba(33,76,63,0.68)] flex items-center gap-1.5 whitespace-nowrap"
-                      initial={false}
-                      animate={{
-                        backgroundColor: homeDropdownOpen
-                          ? "rgba(234, 243, 238, 1)"
-                          : "rgba(255, 255, 255, 0.1)",
-                        color: homeDropdownOpen
-                          ? "rgba(23, 61, 52, 1)"
-                          : "rgba(255, 255, 255, 0.75)",
-                        boxShadow: homeDropdownOpen
-                          ? "0 4px 12px rgba(23, 61, 52, 0.15), inset 0 1px 2px rgba(255, 255, 255, 0.3)"
-                          : "none",
-                      }}
-                      transition={{
-                        duration: 0.35,
-                        ease: [0.34, 1.56, 0.64, 1],
-                      }}
-                      style={{
-                        border: homeDropdownOpen
-                          ? "1px solid rgba(210, 233, 225, 0.5)"
-                          : "1px solid transparent",
-                        transition: "all 0.35s cubic-bezier(0.34, 1.56, 0.64, 1)",
-                      }}
-                    >
-                      Home
-                      <motion.span
-                        animate={{ rotate: homeDropdownOpen ? 180 : 0 }}
-                        transition={{ duration: 0.2 }}
-                        className="inline-flex items-center"
+                  {items.map((item) => {
+                    const isActive = isItemActive(item, location.pathname);
+
+                    return (
+                      <NavLink
+                        key={item.to}
+                        to={item.to}
+                        end={
+                          item.to === "/company/jobs" ||
+                          item.to === "/company/jobs/new"
+                        }
+                        className="shrink-0 snap-center"
+                        data-active={isActive}
                       >
-                        <ChevronDown size={16} />
-                      </motion.span>
-                    </motion.button>
-
-                    {/* Dropdown Menu */}
-                    <AnimatePresence>
-                      {homeDropdownOpen && (
-                        <motion.div
-                          variants={dropdownVariants}
-                          initial="hidden"
-                          animate="visible"
-                          exit="exit"
-                          className="absolute left-0 top-full mt-2 w-40 rounded-lg bg-white shadow-lg border border-[#dde7df] overflow-hidden z-[100]"
-                          style={{ originY: 0 }}
-                        >
-                          <button
-                            type="button"
-                            onClick={() => handleHomeDropdownItemClick("/")}
-                            className="w-full text-left px-4 py-2.5 text-sm font-medium text-[#0F3D2E] hover:bg-[#edf5ef] active:bg-[#e0ede8] transition-colors duration-150"
+                        {({ isActive: linkActive }) => (
+                          <motion.div
+                            initial={false}
+                            animate={{
+                              backgroundColor: linkActive
+                                ? "rgba(234, 243, 238, 1)"
+                                : "rgba(255, 255, 255, 0.1)",
+                              color: linkActive
+                                ? "rgba(23, 61, 52, 1)"
+                                : "rgba(255, 255, 255, 0.75)",
+                              boxShadow: linkActive
+                                ? "0 4px 12px rgba(23, 61, 52, 0.15), inset 0 1px 2px rgba(255, 255, 255, 0.3)"
+                                : "none",
+                            }}
+                            whileHover={{
+                              backgroundColor: linkActive
+                                ? "rgba(234, 243, 238, 1)"
+                                : "rgba(255, 255, 255, 0.18)",
+                              y: -2,
+                            }}
+                            whileTap={{
+                              scale: 0.96,
+                            }}
+                            transition={{
+                              duration: 0.35,
+                              ease: [0.34, 1.56, 0.64, 1],
+                            }}
+                            className="relative whitespace-nowrap rounded-full px-4 py-2.5 text-xs sm:text-sm font-medium focus:outline-none focus:ring-2 focus:ring-white/30 focus:ring-offset-2 f[...]
+                            style={{
+                              border: linkActive
+                                ? "1px solid rgba(210, 233, 225, 0.5)"
+                                : "1px solid transparent",
+                              transition: "all 0.35s cubic-bezier(0.34, 1.56, 0.64, 1)",
+                            }}
                           >
-                            Home
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => handleHomeDropdownItemClick("#about")}
-                            className="w-full text-left px-4 py-2.5 text-sm font-medium text-[#0F3D2E] hover:bg-[#edf5ef] active:bg-[#e0ede8] transition-colors duration-150 border-t border-[#dde7df]"
-                          >
-                            About Us
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => handleHomeDropdownItemClick("#contact")}
-                            className="w-full text-left px-4 py-2.5 text-sm font-medium text-[#0F3D2E] hover:bg-[#edf5ef] active:bg-[#e0ede8] transition-colors duration-150 border-t border-[#dde7df]"
-                          >
-                            Contact Us
-                          </button>
-                        </motion.div>
-                      )}
-                    </AnimatePresence>
-                  </div>
-
-                  {/* Opportunities Link */}
-                  <a
-                    href="/jobs"
-                    className="shrink-0 snap-center rounded-full px-4 py-2.5 text-xs sm:text-sm font-medium text-white/75 hover:text-white hover:bg-white/18 border border-transparent hover:border-white/20 transition-all duration-300 whitespace-nowrap"
-                  >
-                    Opportunities
-                  </a>
-
-                  {/* Dashboard Link */}
-                  <NavLink
-                    to={`/${currentRole}/dashboard`}
-                    className="shrink-0 snap-center"
-                  >
-                    {({ isActive }) => (
-                      <motion.div
-                        initial={false}
-                        animate={{
-                          backgroundColor: isActive
-                            ? "rgba(234, 243, 238, 1)"
-                            : "rgba(255, 255, 255, 0.1)",
-                          color: isActive
-                            ? "rgba(23, 61, 52, 1)"
-                            : "rgba(255, 255, 255, 0.75)",
-                          boxShadow: isActive
-                            ? "0 4px 12px rgba(23, 61, 52, 0.15), inset 0 1px 2px rgba(255, 255, 255, 0.3)"
-                            : "none",
-                        }}
-                        transition={{
-                          duration: 0.35,
-                          ease: [0.34, 1.56, 0.64, 1],
-                        }}
-                        className="relative whitespace-nowrap rounded-full px-4 py-2.5 text-xs sm:text-sm font-medium focus:outline-none focus:ring-2 focus:ring-white/30 focus:ring-offset-2 focus:ring-offset-[rgba(33,76,63,0.68)]"
-                        style={{
-                          border: isActive
-                            ? "1px solid rgba(210, 233, 225, 0.5)"
-                            : "1px solid transparent",
-                          transition: "all 0.35s cubic-bezier(0.34, 1.56, 0.64, 1)",
-                        }}
-                      >
-                        <span className="relative z-10 flex items-center gap-2">
-                          Dashboard
-                          {isActive && (
-                            <motion.span
-                              className="h-1.5 w-1.5 rounded-full bg-[#173d34]"
-                              initial={{ scale: 0 }}
-                              animate={{ scale: 1 }}
-                              transition={{
-                                type: "spring",
-                                stiffness: 400,
-                                damping: 25,
-                              }}
-                            />
-                          )}
-                        </span>
-                      </motion.div>
-                    )}
-                  </NavLink>
-
-                  {/* Logout Button */}
-                  <motion.button
-                    type="button"
-                    onClick={handleLogout}
-                    className="shrink-0 snap-center rounded-full px-4 py-2.5 text-xs sm:text-sm font-medium text-white/75 hover:text-white hover:bg-white/18 border border-transparent hover:border-white/20 transition-all duration-300 whitespace-nowrap"
-                  >
-                    Logout
-                  </motion.button>
+                            <span className="relative z-10 flex items-center gap-2">
+                              {item.label}
+                              {linkActive && (
+                                <motion.span
+                                  className="h-1.5 w-1.5 rounded-full bg-[#173d34]"
+                                  initial={{ scale: 0 }}
+                                  animate={{ scale: 1 }}
+                                  transition={{
+                                    type: "spring",
+                                    stiffness: 400,
+                                    damping: 25,
+                                  }}
+                                />
+                              )}
+                            </span>
+                          </motion.div>
+                        )}
+                      </NavLink>
+                    );
+                  })}
                 </div>
               </div>
 

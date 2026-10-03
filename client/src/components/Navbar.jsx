@@ -1,3 +1,13 @@
+import React, { useEffect, useState, useRef } from "react";
+import { AnimatePresence, motion } from "framer-motion";
+import { Link, useLocation, useNavigate } from "react-router-dom";
+import { useAuth } from "../context/AuthContext";
+import Logo from "./Logo";
+import NotificationBell from "./NotificationBell";
+import Login from "../pages/Login";
+import Register from "../pages/Register";
+import ForgotPassword from "../pages/ForgotPassword";
+
 const roleHome = {
   student: "/student/dashboard",
   company: "/company/dashboard",
@@ -38,19 +48,13 @@ const NavbarLink = ({ to, href, active, children, className = "" }) => {
   );
 };
 
-// variant="overlay": absolutely positioned within a `position: relative` parent (the Home
-// page Hero section) so the navbar sits on top of the hero art and scrolls away with it —
-// it is NOT fixed/sticky, it simply belongs to the Hero section's own stacking context.
-// variant="static" (default): sits in normal document flow at the top of non-Home pages.
 const Navbar = ({ variant = "static" }) => {
   const { user, logout } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
-  const scrollContainerRef = useRef(null);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [authModal, setAuthModal] = useState(null);
 
-  const showMessaging = false;
   const showNotifications =
     user &&
     ["student", "company", "admin", "coordinator", "registrar"].includes(
@@ -61,11 +65,6 @@ const Navbar = ({ variant = "static" }) => {
     logout();
     setMobileMenuOpen(false);
     window.location.replace("/");
-  };
-
-  const handleGoHome = () => {
-    navigate("/");
-    setMobileMenuOpen(false);
   };
 
   const closeAuthModal = () => {
@@ -136,27 +135,16 @@ const Navbar = ({ variant = "static" }) => {
 
           <div className="flex min-w-0 items-center gap-3 sm:gap-6 lg:ml-8">
             <div className="hidden items-center gap-6 whitespace-nowrap lg:flex">
-              <NavbarLink
-                href="/"
-                active={location.pathname === "/" && !location.hash}
-              >
+              <NavbarLink href="/" active={location.pathname === "/" && !location.hash}>
                 Home
               </NavbarLink>
               <NavbarLink href="/jobs" active={location.pathname === "/jobs"}>
                 Opportunities
               </NavbarLink>
-              <NavbarLink
-                href="/#about"
-                active={location.pathname === "/" && location.hash === "#about"}
-              >
+              <NavbarLink href="/#about" active={location.pathname === "/" && location.hash === "#about"}>
                 About Us
               </NavbarLink>
-              <NavbarLink
-                href="/#contact"
-                active={
-                  location.pathname === "/" && location.hash === "#contact"
-                }
-              >
+              <NavbarLink href="/#contact" active={location.pathname === "/" && location.hash === "#contact"}>
                 Contact Us
               </NavbarLink>
 
@@ -184,14 +172,6 @@ const Navbar = ({ variant = "static" }) => {
                   <NavbarLink to={roleHome[user.role]} active={false}>
                     Dashboard
                   </NavbarLink>
-                  {showMessaging && (
-                    <NavbarLink
-                      to="/messages"
-                      active={location.pathname.startsWith("/messages")}
-                    >
-                      Messages
-                    </NavbarLink>
-                  )}
                   <div className="flex items-center gap-3 border-l border-white/15 pl-8">
                     <span className="text-[13px] text-white/70">
                       <span className="font-semibold text-white">
@@ -221,11 +201,9 @@ const Navbar = ({ variant = "static" }) => {
           </div>
         </div>
 
-        {/* Mobile Navigation - Text-based menu */}
         <div className="lg:hidden">
           <div className="mt-3 flex justify-center">
             <div className="flex items-center gap-6 whitespace-nowrap">
-              {/* Home with dropdown */}
               <div className="relative">
                 <button
                   type="button"
@@ -242,7 +220,6 @@ const Navbar = ({ variant = "static" }) => {
                   </span>
                 </button>
 
-                {/* Dropdown Menu */}
                 <AnimatePresence>
                   {mobileMenuOpen && (
                     <motion.div
@@ -278,17 +255,13 @@ const Navbar = ({ variant = "static" }) => {
                 </AnimatePresence>
               </div>
 
-              {/* Opportunities */}
               <Link
                 to="/jobs"
-                className={mobileNavLinkClass(
-                  location.pathname === "/jobs"
-                )}
+                className={mobileNavLinkClass(location.pathname === "/jobs")}
               >
                 Opportunities
               </Link>
 
-              {/* Dashboard (if logged in) */}
               {user && (
                 <Link
                   to={roleHome[user.role]}
@@ -300,7 +273,6 @@ const Navbar = ({ variant = "static" }) => {
                 </Link>
               )}
 
-              {/* Logout/Login */}
               {user ? (
                 <button
                   type="button"

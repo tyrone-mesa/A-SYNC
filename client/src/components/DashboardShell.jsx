@@ -1,8 +1,9 @@
 import React, { useState, useRef, useEffect } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import { NavLink, useLocation } from "react-router-dom";
+import { NavLink, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import Logo from "./Logo";
+import { ChevronDown } from "lucide-react";
 
 const navMap = {
   student: [
@@ -53,6 +54,28 @@ const animationVariants = {
   },
 };
 
+const dropdownVariants = {
+  hidden: { opacity: 0, y: -8, scaleY: 0.95 },
+  visible: {
+    opacity: 1,
+    y: 0,
+    scaleY: 1,
+    transition: {
+      duration: 0.15,
+      ease: [0.34, 1.56, 0.64, 1],
+    },
+  },
+  exit: {
+    opacity: 0,
+    y: -8,
+    scaleY: 0.95,
+    transition: {
+      duration: 0.1,
+      ease: [0.34, 1.56, 0.64, 1],
+    },
+  },
+};
+
 const DashboardShell = ({
   role,
   title,
@@ -63,9 +86,12 @@ const DashboardShell = ({
 }) => {
   const { user, logout } = useAuth();
   const location = useLocation();
+  const navigate = useNavigate();
   const currentRole = role || user?.role || "student";
   const items = navMap[currentRole] || navMap.student;
   const mobileMenuRef = useRef(null);
+  const [homeDropdownOpen, setHomeDropdownOpen] = useState(false);
+  const homeDropdownRef = useRef(null);
 
   const handleLogout = () => {
     logout();
@@ -92,6 +118,36 @@ const DashboardShell = ({
     return pathname === item.to || pathname.startsWith(`${item.to}/`);
   };
 
+  const handleHomeDropdownClick = (href) => {
+    setHomeDropdownOpen(false);
+    if (href.startsWith("/")) {
+      navigate(href);
+    } else {
+      window.location.href = href;
+    }
+  };
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (
+        homeDropdownRef.current &&
+        !homeDropdownRef.current.contains(event.target)
+      ) {
+        setHomeDropdownOpen(false);
+      }
+    };
+
+    if (homeDropdownOpen) {
+      document.addEventListener("mousedown", handleClickOutside);
+      document.addEventListener("touchstart", handleClickOutside);
+      return () => {
+        document.removeEventListener("mousedown", handleClickOutside);
+        document.removeEventListener("touchstart", handleClickOutside);
+      };
+    }
+  }, [homeDropdownOpen]);
+
   // Auto-scroll active mobile tab into view
   useEffect(() => {
     const activeButton = mobileMenuRef.current?.querySelector("[data-active='true']");
@@ -114,7 +170,7 @@ const DashboardShell = ({
       <div className="mx-auto flex min-h-full min-w-0 max-w-[1380px] flex-col gap-4 lg:h-full lg:min-h-0 lg:flex-row lg:items-stretch">
         {/* Desktop Sidebar - Desktop Only */}
         <motion.aside
-          className="hidden lg:flex lg:flex-col w-64 rounded-[20px] bg-gradient-to-b from-[#5a8c7e] via-[#4a7d72] to-[#3a6e66] border border-[#4a8876]/40 shadow-[0_12px_40px_rgba(23,61,52,0.18)] backdrop-blur-sm"
+          className="hidden lg:flex lg:flex-col w-64 rounded-[20px] bg-gradient-to-b from-[#5a8c7e] via-[#4a7d72] to-[#3a6e66] border border-[#4a8876]/40 shadow-[0_12px_40px_rgba(23,61,52,0.18)]"
           initial={{ opacity: 0, x: -30 }}
           animate={{ opacity: 1, x: 0 }}
           transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
@@ -214,7 +270,7 @@ const DashboardShell = ({
               onClick={handleLogout}
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
-              className="w-full flex items-center justify-center gap-2 rounded-lg bg-white/15 hover:bg-white/25 border border-white/20 px-3 py-2.5 text-sm font-medium text-white backdrop-blur-sm transition-all duration-300 active:bg-white/20"
+              className="w-full flex items-center justify-center gap-2 rounded-lg bg-white/15 hover:bg-white/25 border border-white/20 px-3 py-2.5 text-sm font-medium text-white backdrop-blur-sm transition-all duration-300"
             >
               Log Out
             </motion.button>
@@ -229,7 +285,7 @@ const DashboardShell = ({
           transition={{ duration: 0.24, ease: [0.22, 1, 0.36, 1] }}
         >
           {/* Mobile & Desktop Header */}
-          <header className="flex min-w-0 flex-col gap-3 border-b border-white/15 bg-gradient-to-b from-[rgba(33,76,63,0.82)] to-[rgba(33,76,63,0.68)] px-3 py-3 text-white backdrop-blur-md sm:px-4 sm:py-4 shadow-sm">
+          <header className="flex min-w-0 flex-col gap-3 border-b border-white/15 bg-gradient-to-b from-[rgba(33,76,63,0.82)] to-[rgba(33,76,63,0.68)] px-3 py-3 text-white backdrop-blur-md sm:px-6 sm:py-4">
             {/* Line 1: Horizontal Menu (Mobile Only) / User Info (Desktop) */}
             <div className="flex min-w-0 items-center justify-between gap-3 lg:justify-start">
               {/* Mobile: Horizontal Scrollable Menu with Smooth Animation */}
@@ -239,6 +295,73 @@ const DashboardShell = ({
                   className="flex min-w-0 flex-1 gap-2 overflow-x-auto scrollbar-hide pb-1 snap-x snap-mandatory"
                   style={{ WebkitOverflowScrolling: "touch" }}
                 >
+                  {/* Home Dropdown Button for Mobile */}
+                  <div ref={homeDropdownRef} className="relative shrink-0 snap-center">
+                    <button
+                      type="button"
+                      onClick={() => setHomeDropdownOpen(!homeDropdownOpen)}
+                      className="flex items-center gap-1.5 shrink-0 snap-center rounded-full px-4 py-2.5 text-xs sm:text-sm font-medium transition-all duration-300"
+                      style={{
+                        backgroundColor: homeDropdownOpen ? "rgba(234, 243, 238, 1)" : "rgba(255, 255, 255, 0.1)",
+                        color: homeDropdownOpen ? "rgba(23, 61, 52, 1)" : "rgba(255, 255, 255, 0.75)",
+                        boxShadow: homeDropdownOpen
+                          ? "0 4px 12px rgba(23, 61, 52, 0.15), inset 0 1px 2px rgba(255, 255, 255, 0.3)"
+                          : "none",
+                        border: homeDropdownOpen
+                          ? "1px solid rgba(210, 233, 225, 0.5)"
+                          : "1px solid transparent",
+                      }}
+                    >
+                      <span className="whitespace-nowrap">Home</span>
+                      <ChevronDown
+                        size={16}
+                        className={`transition-transform duration-300 ${
+                          homeDropdownOpen ? "rotate-180" : ""
+                        }`}
+                      />
+                    </button>
+
+                    {/* Mobile Dropdown Menu */}
+                    <AnimatePresence>
+                      {homeDropdownOpen && (
+                        <motion.div
+                          variants={dropdownVariants}
+                          initial="hidden"
+                          animate="visible"
+                          exit="exit"
+                          className="absolute left-0 top-full mt-2 w-40 rounded-lg bg-white shadow-lg border border-[#dde7df] overflow-hidden z-50"
+                          style={{ originY: 0 }}
+                        >
+                          <button
+                            type="button"
+                            onClick={() => handleHomeDropdownClick("/")}
+                            className="w-full text-left px-4 py-2.5 text-sm font-medium text-[#0F3D2E] hover:bg-[#edf5ef] transition-colors"
+                          >
+                            Home
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() =>
+                              handleHomeDropdownClick("/#about")
+                            }
+                            className="w-full text-left px-4 py-2.5 text-sm font-medium text-[#0F3D2E] hover:bg-[#edf5ef] transition-colors border-t border-[#dde7df]"
+                          >
+                            About Us
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() =>
+                              handleHomeDropdownClick("/#contact")
+                            }
+                            className="w-full text-left px-4 py-2.5 text-sm font-medium text-[#0F3D2E] hover:bg-[#edf5ef] transition-colors border-t border-[#dde7df]"
+                          >
+                            Contact Us
+                          </button>
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
+                  </div>
+
                   {items.map((item) => {
                     const isActive = isItemActive(item, location.pathname);
 
@@ -280,7 +403,7 @@ const DashboardShell = ({
                               duration: 0.35,
                               ease: [0.34, 1.56, 0.64, 1],
                             }}
-                            className="relative whitespace-nowrap rounded-full px-4 py-2.5 text-xs sm:text-sm font-medium focus:outline-none focus:ring-2 focus:ring-white/30 focus:ring-offset-2 focus:ring-offset-[rgba(33,76,63,0.74)]"
+                            className="relative whitespace-nowrap rounded-full px-4 py-2.5 text-xs sm:text-sm font-medium focus:outline-none focus:ring-2 focus:ring-white/30 focus:ring-offset-2 focus:ring-offset-[rgba(33,76,63,0.68)]"
                             style={{
                               border: linkActive
                                 ? "1px solid rgba(210, 233, 225, 0.5)"

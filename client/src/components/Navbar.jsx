@@ -116,7 +116,7 @@ const Navbar = ({ variant = "static" }) => {
       className={`${headerPositionClass} ${headerAnimationClass} z-40 px-4 py-4 sm:px-6`}
     >
       <nav className="w-full">
-        <div className="glass-panel mx-auto flex min-h-[64px] w-full max-w-7xl items-center justify-between rounded-full px-4 shadow-[0_12px_30px_rgba(15,30,53,0.14)] sm:px-6 lg:w-fit lg:max-w-none lg:justify-start">
+        <div className="glass-panel mx-auto flex min-h-[64px] w-full max-w-7xl items-center justify-between rounded-full px-4 shadow-[0_12px_30px_rgba(15,30,53,0.14)] sm:px-6 lg:w-fit lg:max-w-none">
           <a
             href="/"
             aria-label="Go to ASIATECH SYNC home page"
@@ -133,6 +133,7 @@ const Navbar = ({ variant = "static" }) => {
           </a>
 
           <div className="flex min-w-0 items-center gap-3 sm:gap-6 lg:ml-8">
+            {/* Desktop Navigation (lg screens and up) */}
             <div className="hidden items-center gap-6 whitespace-nowrap lg:flex">
               <NavbarLink
                 href="/"
@@ -170,7 +171,7 @@ const Navbar = ({ variant = "static" }) => {
                   <button
                     type="button"
                     onClick={openPartnerSignup}
-                    className="nav-slide btn-lift bg-white text-[#0b5d3d] font-bold text-[13px] px-4 py-2 rounded-full shadow-[0_6px_18px_rgba(255,255,255,0.2)] hover:shadow-[0_10px_22px_rgba(255,255,255,0.3)] hover:-translate-y-0.5 transition-all duration-150"
+                    className="nav-slide btn-lift bg-white text-[#0b5d3d] font-bold text-[13px] px-4 py-2 rounded-full shadow-[0_6px_18px_rgba(255,255,255,0.2)] hover:shadow-[0_10px_22px_rgba(255,255,255,0.3)] transition duration-150"
                   >
                     Become a Partner
                   </button>
@@ -208,11 +209,22 @@ const Navbar = ({ variant = "static" }) => {
               )}
             </div>
 
-            {showNotifications && <NotificationBell />}
+            {/* Mobile User Name & Notifications (sm/md screens) */}
+            <div className="flex items-center gap-2 lg:hidden">
+              {user && (
+                <span className="text-[13px] text-white/70 font-semibold shrink-0">
+                  {user.fullName.split(" ")[0]}
+                </span>
+              )}
+              {showNotifications && <NotificationBell />}
+            </div>
+
+            {/* Mobile Menu Button */}
             <button
-              className="lg:hidden text-white hover:text-white/80 transition duration-150"
+              className="lg:hidden text-white hover:text-white/80 transition duration-150 shrink-0"
               onClick={() => setMenuOpen((o) => !o)}
               aria-label="Toggle navigation menu"
+              aria-expanded={menuOpen}
             >
               <svg
                 width="24"
@@ -232,6 +244,7 @@ const Navbar = ({ variant = "static" }) => {
           </div>
         </div>
 
+        {/* Mobile Menu */}
         {menuOpen && (
           <div className="lg:hidden mt-3 flex flex-col gap-2 rounded-3xl border border-[#9acaa9]/30 bg-[#214c3f] px-4 py-4 shadow-[0_14px_32px_rgba(15,45,37,0.28)]">
             <a

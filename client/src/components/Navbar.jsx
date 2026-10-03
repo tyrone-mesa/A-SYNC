@@ -17,7 +17,7 @@ const roleHome = {
 };
 
 const NavbarLink = ({ to, href, active, children, className = "" }) => {
-  const linkClassName = `nav-slide relative z-10 inline-flex items-center rounded-full px-2 py-1 text-[14px] font-medium tracking-[-0.01em] transition duration-150 ${
+  const linkClassName = `nav-slide relative z-10 inline-flex items-center rounded-full px-2 py-1 text[14px] font-medium tracking-[-0.01em] transition duration-150 ${
     active ? "text-[#173d34]" : "text-white/85 hover:text-white"
   } ${className}`;
   const linkProps = {
@@ -227,8 +227,8 @@ const Navbar = ({ variant = "static" }) => {
 
         {/* Mobile Navigation */}
         <div className="lg:hidden">
-          <div className="mt-3 flex justify-center px-2">
-            <div className="w-full flex items-center gap-2 sm:gap-4 whitespace-nowrap overflow-x-auto pb-2 scrollbar-hide">
+          <div className="mt-3 flex justify-center">
+            <div className="flex items-center gap-4 whitespace-nowrap overflow-x-auto sm:gap-6 pb-2">
               {/* Home Dropdown Button */}
               <div className="relative flex-shrink-0" ref={dropdownRef}>
                 <button
@@ -259,7 +259,7 @@ const Navbar = ({ variant = "static" }) => {
                         duration: 0.25,
                         ease: [0.34, 1.56, 0.64, 1],
                       }}
-                      className="absolute left-0 top-full z-50 mt-2 w-48 overflow-hidden rounded-xl border border-white/20 bg-gradient-to-b from-[#1a4d42] to-[#0f3d35] shadow-[0_20px_40px_rgba(9,31,28,0.4)] backdrop-blur-md"
+                      className="absolute left-1/2 -translate-x-1/2 top-full z-50 mt-2 w-48 overflow-hidden rounded-xl border border-white/20 bg-gradient-to-b from-[#1a4d42] to-[#0f3d35] shadow-[0_20px_40px_rgba(9,31,28,0.4)] backdrop-blur-md"
                     >
                       {/* Home Link */}
                       <Link

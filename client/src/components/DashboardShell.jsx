@@ -55,8 +55,6 @@ const DashboardShell = ({
 }) => {
   const { user, logout } = useAuth();
   const location = useLocation();
-  const scrollContainerRef = useRef(null);
-  const activeItemRef = useRef(null);
   const currentRole = role || user?.role || "student";
   const items = navMap[currentRole] || navMap.student;
 
@@ -85,28 +83,11 @@ const DashboardShell = ({
     return pathname === item.to || pathname.startsWith(`${item.to}/`);
   };
 
-  // Scroll to active item when location changes
-  useEffect(() => {
-    if (activeItemRef.current && scrollContainerRef.current) {
-      const container = scrollContainerRef.current;
-      const activeElement = activeItemRef.current;
-      
-      // Scroll to center the active item
-      setTimeout(() => {
-        const containerWidth = container.clientWidth;
-        const elementWidth = activeElement.clientWidth;
-        const elementOffsetLeft = activeElement.offsetLeft;
-        
-        container.scrollLeft = elementOffsetLeft - (containerWidth / 2) + (elementWidth / 2);
-      }, 0);
-    }
-  }, [location.pathname]);
-
   return (
-    <motion.div className="min-h-[calc(100vh-6rem)] bg-[radial-gradient(circle_at_top,_#edf8f2_0%,_#dfeae3_24%,_#cfe0d3_48%,_#bfd3c7_70%,_#b3c8bc_100%)] px-3 py-4 sm:px-6 sm:py-6 lg:h-[calc(100vh-6rem)]"
+    <motion.div className="min-h-[calc(100vh-6rem)] bg-[radial-gradient(circle_at_top,_#edf8f2_0%,_#dfeae3_24%,_#cfe0d3_48%,_#bfd3c7_70%,_#b3c8bc_100%)] px-3 py-4 sm:px-6 sm:py-6 lg:h-[calc(100vh-6rem)] lg:min-h-0"
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
-      transition={{ duration: 0.26 }}
+      transition={{ duration: 0.18 }}
     >
       <div className="mx-auto flex min-h-full min-w-0 max-w-[1380px] flex-col gap-4 lg:h-full lg:min-h-0 lg:flex-row lg:items-stretch">
         {/* Desktop Sidebar - Hidden on Mobile */}
@@ -173,10 +154,10 @@ const DashboardShell = ({
         </motion.aside>
 
         {/* Main Content */}
-        <motion.main className="glass-panel flex min-w-0 flex-1 flex-col overflow-visible rounded-[22px] border border-white/25 bg-[rgba(255,255,255,0.16)] shadow-[0_20px_45px_rgba(15,30,53,0.10)] backdrop-blur-3xl lg:min-h-0"
-          initial={{ opacity: 0, y: 8 }}
+        <motion.main className="glass-panel flex min-w-0 flex-1 flex-col overflow-visible rounded-[22px] border border-white/25 bg-[rgba(255,255,255,0.16)] shadow-[0_20px_45px_rgba(15,30,53,0.10)] backdrop-blur-xl"
+          initial={{ opacity: 0, y: 6 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.28, ease: [0.22, 1, 0.36, 1] }}
+          transition={{ duration: 0.16, ease: [0.22, 1, 0.36, 1] }}
         >
           {/* Mobile & Desktop Header */}
           <header className="flex min-w-0 flex-col gap-2 border-b border-white/15 bg-[rgba(33,76,63,0.74)] px-3 py-3 text-white backdrop-blur-md sm:px-4 sm:py-4">
@@ -184,9 +165,7 @@ const DashboardShell = ({
             <div className="flex min-w-0 items-center justify-center gap-3 lg:justify-start">
               {/* Mobile: Horizontal Scrollable Menu */}
               <div className="flex lg:hidden min-w-0 flex-1">
-                <div
-                  ref={scrollContainerRef}
-                  className="flex min-w-0 flex-1 gap-2 overflow-x-auto scrollbar-hide scroll-smooth pb-1"
+                <div className="flex min-w-0 flex-1 gap-2 overflow-x-auto scrollbar-hide pb-1"
                   style={{ WebkitOverflowScrolling: "touch" }}
                 >
                   {items.map((item) => {
@@ -195,7 +174,6 @@ const DashboardShell = ({
                     return (
                       <NavLink
                         key={item.to}
-                        ref={active ? activeItemRef : null}
                         to={item.to}
                         end={
                           item.to === "/company/jobs" ||
@@ -267,10 +245,10 @@ const DashboardShell = ({
               <motion.div
                 key={location.pathname}
                 className="min-w-0"
-                initial={{ opacity: 0, x: 12 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: -8 }}
-                transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }}
+                initial={{ opacity: 0, y: 4 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -4 }}
+                transition={{ duration: 0.12, ease: [0.22, 1, 0.36, 1] }}
               >
                 {subtitle && (
                   <p className="mb-5 text-sm text-[#0F1E35]/70">{subtitle}</p>

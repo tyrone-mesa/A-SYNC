@@ -278,7 +278,7 @@ const LandingPage = ({ intro = false, onIntroComplete }) => {
   return (
     <div className="min-h-screen bg-[#FBF8F3]">
       {/* Hero Section with Video Background */}
-      <section className="relative flex min-h-[calc(100svh-24px)] items-center justify-start overflow-hidden bg-[#0F3D2E] px-5 py-24 sm:px-8 lg:px-12">
+      <section className="relative flex min-h-[calc(100svh-24px)] items-center justify-start overflow-hidden bg-[#0F3D2E] px-5 py-12 sm:py-24 lg:px-12 lg:py-24">
         {/* Video Background Layer */}
         <div className="absolute inset-0 bg-gradient-to-br from-[#0B2E22] via-[#0F3D2E] to-[#0B2E22]">
           <div
@@ -367,7 +367,7 @@ const LandingPage = ({ intro = false, onIntroComplete }) => {
               : undefined
           }
           variants={heroContent}
-          className="relative z-10 mr-auto flex max-w-3xl flex-col items-start text-left text-white"
+          className="relative z-10 mr-auto flex max-w-3xl flex-col items-start text-left text-white pt-8 sm:pt-0"
         >
           <motion.p
             variants={heroItem}
@@ -450,7 +450,7 @@ const LandingPage = ({ intro = false, onIntroComplete }) => {
                 </p>
               </div>
             )}
-            <div className="relative mx-auto grid h-[250px] min-h-0 w-full max-w-[22rem] grid-cols-[2.5rem_minmax(0,1fr)_2.5rem] items-center gap-1 py-3 sm:h-[320px] sm:max-w-none sm:grid-cols-[3rem_minmax(0,1fr)_3rem]">
+            <div className="relative mx-auto grid h-[250px] min-h-0 w-full max-w-[22rem] grid-cols-[2.5rem_minmax(0,1fr)_2.5rem] items-center gap-1 py-3 sm:h-[320px] sm:max-w-none sm:grid-cols-[3rem_minmax(0,1fr)_3rem] md:h-full md:max-w-none md:grid-cols-1">
               <button
                 type="button"
                 onClick={() => moveAboutSlide(-1)}
@@ -650,17 +650,17 @@ const LandingPage = ({ intro = false, onIntroComplete }) => {
             {[
               {
                 quote:
-                  "Before using AsiatechSync, I wasn't sure where to start looking for internship opportunities. The platform made everything easier by showing opportunities that matched my interests.",
+                  "Before using AsiatechSync, I wasn't sure where to start looking for internship opportunities. The platform made everything easier by showing opportunities that matched my interests and skills.",
                 attribution: "BS Information Technology Student",
               },
               {
                 quote:
-                  "What I liked most about AsiatechSync was having everything in one place. I could explore opportunities, review company information, and submit applications without jumping between websites.",
+                  "What I liked most about AsiatechSync was having everything in one place. I could explore opportunities, review company information, and submit applications without jumping between multiple tabs.",
                 attribution: "OJT Student",
               },
               {
                 quote:
-                  "AsiatechSync gave me access to opportunities I might not have found on my own. Through the platform, I connected with an industry partner that allowed me to apply what I learned.",
+                  "AsiatechSync gave me access to opportunities I might not have found on my own. Through the platform, I connected with an industry partner that allowed me to apply what I learned in class to real-world scenarios.",
                 attribution: "Internship Applicant",
               },
             ].map((testimonial) => (
@@ -763,7 +763,7 @@ const LandingPage = ({ intro = false, onIntroComplete }) => {
             <button
               type="button"
               onClick={openPartnerSignup}
-              className="inline-flex items-center gap-2 rounded-full bg-[#E8C165] px-7 py-3.5 font-bold text-[#0F3D2E] transition duration-200 hover:-translate-y-1 hover:scale-[1.03] hover:bg-[#DEB24E]"
+              className="inline-flex items-center gap-2 rounded-full bg-[#E8C165] px-7 py-3.5 font-bold text-[#0F3D2E] transition duration-200 hover:-translate-y-1 hover:scale-[1.03] hover:bg-[#DEB24E] hover:shadow-md"
             >
               Become a Partner <ArrowRight size={17} />
             </button>

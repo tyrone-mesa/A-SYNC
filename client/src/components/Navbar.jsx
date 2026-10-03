@@ -184,7 +184,7 @@ const Navbar = ({ variant = "static" }) => {
                   <button
                     type="button"
                     onClick={openPartnerSignup}
-                    className="nav-slide btn-lift bg-white text-[#0b5d3d] font-bold text-[13px] px-4 py-2 rounded-full shadow-[0_6px_18px_rgba(255,255,255,0.2)] hover:shadow-[0_10px_22px_rgba(255,255,255,0.3)]"
+                    className="nav-slide btn-lift bg-white text-[#0b5d3d] font-bold text-[13px] px-4 py-2 rounded-full shadow-[0_6px_18px_rgba(255,255,255,0.2)] hover:shadow-[0_10px_22px_rgba(255,255,255,0.25)]"
                   >
                     Become a Partner
                   </button>
@@ -229,7 +229,7 @@ const Navbar = ({ variant = "static" }) => {
         <div className="lg:hidden">
           <div className="mt-3 flex justify-center">
             <div className="flex items-center gap-4 whitespace-nowrap overflow-x-auto sm:gap-6 pb-2">
-              <div className="relative flex-shrink-0" ref={dropdownRef}>
+              <div className="relative z-[60] flex-shrink-0" ref={dropdownRef}>
                 <button
                   type="button"
                   onClick={() => setMobileMenuOpen((open) => !open)}
@@ -258,12 +258,12 @@ const Navbar = ({ variant = "static" }) => {
                         duration: 0.25,
                         ease: [0.34, 1.56, 0.64, 1],
                       }}
-                      className="absolute left-1/2 -translate-x-1/2 top-full z-50 mt-2 w-48 overflow-hidden rounded-xl border border-white/20 bg-gradient-to-b from-[#1a4d42] to-[#0f3d35] shadow-[0_20px_40px_rgba(9,31,28,0.4)] backdrop-blur-md"
+                      className="absolute left-1/2 top-full z-[200] mt-2 w-48 -translate-x-1/2 overflow-hidden rounded-xl border border-white/20 bg-gradient-to-b from-[#1a4d42] to-[#0f3d35] shadow-[0_20px_40px_rgba(9,31,28,0.4)] backdrop-blur-md"
                     >
                       <Link
                         to="/"
                         onClick={() => setMobileMenuOpen(false)}
-                        className="block px-4 py-3 text-left text-sm font-medium text-white/90 hover:bg-white/15 transition-all duration-200 active:bg-white/20"
+                        className="block px-4 py-3 text-left text-sm font-medium text-white/90 transition-all duration-200 hover:bg-white/15 active:bg-white/20"
                       >
                         Home
                       </Link>
@@ -271,7 +271,7 @@ const Navbar = ({ variant = "static" }) => {
                       <Link
                         to="/#about"
                         onClick={() => setMobileMenuOpen(false)}
-                        className="block px-4 py-3 text-left text-sm font-medium text-white/90 hover:bg-white/15 transition-all duration-200 active:bg-white/20 border-t border-white/10"
+                        className="block border-t border-white/10 px-4 py-3 text-left text-sm font-medium text-white/90 transition-all duration-200 hover:bg-white/15 active:bg-white/20"
                       >
                         About Us
                       </Link>
@@ -279,7 +279,7 @@ const Navbar = ({ variant = "static" }) => {
                       <Link
                         to="/#contact"
                         onClick={() => setMobileMenuOpen(false)}
-                        className="block px-4 py-3 text-left text-sm font-medium text-white/90 hover:bg-white/15 transition-all duration-200 active:bg-white/20 border-t border-white/10"
+                        className="block border-t border-white/10 px-4 py-3 text-left text-sm font-medium text-white/90 transition-all duration-200 hover:bg-white/15 active:bg-white/20"
                       >
                         Contact Us
                       </Link>
@@ -301,7 +301,7 @@ const Navbar = ({ variant = "static" }) => {
                   to={roleHome[user.role]}
                   onClick={() => setMobileMenuOpen(false)}
                   className={mobileNavLinkClass(
-                    location.pathname.startsWith(roleHome[user.role])
+                    location.pathname.startsWith(roleHome[user.role]),
                   )}
                 >
                   Dashboard

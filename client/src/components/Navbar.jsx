@@ -58,7 +58,6 @@ const Navbar = ({ variant = "static" }) => {
   const navigate = useNavigate();
   const [menuOpen, setMenuOpen] = useState(false);
   const [authModal, setAuthModal] = useState(null);
-  // Messaging + notification bell are enabled for the roles that use the shared support inbox.
   const showMessaging = false;
   const showNotifications =
     user &&
@@ -112,26 +111,10 @@ const Navbar = ({ variant = "static" }) => {
     variant === "overlay" ? "" : "animate-nav-fade";
 
   const mobileNavItems = [
-    {
-      label: "Home",
-      href: "/",
-      active: location.pathname === "/" && !location.hash,
-    },
-    {
-      label: "Opportunities",
-      href: "/jobs",
-      active: location.pathname === "/jobs",
-    },
-    {
-      label: "About Us",
-      href: "/#about",
-      active: location.pathname === "/" && location.hash === "#about",
-    },
-    {
-      label: "Contact Us",
-      href: "/#contact",
-      active: location.pathname === "/" && location.hash === "#contact",
-    },
+    { label: "Home", href: "/", active: location.pathname === "/" && !location.hash },
+    { label: "Opportunities", href: "/jobs", active: location.pathname === "/jobs" },
+    { label: "About Us", href: "/#about", active: location.pathname === "/" && location.hash === "#about" },
+    { label: "Contact Us", href: "/#contact", active: location.pathname === "/" && location.hash === "#contact" },
   ];
 
   return (
@@ -269,7 +252,7 @@ const Navbar = ({ variant = "static" }) => {
               <a
                 key={item.label}
                 href={item.href}
-                className={`mobile-nav-menu-item ${item.active ? "active" : ""}`}
+                className={`mobile-nav-menu-item ${item.active ? "active" : ""} text-white hover:text-white`}
                 onClick={() => setMenuOpen(false)}
               >
                 {item.label}
@@ -281,14 +264,14 @@ const Navbar = ({ variant = "static" }) => {
                 <button
                   type="button"
                   onClick={openLogin}
-                  className="mobile-nav-menu-item text-left"
+                  className="mobile-nav-menu-item text-left text-white hover:text-white"
                 >
                   Log in
                 </button>
                 <button
                   type="button"
                   onClick={openPartnerSignup}
-                  className="mobile-nav-cta"
+                  className="mobile-nav-cta border border-white/20 bg-white/10 text-white hover:text-white"
                 >
                   Become a Partner
                 </button>
@@ -297,7 +280,7 @@ const Navbar = ({ variant = "static" }) => {
               <>
                 <Link
                   to={roleHome[user.role]}
-                  className="mobile-nav-menu-item"
+                  className="mobile-nav-menu-item text-white hover:text-white"
                   onClick={() => setMenuOpen(false)}
                 >
                   Dashboard
@@ -305,7 +288,7 @@ const Navbar = ({ variant = "static" }) => {
                 {showMessaging && (
                   <Link
                     to="/messages"
-                    className="mobile-nav-menu-item"
+                    className="mobile-nav-menu-item text-white hover:text-white"
                     onClick={() => setMenuOpen(false)}
                   >
                     Messages
@@ -314,7 +297,7 @@ const Navbar = ({ variant = "static" }) => {
                 <button
                   type="button"
                   onClick={handleLogout}
-                  className="mobile-nav-logout"
+                  className="mobile-nav-logout border border-white/20 bg-white/10 text-white hover:text-white"
                 >
                   Log Out
                 </button>

@@ -297,7 +297,7 @@ const LandingPage = ({ intro = false, onIntroComplete }) => {
           <button
             type="button"
             onClick={finishIntroVideo}
-            className="absolute right-5 top-24 z-20 rounded-full border border-white/60 bg-[#0F3D2E]/75 px-5 py-2.5 text-sm font-semibold text-white shadow-md backdrop-blur-sm transition hover:bg[...]
+            className="absolute right-5 top-24 z-20 rounded-full border border-white/60 bg-[#0F3D2E]/75 px-5 py-2.5 text-sm font-semibold text-white shadow-md backdrop-blur-sm transition hover:bg-white/10"
           >
             Skip intro
           </button>
@@ -388,14 +388,14 @@ const LandingPage = ({ intro = false, onIntroComplete }) => {
           >
             <a
               href="/jobs"
-              className="rounded-full bg-[#E8C165] px-7 py-3.5 text-center font-bold text-[#0F3D2E] shadow-sm transition duration-200 hover:-translate-y-1 hover:scale-[1.03] hover:bg-[#DEB24E] ho[...]
+              className="rounded-full bg-[#E8C165] px-7 py-3.5 text-center font-bold text-[#0F3D2E] shadow-sm transition duration-200 hover:-translate-y-1 hover:scale-[1.03] hover:bg-[#DEB24E] hover:shadow-md"
             >
               Find Opportunities
             </a>
             <button
               type="button"
               onClick={openPartnerSignup}
-              className="rounded-full border border-white/50 bg-white/10 px-7 py-3.5 text-center font-bold text-white shadow-sm backdrop-blur-sm transition duration-200 hover:-translate-y-1 hover[...]
+              className="rounded-full border border-white/50 bg-white/10 px-7 py-3.5 text-center font-bold text-white shadow-sm backdrop-blur-sm transition duration-200 hover:-translate-y-1 hover:scale-[1.03] hover:bg-white/15"
             >
               Partner With Us
             </button>
@@ -442,7 +442,7 @@ const LandingPage = ({ intro = false, onIntroComplete }) => {
                 </p>
               </div>
             )}
-            <div className="relative mx-auto grid h-[250px] min-h-0 w-full max-w-[22rem] grid-cols-[2.5rem_minmax(0,1fr)_2.5rem] items-center gap-1 py-3 sm:h-[320px] sm:max-w-none sm:grid-cols-[3[...]
+            <div className="relative mx-auto grid h-[250px] min-h-0 w-full max-w-[22rem] grid-cols-[2.5rem_minmax(0,1fr)_2.5rem] items-center gap-1 py-3 sm:h-[320px] sm:max-w-none sm:grid-cols-[3rem_minmax(0,1fr)_3rem] md:hidden">
               <button
                 type="button"
                 onClick={() => moveAboutSlide(-1)}
@@ -515,7 +515,7 @@ const LandingPage = ({ intro = false, onIntroComplete }) => {
           type="button"
           onClick={() => moveAboutSlide(-1)}
           aria-label="Previous AsiatechSync team member"
-          className="absolute left-3 top-1/2 z-10 hidden h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full bg-white/90 text-[#0F3D2E] shadow-md transition hover:bg-white hover:t[...]
+          className="absolute left-3 top-1/2 z-10 hidden h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full bg-white/90 text-[#0F3D2E] shadow-md transition hover:bg-white hover:text-[#1E5D46] md:flex"
         >
           <ChevronLeft size={20} />
         </button>
@@ -523,7 +523,7 @@ const LandingPage = ({ intro = false, onIntroComplete }) => {
           type="button"
           onClick={() => moveAboutSlide(1)}
           aria-label="Next AsiatechSync team member"
-          className="absolute right-3 top-1/2 z-10 hidden h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full bg-white/90 text-[#0F3D2E] shadow-md transition hover:bg-white hover:[...]
+          className="absolute right-3 top-1/2 z-10 hidden h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full bg-white/90 text-[#0F3D2E] shadow-md transition hover:bg-white hover:text-[#1E5D46] md:flex"
         >
           <ChevronRight size={20} />
         </button>
@@ -584,14 +584,14 @@ const LandingPage = ({ intro = false, onIntroComplete }) => {
             </h2>
           </motion.div>
           <div className="md:hidden">
-            <div className="-mx-1 flex snap-x snap-mandatory gap-4 overflow-x-auto px-1 pb-4">
+            <div className="-mx-1 flex snap-x snap-mandatory gap-4 overflow-x-auto px-1 pb-4 [scrollbar-width:none]">
               {FEATURES.map((feature) => {
                 const Icon = feature.icon;
                 return (
                   <motion.div
                     key={feature.number}
                     variants={fadeUp}
-                    className="min-w-[84%] snap-center rounded-2xl border border-[#ECE7DD] bg-white p-7 shadow-[0_14px_30px_-12px_rgba(29,41,57,0.22)]"
+                    className="min-w-[84%] snap-center self-stretch rounded-2xl border border-[#ECE7DD] bg-white p-7 shadow-[0_14px_30px_-12px_rgba(29,41,57,0.22)]"
                   >
                     <p className="mb-6 text-sm font-black text-[#E8C165]">
                       {feature.number}
@@ -615,7 +615,7 @@ const LandingPage = ({ intro = false, onIntroComplete }) => {
                   variants={fadeUp}
                   whileHover={prefersReducedMotion ? undefined : { y: -6 }}
                   transition={{ duration: 0.25, ease: "easeOut" }}
-                  className="min-w-[84%] snap-center rounded-2xl border border-[#ECE7DD] bg-white p-7 shadow-[0_4px_20px_-8px_rgba(29,41,57,0.12)] transition-shadow duration-300 hover:shadow-[0_1[...]
+                  className="min-w-[84%] snap-center rounded-2xl border border-[#ECE7DD] bg-white p-7 shadow-[0_4px_20px_-8px_rgba(29,41,57,0.12)] transition-shadow duration-300 hover:shadow-[0_12px_30px_-16px_rgba(29,41,57,0.18)]"
                 >
                   <p className="mb-6 text-sm font-black text-[#E8C165]">
                     {feature.number}
@@ -656,17 +656,17 @@ const LandingPage = ({ intro = false, onIntroComplete }) => {
             {[
               {
                 quote:
-                  "Before using AsiatechSync, I wasn't sure where to start looking for internship opportunities. The platform made everything easier by showing opportunities that matched my inter[...]
+                  "Before using AsiatechSync, I wasn't sure where to start looking for internship opportunities. The platform made everything easier by showing opportunities that matched my interests and needs.",
                 attribution: "BS Information Technology Student",
               },
               {
                 quote:
-                  "What I liked most about AsiatechSync was having everything in one place. I could explore opportunities, review company information, and submit applications without jumping betw[...]
+                  "What I liked most about AsiatechSync was having everything in one place. I could explore opportunities, review company information, and submit applications without jumping between multiple sites.",
                 attribution: "OJT Student",
               },
               {
                 quote:
-                  "AsiatechSync gave me access to opportunities I might not have found on my own. Through the platform, I connected with an industry partner that allowed me to apply what I learne[...]
+                  "AsiatechSync gave me access to opportunities I might not have found on my own. Through the platform, I connected with an industry partner that allowed me to apply what I learned in school.",
                 attribution: "Internship Applicant",
               },
             ].map((testimonial) => (
@@ -678,7 +678,7 @@ const LandingPage = ({ intro = false, onIntroComplete }) => {
                 }
                 className="min-w-[84%] snap-center rounded-2xl border border-white/60 bg-white/45 p-7 backdrop-blur-md transition duration-300 hover:-translate-y-1 hover:bg-white/60 md:min-w-0"
               >
-                <p className="mb-8 text-[#4B5768]">"{testimonial.quote}"</p>
+                <p className="mb-8 text-[#4B5768]">“{testimonial.quote}”</p>
                 <p className="text-sm font-bold text-[#1E5D46]">
                   — {testimonial.attribution}
                 </p>
@@ -767,7 +767,7 @@ const LandingPage = ({ intro = false, onIntroComplete }) => {
             <button
               type="button"
               onClick={openPartnerSignup}
-              className="inline-flex items-center gap-2 rounded-full bg-[#E8C165] px-7 py-3.5 font-bold text-[#0F3D2E] transition duration-200 hover:-translate-y-1 hover:scale-[1.03] hover:bg-[#D[...]
+              className="inline-flex items-center gap-2 rounded-full bg-[#E8C165] px-7 py-3.5 font-bold text-[#0F3D2E] transition duration-200 hover:-translate-y-1 hover:scale-[1.03] hover:bg-[#DEB24E] hover:shadow-md"
             >
               Become a Partner <ArrowRight size={17} />
             </button>
@@ -888,14 +888,14 @@ const LandingPage = ({ intro = false, onIntroComplete }) => {
           <div className="flex flex-col justify-center gap-3 sm:flex-row">
             <a
               href="/jobs"
-              className="rounded-full bg-[#E8C165] px-7 py-3.5 font-bold text-[#0F3D2E] transition duration-200 hover:-translate-y-1 hover:scale-[1.03] hover:bg-[#DEB24E] hover:shadow-md active:s[...]
+              className="rounded-full bg-[#E8C165] px-7 py-3.5 font-bold text-[#0F3D2E] transition duration-200 hover:-translate-y-1 hover:scale-[1.03] hover:bg-[#DEB24E] hover:shadow-md"
             >
               Find Opportunities
             </a>
             <button
               type="button"
               onClick={openPartnerSignup}
-              className="rounded-full border-2 border-[#1E5D46] px-7 py-3.5 font-bold text-[#1E5D46] transition duration-200 hover:-translate-y-1 hover:scale-[1.03] hover:bg-[#1E5D46]/5 hover:sha[...]
+              className="rounded-full border-2 border-[#1E5D46] px-7 py-3.5 font-bold text-[#1E5D46] transition duration-200 hover:-translate-y-1 hover:scale-[1.03] hover:bg-[#1E5D46]/5 hover:shadow-md"
             >
               Become a Partner
             </button>

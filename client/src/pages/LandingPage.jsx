@@ -395,14 +395,14 @@ const LandingPage = ({ intro = false, onIntroComplete }) => {
           >
             <a
               href="/jobs"
-              className="rounded-full bg-[#E8C165] px-7 py-3.5 text-center font-bold text-[#0F3D2E] shadow-sm transition duration-200 hover:-translate-y-1 hover:scale-[1.03] hover:bg-[#DEB24E] hover:shadow-md"
+              className="rounded-full bg-[#E8C165] px-7 py-3.5 text-center font-bold text-[#0F3D2E] shadow-sm transition duration-200 hover:-translate-y-1 hover:scale-[1.03] hover:bg-[#DEB24E]"
             >
               Find Opportunities
             </a>
             <button
               type="button"
               onClick={openPartnerSignup}
-              className="rounded-full border border-white/50 bg-white/10 px-7 py-3.5 text-center font-bold text-white shadow-sm backdrop-blur-sm transition duration-200 hover:-translate-y-1 hover:scale-[1.03] hover:bg-white/20"
+              className="rounded-full border border-white/50 bg-white/10 px-7 py-3.5 text-center font-bold text-white shadow-sm backdrop-blur-sm transition duration-200 hover:-translate-y-1 hover:bg-white/20"
             >
               Partner With Us
             </button>
@@ -450,7 +450,7 @@ const LandingPage = ({ intro = false, onIntroComplete }) => {
                 </p>
               </div>
             )}
-            <div className="relative mx-auto grid h-[250px] min-h-0 w-full max-w-[22rem] grid-cols-[2.5rem_minmax(0,1fr)_2.5rem] items-center gap-1 py-3 sm:h-[320px] sm:max-w-none sm:grid-cols-[3rem_minmax(0,1fr)_3rem] md:h-auto md:grid-cols-1 md:gap-0">
+            <div className="relative mx-auto grid h-[250px] min-h-0 w-full max-w-[22rem] grid-cols-[2.5rem_minmax(0,1fr)_2.5rem] items-center gap-1 py-3 sm:h-[320px] sm:max-w-none sm:grid-cols-[3rem_minmax(0,1fr)_3rem]">
               <button
                 type="button"
                 onClick={() => moveAboutSlide(-1)}
@@ -594,7 +594,7 @@ const LandingPage = ({ intro = false, onIntroComplete }) => {
             </h2>
           </motion.div>
 
-          <div className="grid gap-4 md:grid-cols-3">
+          <div className="homepage-mobile-carousel -mx-1 flex snap-x snap-mandatory gap-4 overflow-x-auto px-1 pb-4 md:mx-0 md:grid md:grid-cols-3 md:gap-6 md:overflow-visible md:px-0 md:pb-0">
             {FEATURES.map((feature) => {
               const Icon = feature.icon;
               return (
@@ -603,7 +603,7 @@ const LandingPage = ({ intro = false, onIntroComplete }) => {
                   variants={fadeUp}
                   whileHover={prefersReducedMotion ? undefined : { y: -4 }}
                   transition={{ duration: 0.25, ease: "easeOut" }}
-                  className="flex h-full flex-col rounded-2xl border border-[#ECE7DD] bg-white p-6 shadow-sm transition-shadow duration-300 hover:shadow-md"
+                  className="min-w-[80%] snap-center flex h-full flex-col rounded-2xl border border-[#ECE7DD] bg-white p-6 shadow-sm transition-shadow duration-300 hover:shadow-md md:min-w-0"
                 >
                   <div className="mb-5 flex items-center gap-3">
                     <span className="flex h-11 w-11 items-center justify-center rounded-full bg-[#EAF3EA] text-[#1E5D46]">
@@ -660,7 +660,7 @@ const LandingPage = ({ intro = false, onIntroComplete }) => {
               },
               {
                 quote:
-                  "AsiatechSync gave me access to opportunities I might not have found on my own. Through the platform, I connected with an industry partner that allowed me to apply what I learned in class.",
+                  "AsiatechSync gave me access to opportunities I might not have found on my own. Through the platform, I connected with an industry partner that allowed me to apply what I learned.",
                 attribution: "Internship Applicant",
               },
             ].map((testimonial) => (
@@ -785,14 +785,14 @@ const LandingPage = ({ intro = false, onIntroComplete }) => {
               Why Partner With Us?
             </h2>
           </motion.div>
-          <div className="grid gap-4 md:grid-cols-2">
+          <div className="homepage-mobile-carousel -mx-1 flex snap-x snap-mandatory gap-4 overflow-x-auto px-1 pb-4 md:mx-0 md:grid md:grid-cols-2 md:gap-6 md:overflow-visible md:px-0 md:pb-0">
             {PARTNER_BENEFITS.map(([title, description]) => (
               <motion.div
                 variants={fadeUp}
                 key={title}
                 whileHover={prefersReducedMotion ? undefined : { y: -4 }}
                 transition={{ duration: 0.25, ease: "easeOut" }}
-                className="flex gap-4 rounded-2xl border border-[#ECE7DD] bg-white p-6 shadow-sm transition-shadow duration-300 hover:shadow-md"
+                className="min-w-[80%] snap-center flex gap-4 rounded-2xl border border-[#ECE7DD] bg-white p-6 shadow-sm transition-shadow duration-300 hover:shadow-md md:min-w-0"
               >
                 <CheckCircle
                   className="mt-1 shrink-0 text-[#1E5D46]"

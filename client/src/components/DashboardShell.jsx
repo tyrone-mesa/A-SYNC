@@ -45,17 +45,11 @@ const navMap = {
   ],
 };
 
-// Animation variants for consistent motion
+// Animation variants for smooth transitions
 const animationVariants = {
   navItem: {
-    inactive: { scale: 1, opacity: 0.7 },
-    active: { scale: 1, opacity: 1 },
-    hover: { scale: 1.02, opacity: 1 },
-  },
-  tabIndicator: {
-    initial: { scaleX: 0, opacity: 0 },
-    animate: { scaleX: 1, opacity: 1 },
-    exit: { scaleX: 0, opacity: 0 },
+    inactive: { opacity: 0.75 },
+    active: { opacity: 1 },
   },
 };
 
@@ -118,36 +112,38 @@ const DashboardShell = ({
       transition={{ duration: 0.18 }}
     >
       <div className="mx-auto flex min-h-full min-w-0 max-w-[1380px] flex-col gap-4 lg:h-full lg:min-h-0 lg:flex-row lg:items-stretch">
-        {/* Desktop Sidebar - Hidden on Mobile */}
+        {/* Desktop Sidebar - Desktop Only */}
         <motion.aside
-          className="hidden lg:block glass-sidebar w-64 rounded-[28px] border border-white/20 bg-[rgba(255,255,255,0.09)] shadow-[0_8px_32px_rgba(15,30,53,0.08)] backdrop-blur-xl"
-          initial={{ opacity: 0, x: -20 }}
+          className="hidden lg:flex lg:flex-col w-64 rounded-[20px] bg-gradient-to-b from-[#5a8c7e] via-[#4a7d72] to-[#3a6e66] border border-[#4a8876]/40 shadow-[0_12px_40px_rgba(23,61,52,0.18)] backdrop-blur-sm"
+          initial={{ opacity: 0, x: -30 }}
           animate={{ opacity: 1, x: 0 }}
-          transition={{ duration: 0.32, ease: [0.22, 1, 0.36, 1] }}
+          transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
         >
-          <div className="flex items-center justify-between px-2 pb-4 pt-1">
+          {/* Header with Logo */}
+          <div className="flex items-center justify-between px-4 py-4 border-b border-white/15">
             <div className="flex items-center gap-3">
-              <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-white/15 ring-1 ring-white/20">
+              <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-white/20 ring-1 ring-white/30 shadow-sm">
                 <Logo size={24} />
               </div>
               <div className="text-left">
-                <p className="font-display text-lg font-bold tracking-tight text-white">
-                  ASIATECH <span className="text-[#c4e1c1]">SYNC</span>
+                <p className="font-display text-base font-bold tracking-tight text-white leading-none">
+                  ASIATECH<br /><span className="text-[#b8e6d5] text-sm">SYNC</span>
                 </p>
               </div>
             </div>
           </div>
 
-          <nav className="mt-5 space-y-1.5 px-2">
+          {/* Navigation Menu */}
+          <nav className="flex-1 overflow-y-auto py-4 px-3 space-y-2">
             {items.map((item, idx) => {
               const active = isItemActive(item, location.pathname);
 
               return (
                 <motion.div
                   key={item.to}
-                  initial={{ opacity: 0, x: -10 }}
+                  initial={{ opacity: 0, x: -15 }}
                   animate={{ opacity: 1, x: 0 }}
-                  transition={{ duration: 0.3, delay: idx * 0.05 }}
+                  transition={{ duration: 0.25, delay: idx * 0.04 }}
                 >
                   <NavLink
                     to={item.to}
@@ -155,49 +151,54 @@ const DashboardShell = ({
                       item.to === "/company/jobs" ||
                       item.to === "/company/jobs/new"
                     }
-                    className={`group relative flex items-center justify-between rounded-xl px-4 py-3 text-left text-sm font-medium transition-all duration-300`}
+                    className="group relative flex items-center justify-between rounded-lg px-3 py-2.5 text-sm font-medium transition-all duration-300"
                   >
                     {({ isActive }) => (
                       <>
+                        {/* Background highlight for active state */}
                         {isActive && (
                           <motion.span
                             layoutId={`dashboard-nav-highlight-${currentRole}`}
-                            className="absolute inset-0 z-0 rounded-xl bg-gradient-to-r from-[#e8f1ed] to-[#eaf3ee] shadow-md ring-1 ring-[#dfe9e3]/50"
+                            className="absolute inset-0 rounded-lg bg-white/20 shadow-md ring-1 ring-white/30"
                             transition={{
                               type: "spring",
-                              stiffness: 350,
-                              damping: 28,
-                              mass: 0.8,
+                              stiffness: 300,
+                              damping: 30,
+                              mass: 0.9,
                             }}
                           />
                         )}
+                        
+                        {/* Text content */}
                         <motion.span
-                          className="relative z-10 flex items-center gap-3"
+                          className="relative z-10 flex items-center gap-2.5 w-full"
                           animate={isActive ? "active" : "inactive"}
                           variants={animationVariants.navItem}
-                          transition={{ duration: 0.25 }}
+                          transition={{ duration: 0.2 }}
                         >
+                          {/* Left accent indicator */}
+                          {isActive && (
+                            <motion.div
+                              className="h-1 w-1 rounded-full bg-[#7fffcf] flex-shrink-0"
+                              initial={{ scale: 0 }}
+                              animate={{ scale: 1 }}
+                              transition={{
+                                type: "spring",
+                                stiffness: 400,
+                                damping: 20,
+                              }}
+                            />
+                          )}
                           <span
-                            className={`text-base transition-colors duration-300 ${
-                              isActive ? "text-[#173d34]" : "text-white/60 group-hover:text-white/90"
+                            className={`transition-all duration-300 flex-1 text-left ${
+                              isActive
+                                ? "text-white font-semibold"
+                                : "text-white/70 group-hover:text-white/90"
                             }`}
                           >
                             {item.label}
                           </span>
                         </motion.span>
-                        {isActive && (
-                          <motion.div
-                            className="relative z-10 h-1.5 w-1.5 rounded-full bg-gradient-to-r from-[#173d34] to-[#1a5b44]"
-                            initial={{ scale: 0 }}
-                            animate={{ scale: 1 }}
-                            exit={{ scale: 0 }}
-                            transition={{
-                              type: "spring",
-                              stiffness: 400,
-                              damping: 25,
-                            }}
-                          />
-                        )}
                       </>
                     )}
                   </NavLink>
@@ -206,13 +207,14 @@ const DashboardShell = ({
             })}
           </nav>
 
-          <div className="mt-auto border-t border-white/15 p-2 pt-4">
+          {/* Footer Logout Button */}
+          <div className="border-t border-white/15 p-3">
             <motion.button
               type="button"
               onClick={handleLogout}
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
-              className="flex w-full items-center justify-center gap-2 rounded-xl border border-white/20 bg-white/10 px-4 py-3 text-sm font-medium text-white backdrop-blur-sm transition-all duration-300 hover:bg-white/20 hover:border-white/30 active:bg-white/15"
+              className="w-full flex items-center justify-center gap-2 rounded-lg bg-white/15 hover:bg-white/25 border border-white/20 px-3 py-2.5 text-sm font-medium text-white backdrop-blur-sm transition-all duration-300 active:bg-white/20"
             >
               Log Out
             </motion.button>

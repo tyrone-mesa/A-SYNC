@@ -252,9 +252,7 @@ const DashboardShell = ({
                         data-active={isActive}
                       >
                         {({ isActive: linkActive }) => (
-                          <motion.button
-                            type="button"
-                            onClick={(e) => e.preventDefault()}
+                          <motion.div
                             initial={false}
                             animate={{
                               backgroundColor: linkActive
@@ -303,7 +301,7 @@ const DashboardShell = ({
                                 />
                               )}
                             </span>
-                          </motion.button>
+                          </motion.div>
                         )}
                       </NavLink>
                     );

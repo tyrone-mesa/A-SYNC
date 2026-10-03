@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useRef } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { NavLink, useLocation } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
@@ -55,7 +55,7 @@ const DashboardShell = ({
 }) => {
   const { user, logout } = useAuth();
   const location = useLocation();
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const scrollContainerRef = useRef(null);
   const currentRole = role || user?.role || "student";
   const items = navMap[currentRole] || navMap.student;
 
@@ -85,10 +85,15 @@ const DashboardShell = ({
   };
 
   return (
-    <motion.div className="min-h-[calc(100vh-6rem)] bg-[radial-gradient(circle_at_top,_#edf8f2_0%,_#dfeae3_24%,_#cfe0d3_48%,_#bfd3c7_70%,_#b3c8bc_100%)] px-3 py-4 sm:px-6 sm:py-6 lg:h-[calc(100vh-6rem)] lg:overflow-hidden lg:px-8">
+    <motion.div className="min-h-[calc(100vh-6rem)] bg-[radial-gradient(circle_at_top,_#edf8f2_0%,_#dfeae3_24%,_#cfe0d3_48%,_#bfd3c7_70%,_#b3c8bc_100%)] px-3 py-4 sm:px-6 sm:py-6 lg:h-[calc(100vh-6rem)]"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.26 }}
+    >
       <div className="mx-auto flex min-h-full min-w-0 max-w-[1380px] flex-col gap-4 lg:h-full lg:min-h-0 lg:flex-row lg:items-stretch">
+        {/* Desktop Sidebar - Hidden on Mobile */}
         <motion.aside
-          className={`${mobileMenuOpen ? "mobile-dashboard-drawer fixed inset-x-3 top-20 z-50 block max-h-[calc(100vh-6rem)] overflow-y-auto" : "hidden"} glass-sidebar w-full rounded-[28px] border border-white/20 p-5 shadow-[0_20px_45px_rgba(16,38,34,0.14)] lg:static lg:z-auto lg:block lg:h-full lg:max-h-none lg:w-[290px] lg:overflow-visible`}
+          className="hidden lg:block glass-sidebar w-64 rounded-[28px] border border-white/20 bg-[rgba(255,255,255,0.09)] shadow-[0_8px_32px_rgba(15,30,53,0.08)] backdrop-blur-xl"
         >
           <div className="flex items-center justify-between px-2 pb-4 pt-1">
             <div className="flex items-center gap-3">
@@ -120,7 +125,6 @@ const DashboardShell = ({
                       ? "relative text-[#173d34]"
                       : "text-white/80 hover:bg-white/10 hover:text-white"
                   }`}
-                  onClick={() => setMobileMenuOpen(false)}
                 >
                   {active && (
                     <motion.span
@@ -143,44 +147,56 @@ const DashboardShell = ({
             <button
               type="button"
               onClick={handleLogout}
-              className="flex w-full items-center justify-between rounded-xl border border-white/20 bg-white/10 px-4 py-3 text-left text-sm font-medium text-white transition hover:bg-white/20 hover:border-white/30"
+              className="flex w-full items-center justify-between rounded-xl border border-white/20 bg-white/10 px-4 py-3 text-left text-sm font-medium text-white transition hover:bg-white/20 hover:text-white"
             >
               <span>Log Out</span>
             </button>
           </div>
         </motion.aside>
 
-        {mobileMenuOpen && (
-          <motion.button
-            type="button"
-            aria-label="Close dashboard menu"
-            className="fixed inset-0 z-40 bg-[#0f3d2e]/55 backdrop-blur-[2px] lg:hidden"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            onClick={() => setMobileMenuOpen(false)}
-          />
-        )}
-
-        <motion.main className="glass-panel flex min-w-0 flex-1 flex-col overflow-visible rounded-[22px] border border-white/25 bg-[rgba(255,255,255,0.16)] shadow-[0_20px_45px_rgba(15,30,53,0.10)] backdrop-blur-xl sm:rounded-[28px] lg:min-h-0 lg:overflow-hidden">
-          <header className="flex min-w-0 flex-col gap-3 border-b border-white/15 bg-[rgba(33,76,63,0.74)] px-4 py-4 text-white backdrop-blur-md sm:flex-row sm:items-center sm:justify-between sm:px-6 sm:py-5">
-            <div>
-              <div className="flex items-start gap-3">
-                <button
-                  type="button"
-                  aria-label={
-                    mobileMenuOpen
-                      ? "Close dashboard menu"
-                      : "Open dashboard menu"
-                  }
-                  aria-expanded={mobileMenuOpen}
-                  onClick={() => setMobileMenuOpen((open) => !open)}
-                  className="mt-0.5 flex h-9 w-9 shrink-0 flex-col items-center justify-center gap-1.5 rounded-lg border border-white/20 bg-white/10 text-white transition hover:bg-white/20 lg:hidden"
+        {/* Main Content */}
+        <motion.main className="glass-panel flex min-w-0 flex-1 flex-col overflow-visible rounded-[22px] border border-white/25 bg-[rgba(255,255,255,0.16)] shadow-[0_20px_45px_rgba(15,30,53,0.10)] backdrop-blur-3xl lg:min-h-0"
+          initial={{ opacity: 0, y: 8 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.28, ease: [0.22, 1, 0.36, 1] }}
+        >
+          {/* Mobile & Desktop Header */}
+          <header className="flex min-w-0 flex-col gap-2 border-b border-white/15 bg-[rgba(33,76,63,0.74)] px-3 py-3 text-white backdrop-blur-md sm:px-4 sm:py-4">
+            {/* Line 1: Horizontal Menu (Mobile Only) / User Info (Desktop) */}
+            <div className="flex min-w-0 items-center justify-between gap-3 lg:justify-start">
+              {/* Mobile: Horizontal Scrollable Menu */}
+              <div className="flex lg:hidden min-w-0 flex-1">
+                <div
+                  ref={scrollContainerRef}
+                  className="flex min-w-0 flex-1 gap-2 overflow-x-auto scrollbar-hide scroll-smooth pb-1"
+                  style={{ WebkitOverflowScrolling: "touch" }}
                 >
-                  <span className="h-0.5 w-4 rounded-full bg-current" />
-                  <span className="h-0.5 w-4 rounded-full bg-current" />
-                  <span className="h-0.5 w-4 rounded-full bg-current" />
-                </button>
+                  {items.map((item) => {
+                    const active = isItemActive(item, location.pathname);
+
+                    return (
+                      <NavLink
+                        key={item.to}
+                        to={item.to}
+                        end={
+                          item.to === "/company/jobs" ||
+                          item.to === "/company/jobs/new"
+                        }
+                        className={`shrink-0 whitespace-nowrap rounded-full px-4 py-2 text-xs sm:text-sm font-medium transition-all duration-200 ${
+                          active
+                            ? "bg-[#eaf3ee] text-[#173d34] shadow-sm"
+                            : "bg-white/10 text-white/80 hover:bg-white/20 hover:text-white"
+                        }`}
+                      >
+                        {item.label}
+                      </NavLink>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* Desktop: Title and Role */}
+              <div className="hidden lg:flex lg:items-start lg:gap-3">
                 <div>
                   <p className="text-xs uppercase tracking-[0.2em] text-white/75">
                     {currentRole}
@@ -190,17 +206,34 @@ const DashboardShell = ({
                   </h1>
                 </div>
               </div>
-            </div>
 
-            <div className="flex min-w-0 flex-wrap items-center gap-2 sm:gap-3">
+              {/* User Info - Right Side */}
               {user && (
-                <div className="hidden rounded-full border border-white/20 bg-white/10 px-3.5 py-1.5 text-sm text-white sm:block backdrop-blur-sm">
+                <div className="shrink-0 rounded-full border border-white/20 bg-white/10 px-3 py-1.5 text-xs sm:text-sm text-white backdrop-blur-sm whitespace-nowrap">
                   Hi,{" "}
                   <span className="font-semibold">
                     {user.fullName?.split(" ")[0] || "User"}
                   </span>
                 </div>
               )}
+            </div>
+
+            {/* Line 2: Page Title & Breadcrumb (Mobile) */}
+            <div className="flex lg:hidden min-w-0 items-center justify-between gap-2">
+              <div className="min-w-0">
+                <p className="text-xs uppercase tracking-[0.2em] text-white/75 truncate">
+                  {currentRole} {title && "•"} {title}
+                </p>
+              </div>
+              {actions && (
+                <div className="flex min-w-0 flex-wrap items-center gap-2 shrink-0">
+                  {actions}
+                </div>
+              )}
+            </div>
+
+            {/* Desktop: Actions Row */}
+            <div className="hidden lg:flex min-w-0 flex-wrap items-center gap-3">
               {actions && (
                 <div className="flex min-w-0 flex-wrap items-center gap-2">
                   {actions}
@@ -209,7 +242,8 @@ const DashboardShell = ({
             </div>
           </header>
 
-          <div className="min-w-0 flex-1 px-4 py-5 sm:px-6 sm:py-6 lg:min-h-0 lg:overflow-y-auto">
+          {/* Page Content */}
+          <div className="min-w-0 flex-1 px-3 py-4 sm:px-6 sm:py-6 lg:min-h-0 lg:overflow-y-auto">
             <AnimatePresence mode="wait" initial={false}>
               <motion.div
                 key={location.pathname}
@@ -228,6 +262,17 @@ const DashboardShell = ({
           </div>
         </motion.main>
       </div>
+
+      {/* Custom Scrollbar Styles */}
+      <style>{`
+        .scrollbar-hide::-webkit-scrollbar {
+          display: none;
+        }
+        .scrollbar-hide {
+          -ms-overflow-style: none;
+          scrollbar-width: none;
+        }
+      `}</style>
     </motion.div>
   );
 };

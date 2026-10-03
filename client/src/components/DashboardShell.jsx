@@ -1,4 +1,4 @@
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { NavLink, useLocation } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
@@ -56,6 +56,7 @@ const DashboardShell = ({
   const { user, logout } = useAuth();
   const location = useLocation();
   const scrollContainerRef = useRef(null);
+  const activeItemRef = useRef(null);
   const currentRole = role || user?.role || "student";
   const items = navMap[currentRole] || navMap.student;
 
@@ -83,6 +84,23 @@ const DashboardShell = ({
 
     return pathname === item.to || pathname.startsWith(`${item.to}/`);
   };
+
+  // Scroll to active item when location changes
+  useEffect(() => {
+    if (activeItemRef.current && scrollContainerRef.current) {
+      const container = scrollContainerRef.current;
+      const activeElement = activeItemRef.current;
+      
+      // Scroll to center the active item
+      setTimeout(() => {
+        const containerWidth = container.clientWidth;
+        const elementWidth = activeElement.clientWidth;
+        const elementOffsetLeft = activeElement.offsetLeft;
+        
+        container.scrollLeft = elementOffsetLeft - (containerWidth / 2) + (elementWidth / 2);
+      }, 0);
+    }
+  }, [location.pathname]);
 
   return (
     <motion.div className="min-h-[calc(100vh-6rem)] bg-[radial-gradient(circle_at_top,_#edf8f2_0%,_#dfeae3_24%,_#cfe0d3_48%,_#bfd3c7_70%,_#b3c8bc_100%)] px-3 py-4 sm:px-6 sm:py-6 lg:h-[calc(100vh-6rem)]"
@@ -163,7 +181,7 @@ const DashboardShell = ({
           {/* Mobile & Desktop Header */}
           <header className="flex min-w-0 flex-col gap-2 border-b border-white/15 bg-[rgba(33,76,63,0.74)] px-3 py-3 text-white backdrop-blur-md sm:px-4 sm:py-4">
             {/* Line 1: Horizontal Menu (Mobile Only) / User Info (Desktop) */}
-            <div className="flex min-w-0 items-center justify-between gap-3 lg:justify-start">
+            <div className="flex min-w-0 items-center justify-center gap-3 lg:justify-start">
               {/* Mobile: Horizontal Scrollable Menu */}
               <div className="flex lg:hidden min-w-0 flex-1">
                 <div
@@ -177,6 +195,7 @@ const DashboardShell = ({
                     return (
                       <NavLink
                         key={item.to}
+                        ref={active ? activeItemRef : null}
                         to={item.to}
                         end={
                           item.to === "/company/jobs" ||
@@ -207,9 +226,9 @@ const DashboardShell = ({
                 </div>
               </div>
 
-              {/* User Info - Right Side */}
+              {/* User Info - Center */}
               {user && (
-                <div className="shrink-0 rounded-full border border-white/20 bg-white/10 px-3 py-1.5 text-xs sm:text-sm text-white backdrop-blur-sm whitespace-nowrap">
+                <div className="rounded-full border border-white/20 bg-white/10 px-3 py-1.5 text-xs sm:text-sm text-white backdrop-blur-sm whitespace-nowrap">
                   Hi,{" "}
                   <span className="font-semibold">
                     {user.fullName?.split(" ")[0] || "User"}

@@ -84,7 +84,7 @@ const DashboardShell = ({
   };
 
   return (
-    <motion.div className="min-h-[calc(100vh-6rem)] bg-[radial-gradient(circle_at_top,_#edf8f2_0%,_#dfeae3_24%,_#cfe0d3_48%,_#bfd3c7_70%,_#b3c8bc_100%)] px-3 py-4 sm:px-6 sm:py-6 lg:h-[calc(100vh-6rem)] lg:min-h-0"
+    <motion.div className="min-h-[calc(100vh-6rem)] bg-[radial-gradient(circle_at_top,_#edf8f2_0%,_#dfeae3_24%,_#cfe0d3_48%,_#bfd3c7_70%,_#b3c8bc_100%)] px-3 py-4 sm:px-6 sm:py-6 lg:h-[calc(100vh-6rem)]"
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       transition={{ duration: 0.18 }}
@@ -119,7 +119,7 @@ const DashboardShell = ({
                     item.to === "/company/jobs" ||
                     item.to === "/company/jobs/new"
                   }
-                  className={`group flex items-center justify-between rounded-xl px-4 py-3 text-left text-sm font-medium transition-all duration-200 ${
+                  className={`group flex items-center justify-between rounded-xl px-4 py-3 text-left text-sm font-medium transition-all duration-300 ${
                     active
                       ? "relative text-[#173d34]"
                       : "text-white/80 hover:bg-white/10 hover:text-white"
@@ -131,8 +131,8 @@ const DashboardShell = ({
                       className="absolute inset-0 z-0 rounded-xl bg-[#eaf3ee] shadow-sm ring-1 ring-[#dfe9e3]"
                       transition={{
                         type: "spring",
-                        stiffness: 420,
-                        damping: 32,
+                        stiffness: 380,
+                        damping: 30,
                       }}
                     />
                   )}
@@ -146,7 +146,7 @@ const DashboardShell = ({
             <button
               type="button"
               onClick={handleLogout}
-              className="flex w-full items-center justify-between rounded-xl border border-white/20 bg-white/10 px-4 py-3 text-left text-sm font-medium text-white transition hover:bg-white/20 hover:text-white"
+              className="flex w-full items-center justify-between rounded-xl border border-white/20 bg-white/10 px-4 py-3 text-left text-sm font-medium text-white transition hover:bg-white/20 hover:text-white duration-300"
             >
               <span>Log Out</span>
             </button>
@@ -154,7 +154,7 @@ const DashboardShell = ({
         </motion.aside>
 
         {/* Main Content */}
-        <motion.main className="glass-panel flex min-w-0 flex-1 flex-col overflow-visible rounded-[22px] border border-white/25 bg-[rgba(255,255,255,0.16)] shadow-[0_20px_45px_rgba(15,30,53,0.10)] backdrop-blur-xl"
+        <motion.main className="glass-panel flex min-w-0 flex-1 flex-col overflow-visible rounded-[22px] border border-white/25 bg-[rgba(255,255,255,0.16)] shadow-[0_20px_45px_rgba(15,30,53,0.10)]"
           initial={{ opacity: 0, y: 6 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.16, ease: [0.22, 1, 0.36, 1] }}
@@ -168,7 +168,7 @@ const DashboardShell = ({
                 <div className="flex min-w-0 flex-1 gap-2 overflow-x-auto scrollbar-hide pb-1"
                   style={{ WebkitOverflowScrolling: "touch" }}
                 >
-                  {items.map((item) => {
+                  {items.map((item, index) => {
                     const active = isItemActive(item, location.pathname);
 
                     return (
@@ -179,13 +179,36 @@ const DashboardShell = ({
                           item.to === "/company/jobs" ||
                           item.to === "/company/jobs/new"
                         }
-                        className={`shrink-0 whitespace-nowrap rounded-full px-4 py-2 text-xs sm:text-sm font-medium transition-all duration-200 ${
-                          active
-                            ? "bg-[#eaf3ee] text-[#173d34] shadow-sm"
-                            : "bg-white/10 text-white/80 hover:bg-white/20 hover:text-white"
-                        }`}
+                        className="shrink-0 relative"
                       >
-                        {item.label}
+                        {({ isActive }) => (
+                          <motion.button
+                            type="button"
+                            initial={false}
+                            animate={{
+                              backgroundColor: isActive ? "#eaf3ee" : "rgba(255, 255, 255, 0.1)",
+                              color: isActive ? "#173d34" : "rgba(255, 255, 255, 0.8)",
+                            }}
+                            whileHover={{
+                              backgroundColor: isActive ? "#eaf3ee" : "rgba(255, 255, 255, 0.2)",
+                              color: isActive ? "#173d34" : "rgba(255, 255, 255, 1)",
+                            }}
+                            transition={{
+                              duration: 0.35,
+                              ease: [0.34, 1.56, 0.64, 1],
+                            }}
+                            className="whitespace-nowrap rounded-full px-4 py-2 text-xs sm:text-sm font-medium shadow-sm focus:outline-none"
+                            style={{
+                              boxShadow: isActive ? "0 2px 8px rgba(23, 61, 52, 0.15)" : "none",
+                              border: isActive ? "1px solid rgba(210, 233, 225, 0.4)" : "1px solid transparent",
+                            }}
+                            onClick={() => {
+                              // Navigate using the NavLink parent
+                            }}
+                          >
+                            {item.label}
+                          </motion.button>
+                        )}
                       </NavLink>
                     );
                   })}

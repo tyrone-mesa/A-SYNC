@@ -333,14 +333,14 @@ const Navbar = ({ variant = "static" }) => {
         </div>
       </nav>
 
-      <AnimatePresence initial={false} mode="sync">
+      <AnimatePresence initial={false} mode="wait">
         {authModal?.type === "login" && (
           <motion.div
             key="login-modal"
             initial={{ opacity: 0 }}
-            animate={{ opacity: 1, x: 0 }}
+            animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            transition={{ duration: 0.22, ease: "easeOut" }}
+            transition={{ duration: 0.18, ease: "easeOut" }}
             className="contents"
           >
             <Login
@@ -357,10 +357,10 @@ const Navbar = ({ variant = "static" }) => {
         {authModal?.type === "forgot" && (
           <motion.div
             key="forgot-modal"
-            initial={{ opacity: 0, x: 56 }}
-            animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: -24 }}
-            transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.18, ease: "easeOut" }}
             className="contents"
           >
             <ForgotPassword

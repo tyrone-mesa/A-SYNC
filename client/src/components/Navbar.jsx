@@ -17,7 +17,7 @@ const roleHome = {
 };
 
 const NavbarLink = ({ to, href, active, children, className = "" }) => {
-  const linkClassName = `nav-slide relative z-10 inline-flex items-center rounded-full px-2 py-1 text[14px] font-medium tracking-[-0.01em] transition duration-150 ${
+  const linkClassName = `nav-slide relative z-10 inline-flex items-center rounded-full px-2.5 py-1.5 text-[14px] font-medium tracking-[-0.01em] transition duration-150 ${
     active ? "text-[#173d34]" : "text-white/85 hover:text-white"
   } ${className}`;
   const linkProps = {
@@ -52,9 +52,7 @@ const Navbar = ({ variant = "static" }) => {
   const { user, logout } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [authModal, setAuthModal] = useState(null);
-  const dropdownRef = useRef(null);
 
   const showNotifications =
     user &&
@@ -64,7 +62,6 @@ const Navbar = ({ variant = "static" }) => {
 
   const handleLogout = () => {
     logout();
-    setMobileMenuOpen(false);
     window.location.replace("/");
   };
 
@@ -76,50 +73,8 @@ const Navbar = ({ variant = "static" }) => {
   };
 
   const openLogin = () => {
-    setMobileMenuOpen(false);
     setAuthModal({ type: "login", portal: "student" });
   };
-
-  const openPartnerSignup = () => {
-    setMobileMenuOpen(false);
-    setAuthModal({ type: "register", from: "partner" });
-  };
-
-  // Close mobile menu when route changes
-  useEffect(() => {
-    setMobileMenuOpen(false);
-  }, [location.pathname]);
-
-  // Close dropdown when clicking outside
-  useEffect(() => {
-    const handleClickOutside = (event) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
-        setMobileMenuOpen(false);
-      }
-    };
-
-    if (mobileMenuOpen) {
-      document.addEventListener("mousedown", handleClickOutside);
-      document.addEventListener("touchstart", handleClickOutside);
-      return () => {
-        document.removeEventListener("mousedown", handleClickOutside);
-        document.removeEventListener("touchstart", handleClickOutside);
-      };
-    }
-  }, [mobileMenuOpen]);
-
-  useEffect(() => {
-    const handlePartnerSignup = () => {
-      setMobileMenuOpen(false);
-      setAuthModal({ type: "register", from: "partner" });
-    };
-    window.addEventListener("asiatech:partner-signup", handlePartnerSignup);
-    return () =>
-      window.removeEventListener(
-        "asiatech:partner-signup",
-        handlePartnerSignup,
-      );
-  }, []);
 
   useEffect(() => {
     if (location.pathname === "/" && location.search === "?auth=login") {
@@ -133,8 +88,10 @@ const Navbar = ({ variant = "static" }) => {
     variant === "overlay" ? "" : "animate-nav-fade";
 
   const mobileNavLinkClass = (isActive) =>
-    `relative text-[14px] font-semibold text-white transition-all duration-200 hover:text-white/80 pb-1 cursor-pointer ${
-      isActive ? "border-b-2 border-[#F6C744]" : "border-b-2 border-transparent"
+    `relative inline-flex items-center rounded-full border px-3 py-1.5 text-[12px] font-semibold tracking-[-0.01em] transition-all duration-200 ${
+      isActive
+        ? "border-[#F6C744] bg-[#F6C744]/10 text-white"
+        : "border-white/15 bg-white/5 text-white/85 hover:bg-white/10 hover:text-white"
     }`;
 
   return (
@@ -142,7 +99,7 @@ const Navbar = ({ variant = "static" }) => {
       className={`${headerPositionClass} ${headerAnimationClass} relative z-50 px-3 py-3 sm:px-6`}
     >
       <nav className="relative z-50 w-full">
-        <div className="glass-panel relative z-50 mx-auto flex min-h-[60px] w-full max-w-7xl items-center justify-between rounded-[28px] px-3 shadow-[0_12px_30px_rgba(15,30,53,0.14)] sm:px-5 lg:w-fit lg:max-w-none">
+        <div className="glass-panel relative z-50 mx-auto flex min-h-[60px] w-full max-w-7xl items-center justify-between rounded-[28px] px-3 shadow-[0_12px_30px_rgba(15,30,53,0.14)] sm:px-5">
           <a
             href="/"
             aria-label="Go to ASIATECH SYNC home page"
@@ -158,59 +115,36 @@ const Navbar = ({ variant = "static" }) => {
           </a>
 
           <div className="flex min-w-0 items-center gap-3 sm:gap-6 lg:ml-8">
-            <div className="hidden items-center gap-6 whitespace-nowrap lg:flex">
+            <div className="hidden items-center gap-2 whitespace-nowrap lg:flex">
               <NavbarLink href="/" active={location.pathname === "/" && !location.hash}>
                 Home
               </NavbarLink>
               <NavbarLink href="/jobs" active={location.pathname === "/jobs"}>
                 Opportunities
               </NavbarLink>
-              <NavbarLink href="/#about" active={location.pathname === "/" && location.hash === "#about"}>
-                About Us
-              </NavbarLink>
-              <NavbarLink href="/#contact" active={location.pathname === "/" && location.hash === "#contact"}>
-                Contact Us
-              </NavbarLink>
 
-              {!user && (
-                <>
-                  <button
-                    type="button"
-                    onClick={openLogin}
-                    className="nav-slide text-white/85 hover:text-white text-[14px] font-medium tracking-[-0.01em] transition duration-150"
-                  >
-                    Log in
-                  </button>
-                  <button
-                    type="button"
-                    onClick={openPartnerSignup}
-                    className="nav-slide btn-lift bg-white text-[#0b5d3d] font-bold text-[13px] px-4 py-2 rounded-full shadow-[0_6px_18px_rgba(255,255,255,0.2)] hover:shadow-[0_10px_22px_rgba(255,255,255,0.28)]"
-                  >
-                    Become a Partner
-                  </button>
-                </>
-              )}
+              {user ? (
+                <NavbarLink to={roleHome[user.role]} active={location.pathname.startsWith(roleHome[user.role])}>
+                  Dashboard
+                </NavbarLink>
+              ) : null}
 
-              {user && (
-                <>
-                  <NavbarLink to={roleHome[user.role]} active={false}>
-                    Dashboard
-                  </NavbarLink>
-                  <div className="flex items-center gap-3 border-l border-white/15 pl-8">
-                    <span className="text-[13px] text-white/70">
-                      <span className="font-semibold text-white">
-                        {user.fullName.split(" ")[0]}
-                      </span>
-                    </span>
-                    <button
-                      type="button"
-                      onClick={handleLogout}
-                      className="rounded-full border border-white/30 px-3.5 py-1.5 text-[13px] font-medium text-white transition duration-150 hover:border-white/50 hover:bg-white/15"
-                    >
-                      Log Out
-                    </button>
-                  </div>
-                </>
+              {user ? (
+                <button
+                  type="button"
+                  onClick={handleLogout}
+                  className="nav-slide rounded-full border border-white/30 px-3.5 py-1.5 text-[14px] font-medium text-white transition duration-150 hover:border-white/60 hover:bg-white/10"
+                >
+                  Logout
+                </button>
+              ) : (
+                <button
+                  type="button"
+                  onClick={openLogin}
+                  className="nav-slide rounded-full border border-white/30 px-3.5 py-1.5 text-[14px] font-medium text-white transition duration-150 hover:border-white/60 hover:bg-white/10"
+                >
+                  Login
+                </button>
               )}
             </div>
 
@@ -225,72 +159,18 @@ const Navbar = ({ variant = "static" }) => {
           </div>
         </div>
 
-        {/* Mobile Navigation */}
         <div className="lg:hidden">
-          <div className="mt-3 flex justify-center">
-            <div className="flex items-center gap-4 whitespace-nowrap overflow-x-auto sm:gap-6 pb-2">
-              <div className="relative z-[60] flex-shrink-0" ref={dropdownRef}>
-                <button
-                  type="button"
-                  onClick={() => setMobileMenuOpen((open) => !open)}
-                  className={mobileNavLinkClass(false)}
-                  aria-expanded={mobileMenuOpen}
-                  aria-haspopup="true"
-                  aria-label="Home menu"
-                >
-                  Home
-                  <motion.span
-                    className="ml-1 inline-block transition-transform duration-300"
-                    animate={{ rotate: mobileMenuOpen ? 180 : 0 }}
-                    transition={{ type: "spring", stiffness: 300, damping: 25 }}
-                  >
-                    ▼
-                  </motion.span>
-                </button>
-
-                <AnimatePresence>
-                  {mobileMenuOpen && (
-                    <motion.div
-                      initial={{ opacity: 0, y: -8, scale: 0.96 }}
-                      animate={{ opacity: 1, y: 0, scale: 1 }}
-                      exit={{ opacity: 0, y: -8, scale: 0.96 }}
-                      transition={{
-                        duration: 0.25,
-                        ease: [0.34, 1.56, 0.64, 1],
-                      }}
-                      className="absolute left-0 top-full z-[70] mt-2 w-48 overflow-hidden rounded-xl border border-white/20 bg-gradient-to-b from-[#1a4d42] to-[#0f3d35] shadow-[0_12px_30px_rgba(0,0,0,0.3)]"
-                    >
-                      <Link
-                        to="/"
-                        onClick={() => setMobileMenuOpen(false)}
-                        className="block px-4 py-3 text-left text-sm font-medium text-white/90 transition-all duration-200 hover:bg-white/15 active:bg-white/20"
-                      >
-                        Home
-                      </Link>
-
-                      <Link
-                        to="/#about"
-                        onClick={() => setMobileMenuOpen(false)}
-                        className="block border-t border-white/10 px-4 py-3 text-left text-sm font-medium text-white/90 transition-all duration-200 hover:bg-white/15 active:bg-white/20"
-                      >
-                        About Us
-                      </Link>
-
-                      <Link
-                        to="/#contact"
-                        onClick={() => setMobileMenuOpen(false)}
-                        className="block border-t border-white/10 px-4 py-3 text-left text-sm font-medium text-white/90 transition-all duration-200 hover:bg-white/15 active:bg-white/20"
-                      >
-                        Contact Us
-                      </Link>
-                    </motion.div>
-                  )}
-                </AnimatePresence>
-              </div>
+          <div className="mt-3 flex justify-center overflow-x-auto pb-1">
+            <div className="flex items-center gap-2 whitespace-nowrap">
+              <Link
+                to="/"
+                className={mobileNavLinkClass(location.pathname === "/" && !location.hash)}
+              >
+                Home
+              </Link>
 
               <Link
                 to="/jobs"
-                onClick={() => setMobileMenuOpen(false)}
                 className={mobileNavLinkClass(location.pathname === "/jobs")}
               >
                 Opportunities
@@ -299,7 +179,6 @@ const Navbar = ({ variant = "static" }) => {
               {user && (
                 <Link
                   to={roleHome[user.role]}
-                  onClick={() => setMobileMenuOpen(false)}
                   className={mobileNavLinkClass(
                     location.pathname.startsWith(roleHome[user.role]),
                   )}
@@ -311,9 +190,7 @@ const Navbar = ({ variant = "static" }) => {
               {user ? (
                 <button
                   type="button"
-                  onClick={() => {
-                    handleLogout();
-                  }}
+                  onClick={handleLogout}
                   className={mobileNavLinkClass(false)}
                 >
                   Logout

@@ -348,6 +348,16 @@ const StudentDetail = () => {
               </>
             )}
           </div>
+          {avatarDraft && (
+            <AvatarCropper
+              file={avatarDraft}
+              onCancel={() => setAvatarDraft(null)}
+              onConfirm={(file) => {
+                setAvatarFile(file);
+                setAvatarDraft(null);
+              }}
+            />
+          )}
           {profile.avatarOriginalName && (
             <p className="mt-2 text-xs text-navy/65">
               Current file: {profile.avatarOriginalName}
@@ -776,17 +786,6 @@ const StudentDetail = () => {
                   <StatusBadge status={app.status} />
                 </div>
               ))}
-
-              {avatarDraft && (
-                <AvatarCropper
-                  file={avatarDraft}
-                  onCancel={() => setAvatarDraft(null)}
-                  onConfirm={(file) => {
-                    setAvatarFile(file);
-                    setAvatarDraft(null);
-                  }}
-                />
-              )}
             </div>
           )}
         </div>

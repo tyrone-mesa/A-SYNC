@@ -172,7 +172,7 @@ function App() {
               variants={pageVariants}
               initial={isDashboardRoute ? false : "initial"}
               animate={isDashboardRoute ? false : "animate"}
-              exit={isDashboardRoute ? false : "exit"}
+              exit="exit"
               transition={{ duration: 0.34, ease: [0.22, 1, 0.36, 1] }}
             >
               <React.Suspense

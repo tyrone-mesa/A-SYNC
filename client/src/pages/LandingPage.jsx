@@ -277,8 +277,8 @@ const LandingPage = ({ intro = false, onIntroComplete }) => {
 
   return (
     <div className="min-h-screen bg-[#FBF8F3]">
-      <section className="relative isolate overflow-hidden bg-[#0F3D2E] text-white">
-        <div className="absolute inset-0 bg-gradient-to-br from-[#0B2E22] via-[#0F3D2E] to-[#0B2E22]">
+      <section className="relative isolate overflow-hidden bg-white text-[#1D2939]">
+        <div className="absolute inset-0 bg-gradient-to-br from-white via-[#F8F6F2] to-[#F0EDE6]">
           <div
             className={`absolute inset-0 ${
               intro && isIntroVideoPlaying && !prefersReducedMotion
@@ -312,7 +312,7 @@ const LandingPage = ({ intro = false, onIntroComplete }) => {
               />
             )}
           </div>
-          <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top,_rgba(255,255,255,0.18),transparent_32%),linear-gradient(120deg,rgba(12,42,32,0.78),rgba(15,61,46,0.88),rgba(15,61,46,0.72))]" />
+          <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-white/20" />
         </div>
 
         <div className="relative z-10">
@@ -323,7 +323,7 @@ const LandingPage = ({ intro = false, onIntroComplete }) => {
           <button
             type="button"
             onClick={finishIntroVideo}
-            className="absolute right-5 top-24 z-20 rounded-full border border-white/60 bg-[#0F3D2E]/75 px-5 py-2.5 text-sm font-semibold text-white shadow-md backdrop-blur-sm transition hover:bg-white/20"
+            className="absolute right-5 top-24 z-20 rounded-full border border-[#D9DEE5] bg-white/90 px-5 py-2.5 text-sm font-semibold text-[#1D2939] shadow-md backdrop-blur-sm transition hover:bg-white"
           >
             Skip intro
           </button>
@@ -352,24 +352,24 @@ const LandingPage = ({ intro = false, onIntroComplete }) => {
             variants={heroContent}
             className="flex min-h-[560px] items-center justify-center"
           >
-            <div className="mx-auto max-w-3xl text-center text-white sm:max-w-4xl">
+            <div className="mx-auto max-w-3xl text-center sm:max-w-4xl">
               <motion.p
                 variants={heroItem}
-                className="mb-5 inline-flex items-center rounded-full border border-[#E8C165]/40 bg-[#E8C165]/10 px-3 py-1.5 text-[10px] font-bold uppercase tracking-[0.28em] text-[#F3D98A]"
+                className="mb-5 inline-flex items-center rounded-full border border-[#E8C165]/40 bg-[#E8C165]/10 px-3 py-1.5 text-[10px] font-bold uppercase tracking-[0.28em] text-[#E8A000]"
               >
                 Connecting Students. Empowering Opportunities.
               </motion.p>
 
               <motion.h1
                 variants={heroItem}
-                className="mb-6 font-bespoke text-[clamp(2.8rem,7vw,6rem)] font-bold italic leading-[0.94] tracking-[-0.05em] text-white"
+                className="mb-6 font-bespoke text-[clamp(2.8rem,7vw,6rem)] font-bold italic leading-[0.94] tracking-[-0.05em] text-[#0F3D2E]"
               >
                 Your Future Starts With the Right Opportunity.
               </motion.h1>
 
               <motion.p
                 variants={heroItem}
-                className="mx-auto mb-8 max-w-2xl text-base leading-relaxed text-white/80 sm:text-lg"
+                className="mx-auto mb-8 max-w-2xl text-base leading-relaxed text-[#4B5768] sm:text-lg"
               >
                 AsiatechSync connects Asia Technological School of Science and Arts students with OJT, internship, and career opportunities from industry partners.
               </motion.p>
@@ -384,7 +384,7 @@ const LandingPage = ({ intro = false, onIntroComplete }) => {
                 <button
                   type="button"
                   onClick={openPartnerSignup}
-                  className="inline-flex items-center justify-center rounded-full border border-white/50 bg-white/10 px-6 py-3.5 text-center text-sm font-bold text-white backdrop-blur-sm transition duration-200 hover:-translate-y-1 hover:bg-white/15 sm:px-7"
+                  className="inline-flex items-center justify-center rounded-full border border-[#1E5D46]/30 bg-[#F0EDE6]/70 px-6 py-3.5 text-center text-sm font-bold text-[#0F3D2E] backdrop-blur-sm transition duration-200 hover:-translate-y-1 hover:bg-[#E6EFE6] sm:px-7"
                 >
                   Partner With Us
                 </button>
@@ -392,10 +392,10 @@ const LandingPage = ({ intro = false, onIntroComplete }) => {
 
               <motion.div
                 variants={heroItem}
-                className="mt-8 flex flex-wrap items-center justify-center gap-4 text-sm text-white/75"
+                className="mt-8 flex flex-wrap items-center justify-center gap-4 text-sm text-[#4B5768]"
               >
                 <div className="flex items-center gap-2">
-                  <span className="flex h-2.5 w-2.5 rounded-full bg-[#7AE4A0]" />
+                  <span className="flex h-2.5 w-2.5 rounded-full bg-[#1E5D46]" />
                   Career-ready students
                 </div>
                 <div className="flex items-center gap-2">
@@ -448,7 +448,7 @@ const LandingPage = ({ intro = false, onIntroComplete }) => {
                 </p>
               </div>
             )}
-            <div className="relative mx-auto grid h-[250px] min-h-0 w-full max-w-[22rem] grid-cols-[2.5rem_minmax(0,1fr)_2.5rem] items-center gap-1 py-3 sm:h-[320px] sm:max-w-none sm:grid-cols-[3rem_minmax(0,1fr)_3rem]">
+            <div className="relative mx-auto grid h-[250px] min-h-0 w-full max-w-[22rem] grid-cols-[2.5rem_minmax(0,1fr)_2.5rem] items-center gap-1 py-3 sm:h-[320px] sm:max-w-none sm:grid-cols-[3rem_minmax(0,1fr)_3rem] md:grid-cols-1 md:gap-0">
               <button
                 type="button"
                 onClick={() => moveAboutSlide(-1)}
@@ -648,17 +648,17 @@ const LandingPage = ({ intro = false, onIntroComplete }) => {
             {[
               {
                 quote:
-                  "Before using AsiatechSync, I wasn't sure where to start looking for internship opportunities. The platform made everything easier by showing opportunities that matched my interests and skills.",
+                  "Before using AsiatechSync, I wasn't sure where to start looking for internship opportunities. The platform made everything easier by showing opportunities that matched my interests.",
                 attribution: "BS Information Technology Student",
               },
               {
                 quote:
-                  "What I liked most about AsiatechSync was having everything in one place. I could explore opportunities, review company information, and submit applications without jumping between different tools.",
+                  "What I liked most about AsiatechSync was having everything in one place. I could explore opportunities, review company information, and submit applications without jumping between websites.",
                 attribution: "OJT Student",
               },
               {
                 quote:
-                  "AsiatechSync gave me access to opportunities I might not have found on my own. Through the platform, I connected with an industry partner that allowed me to apply what I learned in school.",
+                  "AsiatechSync gave me access to opportunities I might not have found on my own. Through the platform, I connected with an industry partner that allowed me to apply what I learned in the classroom.",
                 attribution: "Internship Applicant",
               },
             ].map((testimonial) => (

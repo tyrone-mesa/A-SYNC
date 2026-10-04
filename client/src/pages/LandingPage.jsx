@@ -128,14 +128,14 @@ const ABOUT_SLIDES = [
     alt: "A-Sync official logo",
     name: "Connecting ASIATECH Students to the Industry",
     role: "AsiatechSync connects students with meaningful industry opportunities.",
-    desktopClass: "md:translate-x-[240px] md:translate-y-[2px]",
+    desktopClass: "md:translate-x-[240px] md:translate-y-[-2px]",
   },
   {
     image: "/system-logo/Igot.png",
     alt: "Romel S. Igot Jr.",
     name: "Romel S. Igot Jr.",
     role: "Front-end development and integration",
-    desktopClass: "md:translate-y-[2px] md:scale-[1.7]",
+    desktopClass: "md:translate-y-[-2px] md:scale-[1.7]",
   },
   {
     image: "/system-logo/Olivera.png",

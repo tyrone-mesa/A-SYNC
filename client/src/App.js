@@ -5,11 +5,7 @@ import { AnimatePresence, motion, MotionConfig } from "framer-motion";
 import Navbar from "./components/Navbar";
 import ProtectedRoute from "./components/ProtectedRoute";
 import FloatingMessageCircle from "./components/FloatingMessageCircle";
-import {
-  hasHomeIntroPlayedThisSession,
-  markHomeIntroPlayedThisSession,
-  resetHomeIntroPlayedThisSession,
-} from "./utils/homeIntroSession";
+import { markHomeIntroPlayedEver } from "./utils/homeIntroSession";
 
 const LandingPage = React.lazy(() => import("./pages/LandingPage"));
 const Login = React.lazy(() => import("./pages/Login"));
@@ -92,27 +88,18 @@ const pageVariants = {
 
 function App() {
   const location = useLocation();
+  // The intro plays automatically every time the visitor lands on "/".
+  // Navigating back to Home mid-session replays it; leaving "/" ends it.
   const [showHomeIntro, setShowHomeIntro] = useState(
-    () => {
-      if (location.pathname !== "/") return false;
-      try {
-        const navigation = window.performance.getEntriesByType("navigation")[0];
-        if (navigation?.type === "reload") {
-          resetHomeIntroPlayedThisSession();
-        }
-        return !hasHomeIntroPlayedThisSession();
-      } catch (error) {
-        return true;
-      }
-    },
+    () => location.pathname === "/",
   );
-  const completeHomeIntro = React.useCallback(
-    () => {
-      setShowHomeIntro(false);
-      markHomeIntroPlayedThisSession();
-    },
-    [],
-  );
+  const completeHomeIntro = React.useCallback(() => {
+    setShowHomeIntro(false);
+    markHomeIntroPlayedEver();
+  }, []);
+  React.useEffect(() => {
+    setShowHomeIntro(location.pathname === "/");
+  }, [location.pathname]);
   React.useEffect(() => {
     if (location.pathname !== "/" && showHomeIntro) {
       completeHomeIntro();

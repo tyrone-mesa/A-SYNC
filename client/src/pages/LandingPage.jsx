@@ -173,7 +173,7 @@ const LandingPage = ({ intro = false, onIntroComplete }) => {
   const [aboutSlide, setAboutSlide] = useState(0);
   const [aboutDirection, setAboutDirection] = useState(1);
   const [featureSlide, setFeatureSlide] = useState(0);
-  const prefersReducedM2otion = useReducedMotion();
+  const prefersReducedMotion = useReducedMotion();
 
   const finishIntroVideo = useCallback(() => {
     setIsIntroRevealed(true);

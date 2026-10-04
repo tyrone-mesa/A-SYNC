@@ -148,7 +148,7 @@ const ABOUT_SLIDES = [
     alt: "Tyrone James Rafael A. Mesa",
     name: "Tyrone James Rafael A. Mesa",
     role: "Documentation and system development support",
-    desktopClass: "md:translate-x-1 md:translate-y-1 md:scale-[1.7]",
+    desktopClass: "md:translate-x-15 md:translate-y-1 md:scale-[1.7]",
   },
 ];
 

@@ -135,7 +135,7 @@ const DashboardShell = ({
               </div>
             </div>
           </div>
- 
+
           <nav className="flex-1 overflow-y-auto py-4 px-3 space-y-2">
             {items.map((item, idx) => {
               const active = isItemActive(item, location.pathname);
@@ -205,7 +205,7 @@ const DashboardShell = ({
               );
             })}
           </nav>
- 
+
           <div className="border-t border-white/15 p-3">
             <motion.button
               type="button"
@@ -218,7 +218,7 @@ const DashboardShell = ({
             </motion.button>
           </div>
         </motion.aside>
- 
+
         <motion.main
           className="glass-panel flex min-w-0 flex-1 flex-col overflow-visible rounded-[22px] border border-white/25 bg-[rgba(255,255,255,0.16)] shadow-[0_20px_45px_rgba(15,30,53,0.10)]"
           initial={{ opacity: 0, y: 6 }}

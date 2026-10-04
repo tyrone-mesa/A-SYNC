@@ -117,6 +117,7 @@ const PARTNER_BENEFITS = [
 ];
 
 // DESKTOP image adjustments — edit each slide's `desktopClass` to nudge its image.
+
 //   md:translate-x-4   → move right (use -x-4 for left)
 //   md:translate-y-4   → move down  (use -y-4 for up)
 //   md:scale-[1.8]     → size (bigger number = larger)
@@ -268,7 +269,7 @@ const LandingPage = ({ intro = false, onIntroComplete }) => {
     } finally {
       setConcernBusy(false);
     }
-  };
+  }
 
   const moveAboutSlide = (direction) => {
     setAboutDirection(direction);
@@ -518,7 +519,7 @@ const LandingPage = ({ intro = false, onIntroComplete }) => {
           whileInView="visible"
           viewport={{ once: true, amount: 0.2 }}
           variants={fadeUp}
-          className="mx-auto hidden max-w-6xl md:block"
+          className="relative mx-auto hidden max-w-6xl md:block"
         >
           <motion.div
             key={aboutSlide}
@@ -565,25 +566,6 @@ const LandingPage = ({ intro = false, onIntroComplete }) => {
                     } ${ABOUT_SLIDES[aboutSlide].desktopClass}`}
                   />
                 </div>
-                <div className="absolute bottom-1 left-1/2 z-10 flex -translate-x-1/2 gap-1.5 sm:bottom-4">
-                  {ABOUT_SLIDES.map((slide, index) => (
-                    <button
-                      key={slide.name}
-                      type="button"
-                      onClick={() => {
-                        setAboutDirection(index >= aboutSlide ? 1 : -1);
-                        setAboutSlide(index);
-                      }}
-                      aria-label={`Show ${slide.name}`}
-                      aria-current={aboutSlide === index}
-                      className={`h-1.5 rounded-full transition-all ${
-                        aboutSlide === index
-                          ? "w-6 bg-[#E8C165]"
-                          : "w-1.5 bg-[#1E5D46]/30 hover:bg-[#1E5D46]/60"
-                      }`}
-                    />
-                  ))}
-                </div>
               </div>
             </div>
             {aboutSlide % 2 === 1 && (
@@ -600,6 +582,28 @@ const LandingPage = ({ intro = false, onIntroComplete }) => {
               </div>
             )}
           </motion.div>
+          {/* Desktop indicator anchored to the About block itself, not the
+              photo layer, so it stays centered at the bottom on every slide
+              no matter which column the photo sits in. */}
+          <div className="absolute bottom-0 left-1/2 z-10 flex -translate-x-1/2 gap-1.5">
+            {ABOUT_SLIDES.map((slide, index) => (
+              <button
+                key={slide.name}
+                type="button"
+                onClick={() => {
+                  setAboutDirection(index >= aboutSlide ? 1 : -1);
+                  setAboutSlide(index);
+                }}
+                aria-label={`Show ${slide.name}`}
+                aria-current={aboutSlide === index}
+                className={`h-1.5 rounded-full transition-all ${
+                  aboutSlide === index
+                    ? "w-6 bg-[#E8C165]"
+                    : "w-1.5 bg-[#1E5D46]/30 hover:bg-[#1E5D46]/60"
+                }`}
+              />
+            ))}
+          </div>
         </motion.div>
         <button
           type="button"

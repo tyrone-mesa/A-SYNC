@@ -7,6 +7,7 @@ import NotificationBell from "./NotificationBell";
 import Login from "../pages/Login";
 import Register from "../pages/Register";
 import ForgotPassword from "../pages/ForgotPassword";
+import { createPortal } from "react-dom";
 
 const roleHome = {
   student: "/student/dashboard",
@@ -85,6 +86,17 @@ const Navbar = ({ variant = "static" }) => {
       setAuthModal({ type: "login", portal: "student" });
     }
   }, [location.pathname, location.search]);
+
+  // The desktop "Company Sign up" button and the landing page partner CTAs
+  // dispatch this event; the register modal lives in this component's state,
+  // so the listener must live here too. Without it the event went nowhere
+  // and the button was dead.
+  useEffect(() => {
+    const onPartnerSignup = () => setAuthModal({ type: "register" });
+    window.addEventListener("asiatech:partner-signup", onPartnerSignup);
+    return () =>
+      window.removeEventListener("asiatech:partner-signup", onPartnerSignup);
+  }, []);
 
   const headerPositionClass =
     variant === "overlay" ? "absolute inset-x-0 top-0" : "relative w-full";
@@ -232,55 +244,65 @@ const Navbar = ({ variant = "static" }) => {
         </div>
       </nav>
 
-      <AnimatePresence initial={false} mode="wait">
-        {authModal?.type === "login" && (
-          <motion.div
-            key="login-modal"
-            initial={{ opacity: 0, scale: 0.98, y: 10 }}
-            animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.985, y: 8 }}
-            transition={{ duration: 0.28, ease: [0.22, 1, 0.36, 1] }}
-            className="contents"
-          >
-            <Login
+      {/* The auth modals render inside a portal on document.body. On the home
+          page this header lives inside the hero section's stacking context, so
+          a fixed overlay rendered here was trapped beneath later sections such
+          as "About ASIATECHSYNC" (relative z-0). Portaling puts the overlay in
+          the root stacking context, above every page section. */}
+      {createPortal(
+        <>
+          <AnimatePresence initial={false} mode="wait">
+            {authModal?.type === "login" && (
+              <motion.div
+                key="login-modal"
+                initial={{ opacity: 0, scale: 0.98, y: 10 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                exit={{ opacity: 0, scale: 0.985, y: 8 }}
+                transition={{ duration: 0.28, ease: [0.22, 1, 0.36, 1] }}
+                className="contents"
+              >
+                <Login
+                  modal
+                  initialPortal={authModal.portal}
+                  onClose={closeAuthModal}
+                  onCompanyRegister={() =>
+                    setAuthModal({ type: "register", from: "login" })
+                  }
+                  onForgotPassword={() => setAuthModal({ type: "forgot" })}
+                />
+              </motion.div>
+            )}
+            {authModal?.type === "forgot" && (
+              <motion.div
+                key="forgot-modal"
+                initial={{ opacity: 0, scale: 0.985, y: 10 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                exit={{ opacity: 0, scale: 0.985, y: 8 }}
+                transition={{ duration: 0.28, ease: [0.22, 1, 0.36, 1] }}
+                className="contents"
+              >
+                <ForgotPassword
+                  modal
+                  onClose={closeAuthModal}
+                  onBack={() => setAuthModal({ type: "login", portal: "student" })}
+                />
+              </motion.div>
+            )}
+          </AnimatePresence>
+          {authModal?.type === "register" && (
+            <Register
               modal
-              initialPortal={authModal.portal}
               onClose={closeAuthModal}
-              onCompanyRegister={() =>
-                setAuthModal({ type: "register", from: "login" })
+              onBack={
+                authModal.from === "login"
+                  ? () => setAuthModal({ type: "login", portal: "company" })
+                  : closeAuthModal
               }
-              onForgotPassword={() => setAuthModal({ type: "forgot" })}
+              onLogin={() => setAuthModal({ type: "login", portal: "company" })}
             />
-          </motion.div>
-        )}
-        {authModal?.type === "forgot" && (
-          <motion.div
-            key="forgot-modal"
-            initial={{ opacity: 0, scale: 0.985, y: 10 }}
-            animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.985, y: 8 }}
-            transition={{ duration: 0.28, ease: [0.22, 1, 0.36, 1] }}
-            className="contents"
-          >
-            <ForgotPassword
-              modal
-              onClose={closeAuthModal}
-              onBack={() => setAuthModal({ type: "login", portal: "student" })}
-            />
-          </motion.div>
-        )}
-      </AnimatePresence>
-      {authModal?.type === "register" && (
-        <Register
-          modal
-          onClose={closeAuthModal}
-          onBack={
-            authModal.from === "login"
-              ? () => setAuthModal({ type: "login", portal: "company" })
-              : closeAuthModal
-          }
-          onLogin={() => setAuthModal({ type: "login", portal: "company" })}
-        />
+          )}
+        </>,
+        document.body,
       )}
     </header>
   );

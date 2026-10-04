@@ -311,7 +311,7 @@ const DashboardShell = ({
                               )}
                             </span>
                           </motion.div>
-                        );
+                        )}
                       </NavLink>
                     );
                   })}

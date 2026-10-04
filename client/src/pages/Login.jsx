@@ -286,7 +286,7 @@ const Login = ({ modal = false, onClose, onCompanyRegister, onForgotPassword, in
       }}
     >
       <div
-        className="relative isolate box-border grid max-h-[calc(100dvh-2rem)] w-full max-w-4xl grid-cols-1 overflow-y-auto rounded-[28px] border border-[#b8d2c0] bg-white p-0 shadow-[0_25px_80px_rgba(14,34,28,0.18)] 2xl:max-w-6xl"
+        className="relative isolate box-border grid max-h-[calc(100dvh-2rem)] w-full max-w-4xl grid-cols-1 overflow-y-auto rounded-[28px] lg:max-w-5xl xl:max-w-6xl 2xl:max-w-7xl border border-[#b8d2c0] bg-white p-0 shadow-[0_25px_80px_rgba(14,34,28,0.18)]"
         style={{ gridTemplateColumns: undefined }}
       >
         <button
@@ -302,7 +302,7 @@ const Login = ({ modal = false, onClose, onCompanyRegister, onForgotPassword, in
         <div
           className={`grid grid-cols-1 ${modal ? "sm:grid-cols-[0.9fr_1.1fr] 2xl:grid-cols-[1fr_1fr]" : ""}`}
         >
-          <div className="pointer-events-none relative h-40 overflow-hidden rounded-t-[28px] bg-[#0f3d2e] sm:h-auto sm:max-h-[50vh] 2xl:max-h-[62vh] sm:rounded-l-[28px] sm:rounded-tr-none">
+          <div className="pointer-events-none relative h-40 overflow-hidden rounded-t-[28px] bg-[#0f3d2e] sm:h-auto sm:max-h-[50vh] sm:rounded-l-[28px] sm:rounded-tr-none lg:min-h-[600px] lg:max-h-[calc(100dvh-5rem)] 2xl:min-h-[700px]">
             <video
               className="h-full w-full object-cover object-[50%_20%]"
               src="/media/hero-intro-2.mp4"

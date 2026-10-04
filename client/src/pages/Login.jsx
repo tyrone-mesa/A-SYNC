@@ -58,7 +58,17 @@ const Login = ({ modal = false, onClose, onCompanyRegister, onForgotPassword, in
       if (isModal && onClose) {
         onClose();
       }
-      navigate("/redirecting");
+      // The server verifies the selected portal matches the account role, so
+      // it is safe to route straight to that role's dashboard. (The old
+      // "/redirecting" path has no route in App.js and landed users on 404.)
+      const roleHome = {
+        student: "/student/dashboard",
+        company: "/company/dashboard",
+        admin: "/admin/dashboard",
+        coordinator: "/coordinator/dashboard",
+        registrar: "/registrar/dashboard",
+      };
+      navigate(roleHome[portal] || "/");
     } catch (err) {
       if (err.response?.status === 423) {
         setBlockedMessage(

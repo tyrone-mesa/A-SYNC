@@ -355,7 +355,7 @@ const LandingPage = ({ intro = false, onIntroComplete }) => {
             <div className="max-w-2xl text-left sm:max-w-3xl">
               <motion.p
                 variants={heroItem}
-                className="mb-5 inline-flex items-center rounded-full border border-[#E8C165]/40 bg-[#E8C165]/10 px-3 py-1.5 text-[10px] font-bold uppercase tracking-[0.28em] text-[#E8A000]"
+                className="mb-5 text-[11px] font-bold uppercase tracking-[0.32em] text-white [text-shadow:0_1px_14px_rgba(15,61,46,0.45)]"
               >
                 Connecting Students. Empowering Opportunities.
               </motion.p>
@@ -392,7 +392,7 @@ const LandingPage = ({ intro = false, onIntroComplete }) => {
 
               <motion.div
                 variants={heroItem}
-                className="mt-8 flex flex-wrap items-center gap-4 text-sm text-[#4B5768]"
+                className="mt-8 flex flex-wrap items-center gap-4 text-sm text-white [text-shadow:0_1px_12px_rgba(15,61,46,0.4)]"
               >
                 <div className="flex items-center gap-2">
                   <span className="flex h-2.5 w-2.5 rounded-full bg-[#1E5D46]" />

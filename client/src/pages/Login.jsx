@@ -53,7 +53,7 @@ const Login = ({ modal = false, onClose, onCompanyRegister, onForgotPassword, in
           ? `${trimmedEmail}@asiatech.edu.ph`
           : trimmedEmail;
 
-      await login({ email: normalizedEmail, password, portal });
+      await login(normalizedEmail, password, portal);
       setBlockedMessage("");
       if (isModal && onClose) {
         onClose();
@@ -121,9 +121,9 @@ const Login = ({ modal = false, onClose, onCompanyRegister, onForgotPassword, in
         {[
           ["student", "Student"],
           ["company", "Company"],
-          ["admin", "Admin"],
           ["coordinator", "Coordinator"],
           ["registrar", "Registrar"],
+           ["admin", "Admin"],
         ].map(([value, label]) => (
           <button
             key={value}
@@ -312,8 +312,9 @@ const Login = ({ modal = false, onClose, onCompanyRegister, onForgotPassword, in
               playsInline
             />
             <div className="absolute inset-0 bg-gradient-to-br from-[#0f3d2e]/40 via-transparent to-[#0f3d2e]/65" />
-                        <div className="absolute inset-x-0 bottom-0 hidden bg-gradient-to-t from-[#0f3d2e]/85 via-[#0f3d2e]/20 to-transparent p-6 pt-16 sm:block">
-                          <div className="absolute inset-0 hidden flex-col items-center justify-center bg-gradient-to-t from-[#0f3d2e]/60 via-transparent to-[#0f3d2e]/30 p-6 text-center sm:flex">
+            <div className="absolute inset-0 hidden flex-col items-center justify-center bg-gradient-to-t from-[#0f3d2e]/60 via-transparent to-[#0f3d2e]/30 p-6 text-center sm:flex">
+              <p className="text-[11px] font-semibold uppercase tracking-[0.3em] text-white/70">ASIATECH SYNC</p>
+              <p className="font-display mt-2 text-2xl font-semibold text-white">Connect with your next opportunity.</p>
             </div>
           </div>
           <div className="flex min-w-0 flex-col">{content}</div>
@@ -323,4 +324,4 @@ const Login = ({ modal = false, onClose, onCompanyRegister, onForgotPassword, in
   );
 };
 
-export default Login;
+export default Login;2

@@ -114,8 +114,8 @@ const Navbar = ({ variant = "static" }) => {
             </span>
           </a>
 
-          <div className="flex min-w-0 items-center gap-3 sm:gap-6 lg:ml-8">
-            <div className="hidden items-center gap-2 whitespace-nowrap lg:flex">
+          <div className="flex min-w-0 flex-1 items-center justify-end gap-3 sm:gap-6 lg:ml-6">
+            <div className="hidden flex-1 items-center justify-center gap-2 whitespace-nowrap lg:flex">
               <NavbarLink href="/" active={location.pathname === "/" && !location.hash}>
                 Home
               </NavbarLink>
@@ -128,7 +128,9 @@ const Navbar = ({ variant = "static" }) => {
                   Dashboard
                 </NavbarLink>
               ) : null}
+            </div>
 
+            <div className="hidden items-center gap-2 lg:flex">
               {user ? (
                 <button
                   type="button"

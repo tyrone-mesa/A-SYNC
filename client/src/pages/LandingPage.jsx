@@ -329,7 +329,7 @@ const LandingPage = ({ intro = false, onIntroComplete }) => {
           </button>
         )}
 
-        <div className="relative z-10 mx-auto max-w-7xl px-4 pb-16 pt-8 sm:px-6 lg:px-8 lg:pb-16 lg:pt-10">
+        <div className="relative z-10 mx-auto max-w-7xl px-4 pb-16 pt-8 sm:px-6 lg:px-8 lg:pb-20 lg:pt-12">
           <motion.div
             initial={intro ? { opacity: 0, y: 10 } : "hidden"}
             animate={
@@ -350,9 +350,9 @@ const LandingPage = ({ intro = false, onIntroComplete }) => {
                 : undefined
             }
             variants={heroContent}
-            className="grid items-center gap-8 md:grid-cols-[1.1fr_0.9fr] md:gap-10 lg:min-h-[620px]"
+            className="flex min-h-[560px] items-center justify-center"
           >
-            <div className="max-w-2xl pt-6 sm:pt-8 lg:pt-14">
+            <div className="mx-auto max-w-3xl text-center text-white sm:max-w-4xl">
               <motion.p
                 variants={heroItem}
                 className="mb-5 inline-flex items-center rounded-full border border-[#E8C165]/40 bg-[#E8C165]/10 px-3 py-1.5 text-[10px] font-bold uppercase tracking-[0.28em] text-[#F3D98A]"
@@ -362,19 +362,19 @@ const LandingPage = ({ intro = false, onIntroComplete }) => {
 
               <motion.h1
                 variants={heroItem}
-                className="mb-6 max-w-xl font-bespoke text-[clamp(2.8rem,6vw,6rem)] font-bold italic leading-[0.94] tracking-[-0.05em] text-white"
+                className="mb-6 font-bespoke text-[clamp(2.8rem,7vw,6rem)] font-bold italic leading-[0.94] tracking-[-0.05em] text-white"
               >
                 Your Future Starts With the Right Opportunity.
               </motion.h1>
 
               <motion.p
                 variants={heroItem}
-                className="mb-8 max-w-xl text-base leading-relaxed text-white/80 sm:text-lg"
+                className="mx-auto mb-8 max-w-2xl text-base leading-relaxed text-white/80 sm:text-lg"
               >
                 AsiatechSync connects Asia Technological School of Science and Arts students with OJT, internship, and career opportunities from industry partners.
               </motion.p>
 
-              <motion.div variants={heroItem} className="flex flex-col items-start gap-3 sm:flex-row">
+              <motion.div variants={heroItem} className="flex flex-col items-center justify-center gap-3 sm:flex-row">
                 <a
                   href="/jobs"
                   className="inline-flex items-center justify-center rounded-full bg-[#E8C165] px-6 py-3.5 text-center text-sm font-bold text-[#0F3D2E] shadow-[0_14px_30px_rgba(232,193,101,0.38)] transition duration-200 hover:-translate-y-1 hover:scale-[1.02] hover:bg-[#DEB24E] sm:px-7"
@@ -392,7 +392,7 @@ const LandingPage = ({ intro = false, onIntroComplete }) => {
 
               <motion.div
                 variants={heroItem}
-                className="mt-8 flex flex-wrap items-center gap-4 text-sm text-white/75"
+                className="mt-8 flex flex-wrap items-center justify-center gap-4 text-sm text-white/75"
               >
                 <div className="flex items-center gap-2">
                   <span className="flex h-2.5 w-2.5 rounded-full bg-[#7AE4A0]" />
@@ -404,72 +404,6 @@ const LandingPage = ({ intro = false, onIntroComplete }) => {
                 </div>
               </motion.div>
             </div>
-
-            <motion.div
-              variants={heroItem}
-              className="relative mx-auto w-full max-w-[480px]"
-            >
-              <div className="relative overflow-hidden rounded-[30px] border border-white/15 bg-white/8 p-4 shadow-[0_28px_80px_rgba(0,0,0,0.22)] backdrop-blur-md sm:p-5">
-                <div className="absolute inset-x-0 top-0 h-20 bg-gradient-to-b from-white/12 to-transparent" />
-                <div className="relative z-10 rounded-[24px] border border-white/10 bg-[#0a2a22]/70 p-4 sm:p-5">
-                  <div className="mb-5 flex items-center justify-between gap-4">
-                    <div className="flex items-center gap-3">
-                      <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-[#E8C165]/15 ring-1 ring-[#E8C165]/30">
-                        <span className="text-xl font-black text-[#E8C165]">A</span>
-                      </div>
-                      <div>
-                        <p className="text-[10px] font-bold uppercase tracking-[0.22em] text-white/60">
-                          ASIATECH
-                        </p>
-                        <p className="text-lg font-bold text-white">SYNC</p>
-                      </div>
-                    </div>
-                    <span className="rounded-full border border-[#7AE4A0]/30 bg-[#7AE4A0]/10 px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.14em] text-[#B9F5C6]">
-                      Live
-                    </span>
-                  </div>
-
-                  <div className="space-y-4">
-                    <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
-                      <div className="mb-3 flex items-center justify-between text-[11px] font-semibold uppercase tracking-[0.18em] text-white/65">
-                        <span>Featured jobs</span>
-                        <span>12 new</span>
-                      </div>
-                      <div className="space-y-3">
-                        {[
-                          ["Administrative Assistant", "Full-time"],
-                          ["IT Support Intern", "Internship"],
-                          ["Marketing Coordinator", "OJT"],
-                        ].map(([title, type]) => (
-                          <div key={title} className="flex items-center justify-between gap-3 rounded-2xl bg-[#113c32]/90 px-3 py-2.5">
-                            <div>
-                              <p className="text-sm font-semibold text-white">{title}</p>
-                              <p className="text-[11px] text-white/60">{type}</p>
-                            </div>
-                            <span className="inline-flex items-center rounded-full bg-[#E8C165]/12 px-2 py-1 text-[10px] font-bold uppercase tracking-[0.12em] text-[#E8C165]">
-                              Apply
-                            </span>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-
-                    <div className="grid gap-3 sm:grid-cols-3">
-                      {[
-                        ["450+", "Students"],
-                        ["120+", "Partners"],
-                        ["96%", "Match rate"],
-                      ].map(([value, label]) => (
-                        <div key={label} className="rounded-2xl border border-white/10 bg-white/5 p-3 text-center">
-                          <p className="text-xl font-black text-white">{value}</p>
-                          <p className="mt-1 text-[10px] uppercase tracking-[0.14em] text-white/60">{label}</p>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </motion.div>
           </motion.div>
         </div>
       </section>

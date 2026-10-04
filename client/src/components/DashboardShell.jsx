@@ -52,6 +52,13 @@ const animationVariants = {
   },
 };
 
+const mobileNavTransition = {
+  type: "spring",
+  stiffness: 320,
+  damping: 24,
+  mass: 0.8,
+};
+
 const DashboardShell = ({
   role,
   title,
@@ -205,7 +212,7 @@ const DashboardShell = ({
               onClick={handleLogout}
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
-              className="w-full flex items-center justify-center gap-2 rounded-lg bg-white/15 hover:bg-white/25 border border-white/20 px-3 py-2.5 text-sm font-medium text-white backdrop-blur-sm transition-all duration-300"
+              className="w-full flex items-center justify-center gap-2 rounded-lg bg-white/15 hover:bg-white/25 border border-white/20 px-3 py-2.5 text-sm font-medium text-white backdrop-blur-sm"
             >
               Log Out
             </motion.button>
@@ -218,7 +225,7 @@ const DashboardShell = ({
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.24, ease: [0.22, 1, 0.36, 1] }}
         >
-          <header className="flex min-w-0 flex-col gap-3 border-b border-white/15 bg-gradient-to-b from-[rgba(33,76,63,0.82)] to-[rgba(33,76,63,0.68)] px-3 py-3 text-white backdrop-blur-md sm:px-6 sm:py-4">
+          <header className="flex min-w-0 flex-col gap-3 border-b border-white/15 bg-gradient-to-b from-[rgba(33,76,63,0.82)] to-[rgba(33,76,63,0.68)] px-3 py-3 text-white backdrop-blur-md sm:px-6">
             <div className="flex min-w-0 items-center justify-between gap-3 lg:justify-start">
               <div className="flex lg:hidden min-w-0 flex-1">
                 <div
@@ -250,9 +257,9 @@ const DashboardShell = ({
                                 : "rgba(255, 255, 255, 0.1)",
                               color: linkActive
                                 ? "rgba(23, 61, 52, 1)"
-                                : "rgba(255, 255, 255, 0.75)",
+                                : "rgba(255, 255, 255, 0.78)",
                               boxShadow: linkActive
-                                ? "0 4px 12px rgba(23, 61, 52, 0.15), inset 0 1px 2px rgba(255, 255, 255, 0.3)"
+                                ? "0 6px 18px rgba(23, 61, 52, 0.16), inset 0 1px 2px rgba(255, 255, 255, 0.35)"
                                 : "none",
                             }}
                             whileHover={{
@@ -260,15 +267,17 @@ const DashboardShell = ({
                                 ? "rgba(234, 243, 238, 1)"
                                 : "rgba(255, 255, 255, 0.18)",
                               y: -2,
+                              scale: 1.01,
+                              boxShadow: linkActive
+                                ? "0 8px 20px rgba(23, 61, 52, 0.16), inset 0 1px 2px rgba(255, 255, 255, 0.38)"
+                                : "0 6px 14px rgba(23, 61, 52, 0.08)",
                             }}
                             whileTap={{
-                              scale: 0.96,
+                              scale: 0.97,
+                              y: 0,
                             }}
-                            transition={{
-                              duration: 0.35,
-                              ease: [0.34, 1.56, 0.64, 1],
-                            }}
-                            className="relative whitespace-nowrap rounded-full px-4 py-2.5 text-xs sm:text-sm font-medium focus:outline-none focus:ring-2 focus:ring-white/30 focus:ring-offset-2 focus:ring-offset-[rgba(33,76,63,0.68)]"
+                            transition={mobileNavTransition}
+                            className="relative whitespace-nowrap rounded-full px-4 py-2.5 text-xs sm:text-sm font-medium focus:outline-none focus:ring-2 focus:ring-white/30 focus:ring-offset-2"
                             style={{
                               border: linkActive
                                 ? "1px solid rgba(210, 233, 225, 0.5)"
@@ -283,13 +292,10 @@ const DashboardShell = ({
                               {linkActive && (
                                 <motion.span
                                   className="h-1.5 w-1.5 rounded-full bg-[#173d34]"
-                                  initial={{ scale: 0 }}
-                                  animate={{ scale: 1 }}
-                                  transition={{
-                                    type: "spring",
-                                    stiffness: 400,
-                                    damping: 25,
-                                  }}
+                                  initial={{ scale: 0, opacity: 0 }}
+                                  animate={{ scale: 1, opacity: 1 }}
+                                  exit={{ scale: 0, opacity: 0 }}
+                                  transition={{ type: "spring", stiffness: 500, damping: 24 }}
                                 />
                               )}
                             </span>

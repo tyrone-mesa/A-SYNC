@@ -1,11 +1,15 @@
-import React, { useState } from "react";
+import React, { useRef, useState } from "react";
 import { Navigate, Routes, Route, useLocation } from "react-router-dom";
 import { AnimatePresence, motion, MotionConfig } from "framer-motion";
 
 import Navbar from "./components/Navbar";
 import ProtectedRoute from "./components/ProtectedRoute";
 import FloatingMessageCircle from "./components/FloatingMessageCircle";
-import { markHomeIntroPlayedEver } from "./utils/homeIntroSession";
+import {
+  hasHomeIntroPlayedThisSession,
+  markHomeIntroPlayedThisSession,
+  resetHomeIntroPlayedThisSession,
+} from "./utils/homeIntroSession";
 
 const LandingPage = React.lazy(() => import("./pages/LandingPage"));
 const Login = React.lazy(() => import("./pages/Login"));
@@ -88,17 +92,39 @@ const pageVariants = {
 
 function App() {
   const location = useLocation();
-  // The intro plays automatically every time the visitor lands on "/".
-  // Navigating back to Home mid-session replays it; leaving "/" ends it.
+  // The intro plays automatically on every full page load at "/" (and replays on
+  // refresh), but never restarts on client-side navigation — otherwise the
+  // full-screen intro overlay would cover the navbar and kill link taps
+  // (e.g. going Home -> back from the dashboard on mobile).
   const [showHomeIntro, setShowHomeIntro] = useState(
-    () => location.pathname === "/",
+    () => {
+      if (location.pathname !== "/") return false;
+      try {
+        const navigation = window.performance.getEntriesByType("navigation")[0];
+        if (navigation?.type === "reload") {
+          resetHomeIntroPlayedThisSession();
+        }
+        return !hasHomeIntroPlayedThisSession();
+      } catch (error) {
+        return true;
+      }
+    },
   );
-  const completeHomeIntro = React.useCallback(() => {
-    setShowHomeIntro(false);
-    markHomeIntroPlayedEver();
-  }, []);
+  const completeHomeIntro = React.useCallback(
+    () => {
+      setShowHomeIntro(false);
+      markHomeIntroPlayedThisSession();
+    },
+    [],
+  );
+  const isFirstPathEffectRun = useRef(true);
   React.useEffect(() => {
-    setShowHomeIntro(location.pathname === "/");
+    if (isFirstPathEffectRun.current) {
+      isFirstPathEffectRun.current = false;
+      return;
+    }
+    // Any client-side route change ends (and never restarts) the intro.
+    setShowHomeIntro(false);
   }, [location.pathname]);
   React.useEffect(() => {
     if (location.pathname !== "/" && showHomeIntro) {

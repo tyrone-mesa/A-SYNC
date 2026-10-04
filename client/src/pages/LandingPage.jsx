@@ -128,28 +128,28 @@ const ABOUT_SLIDES = [
     alt: "A-Sync official logo",
     name: "Connecting ASIATECH Students to the Industry",
     role: "AsiatechSync connects students with meaningful industry opportunities.",
-    desktopClass: "md:translate-x-[240px] md:translate-y-[-2px]",
+    desktopClass: "md:translate-x-[220px] md:translate-y-[30px]",
   },
   {
     image: "/system-logo/Igot.png",
     alt: "Romel S. Igot Jr.",
     name: "Romel S. Igot Jr.",
     role: "Front-end development and integration",
-    desktopClass: "md:translate-y-[-2px] md:scale-[1.7]",
+    desktopClass: "md:translate-y-2 md:scale-[1.7]",
   },
   {
     image: "/system-logo/Olivera.png",
     alt: "Leonor Olivera",
     name: "Leonor Olivera",
     role: "Back-end development and API integration",
-    desktopClass: "md:-translate-y-[120px] md:scale-[2.2]",
+    desktopClass: "md:-translate-y-[60px] md:scale-[2.2]",
   },
   {
     image: "/system-logo/Mesa.png",
     alt: "Tyrone James Rafael A. Mesa",
     name: "Tyrone James Rafael A. Mesa",
     role: "Documentation and system development support",
-    desktopClass: "md:translate-x-[270px] md:translate-y-[2px] md:scale-[1.5]",
+    desktopClass: "md:translate-x-[250px] md:translate-y-[50px] md:scale-[1.5]",
   },
 ];
 
@@ -519,7 +519,7 @@ const LandingPage = ({ intro = false, onIntroComplete }) => {
           whileInView="visible"
           viewport={{ once: true, amount: 0.2 }}
           variants={fadeUp}
-          className="relative mx-auto hidden max-w-6xl md:block"
+          className="relative mx-auto hidden max-w-7xl md:block"
         >
           <motion.div
             key={aboutSlide}
@@ -534,7 +534,7 @@ const LandingPage = ({ intro = false, onIntroComplete }) => {
                 ? { duration: 0 }
                 : { type: "spring", stiffness: 150, damping: 25 }
             }
-            className="grid min-w-0 gap-6 md:grid-cols-[1.2fr_0.8fr] md:items-center md:gap-10"
+            className="grid min-w-0 gap-6 md:min-h-[480px] md:grid-cols-[1.2fr_0.8fr] md:items-center md:gap-10"
           >
             {aboutSlide % 2 === 0 && (
               <div className="min-w-0">

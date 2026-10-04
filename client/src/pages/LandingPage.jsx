@@ -277,9 +277,7 @@ const LandingPage = ({ intro = false, onIntroComplete }) => {
 
   return (
     <div className="min-h-screen bg-[#FBF8F3]">
-      {/* Hero Section with Video Background */}
-      <section className="relative flex min-h-[calc(100svh-24px)] items-center justify-start overflow-hidden bg-[#0F3D2E] px-5 py-12 sm:py-24 lg:px-12 lg:py-24">
-        {/* Video Background Layer */}
+      <section className="relative isolate overflow-hidden bg-[#0F3D2E] text-white">
         <div className="absolute inset-0 bg-gradient-to-br from-[#0B2E22] via-[#0F3D2E] to-[#0B2E22]">
           <div
             className={`absolute inset-0 ${
@@ -296,46 +294,31 @@ const LandingPage = ({ intro = false, onIntroComplete }) => {
               fetchpriority="high"
               decoding="async"
             />
-            {shouldRenderHeroVideo &&
-              !prefersReducedMotion &&
-              !hasIntroVideoFailed && (
-                <video
-                  ref={heroVideoRef}
-                  className="landing-hero-video absolute inset-0 h-full w-full object-cover object-[50%_20%] transition-opacity duration-700 ease-out motion-reduce:transition-none"
-                  src="/media/hero-intro-2.mp4?v=6fd1a86a"
-                  poster="/media/hero-intro-still.webp"
-                  autoPlay
-                  loop
-                  muted
-                  playsInline
-                  preload="metadata"
-                  onCanPlay={ensureHeroVideoPlaying}
-                  onPlay={() => setIsIntroVideoPlaying(true)}
-                  onPlaying={() => setIsIntroVideoPlaying(true)}
-                  onError={() => setHasIntroVideoFailed(true)}
-                />
-              )}
+            {shouldRenderHeroVideo && !prefersReducedMotion && !hasIntroVideoFailed && (
+              <video
+                ref={heroVideoRef}
+                className="landing-hero-video absolute inset-0 h-full w-full object-cover object-[50%_20%] transition-opacity duration-700 ease-out motion-reduce:transition-none"
+                src="/media/hero-intro-2.mp4?v=6fd1a86a"
+                poster="/media/hero-intro-still.webp"
+                autoPlay
+                loop
+                muted
+                playsInline
+                preload="metadata"
+                onCanPlay={ensureHeroVideoPlaying}
+                onPlay={() => setIsIntroVideoPlaying(true)}
+                onPlaying={() => setIsIntroVideoPlaying(true)}
+                onError={() => setHasIntroVideoFailed(true)}
+              />
+            )}
           </div>
-          <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-[#0F3D2E]/95 via-[#0F3D2E]/15 to-[#0F3D2E]/10" />
+          <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top,_rgba(255,255,255,0.18),transparent_32%),linear-gradient(120deg,rgba(12,42,32,0.78),rgba(15,61,46,0.88),rgba(15,61,46,0.72))]" />
         </div>
 
-        {/* Navigation - Fade In */}
-        <motion.div
-          initial={intro ? { opacity: 0, y: -8 } : false}
-          animate={{
-            opacity: intro && !isIntroRevealed ? 0 : 1,
-            y: 0,
-          }}
-          transition={{
-            duration: hasHeroIntro ? 1.05 : 0,
-            delay: intro && isIntroRevealed ? 0.16 : 0,
-            ease: [0.22, 1, 0.36, 1],
-          }}
-        >
+        <div className="relative z-10">
           <Navbar variant="overlay" />
-        </motion.div>
+        </div>
 
-        {/* Skip Intro Button */}
         {intro && (
           <button
             type="button"
@@ -346,68 +329,149 @@ const LandingPage = ({ intro = false, onIntroComplete }) => {
           </button>
         )}
 
-        {/* Hero Content - Fade In After Video */}
-        <motion.div
-          initial={intro ? { opacity: 0, y: 10 } : "hidden"}
-          animate={
-            intro
-              ? {
-                  opacity: isIntroRevealed ? 1 : 0,
-                  y: isIntroRevealed ? 0 : 10,
-                }
-              : "visible"
-          }
-          transition={
-            hasHeroIntro
-              ? {
-                  duration: 1.05,
-                  delay: intro && isIntroRevealed ? 0.16 : 0,
-                  ease: [0.22, 1, 0.36, 1],
-                }
-              : undefined
-          }
-          variants={heroContent}
-          className="relative z-10 mr-auto flex max-w-3xl flex-col items-start text-left text-white pt-8 sm:pt-0"
-        >
-          <motion.p
-            variants={heroItem}
-            className="mb-5 text-xs font-bold uppercase tracking-[0.25em] text-[#E8C165]"
-          >
-            Connecting Students. Empowering Opportunities.
-          </motion.p>
-          <motion.h1
-            variants={heroItem}
-            className="mb-6 max-w-2xl font-bespoke text-4xl font-bold italic leading-[1.02] sm:text-6xl"
-          >
-            Your Future Starts With the Right Opportunity.
-          </motion.h1>
-          <motion.p
-            variants={heroItem}
-            className="mb-8 max-w-2xl text-base leading-relaxed text-white/80 sm:text-lg"
-          >
-            AsiatechSync connects Asia Technological School of Science and Arts
-            students with OJT, internship, and career opportunities from
-            industry partners.
-          </motion.p>
+        <div className="relative z-10 mx-auto max-w-7xl px-4 pb-16 pt-8 sm:px-6 lg:px-8 lg:pb-16 lg:pt-10">
           <motion.div
-            variants={heroItem}
-            className="flex flex-col items-start gap-3 sm:flex-row"
+            initial={intro ? { opacity: 0, y: 10 } : "hidden"}
+            animate={
+              intro
+                ? {
+                    opacity: isIntroRevealed ? 1 : 0,
+                    y: isIntroRevealed ? 0 : 10,
+                  }
+                : "visible"
+            }
+            transition={
+              hasHeroIntro
+                ? {
+                    duration: 1.05,
+                    delay: intro && isIntroRevealed ? 0.16 : 0,
+                    ease: [0.22, 1, 0.36, 1],
+                  }
+                : undefined
+            }
+            variants={heroContent}
+            className="grid items-center gap-8 md:grid-cols-[1.1fr_0.9fr] md:gap-10 lg:min-h-[620px]"
           >
-            <a
-              href="/jobs"
-              className="rounded-full bg-[#E8C165] px-7 py-3.5 text-center font-bold text-[#0F3D2E] shadow-sm transition duration-200 hover:-translate-y-1 hover:scale-[1.03] hover:bg-[#DEB24E]"
+            <div className="max-w-2xl pt-6 sm:pt-8 lg:pt-14">
+              <motion.p
+                variants={heroItem}
+                className="mb-5 inline-flex items-center rounded-full border border-[#E8C165]/40 bg-[#E8C165]/10 px-3 py-1.5 text-[10px] font-bold uppercase tracking-[0.28em] text-[#F3D98A]"
+              >
+                Connecting Students. Empowering Opportunities.
+              </motion.p>
+
+              <motion.h1
+                variants={heroItem}
+                className="mb-6 max-w-xl font-bespoke text-[clamp(2.8rem,6vw,6rem)] font-bold italic leading-[0.94] tracking-[-0.05em] text-white"
+              >
+                Your Future Starts With the Right Opportunity.
+              </motion.h1>
+
+              <motion.p
+                variants={heroItem}
+                className="mb-8 max-w-xl text-base leading-relaxed text-white/80 sm:text-lg"
+              >
+                AsiatechSync connects Asia Technological School of Science and Arts students with OJT, internship, and career opportunities from industry partners.
+              </motion.p>
+
+              <motion.div variants={heroItem} className="flex flex-col items-start gap-3 sm:flex-row">
+                <a
+                  href="/jobs"
+                  className="inline-flex items-center justify-center rounded-full bg-[#E8C165] px-6 py-3.5 text-center text-sm font-bold text-[#0F3D2E] shadow-[0_14px_30px_rgba(232,193,101,0.38)] transition duration-200 hover:-translate-y-1 hover:scale-[1.02] hover:bg-[#DEB24E] sm:px-7"
+                >
+                  Find Opportunities
+                </a>
+                <button
+                  type="button"
+                  onClick={openPartnerSignup}
+                  className="inline-flex items-center justify-center rounded-full border border-white/50 bg-white/10 px-6 py-3.5 text-center text-sm font-bold text-white backdrop-blur-sm transition duration-200 hover:-translate-y-1 hover:bg-white/15 sm:px-7"
+                >
+                  Partner With Us
+                </button>
+              </motion.div>
+
+              <motion.div
+                variants={heroItem}
+                className="mt-8 flex flex-wrap items-center gap-4 text-sm text-white/75"
+              >
+                <div className="flex items-center gap-2">
+                  <span className="flex h-2.5 w-2.5 rounded-full bg-[#7AE4A0]" />
+                  Career-ready students
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="flex h-2.5 w-2.5 rounded-full bg-[#E8C165]" />
+                  Industry partners
+                </div>
+              </motion.div>
+            </div>
+
+            <motion.div
+              variants={heroItem}
+              className="relative mx-auto w-full max-w-[480px]"
             >
-              Find Opportunities
-            </a>
-            <button
-              type="button"
-              onClick={openPartnerSignup}
-              className="rounded-full border border-white/50 bg-white/10 px-7 py-3.5 text-center font-bold text-white shadow-sm backdrop-blur-sm transition duration-200 hover:-translate-y-1 hover:bg-white/20"
-            >
-              Partner With Us
-            </button>
+              <div className="relative overflow-hidden rounded-[30px] border border-white/15 bg-white/8 p-4 shadow-[0_28px_80px_rgba(0,0,0,0.22)] backdrop-blur-md sm:p-5">
+                <div className="absolute inset-x-0 top-0 h-20 bg-gradient-to-b from-white/12 to-transparent" />
+                <div className="relative z-10 rounded-[24px] border border-white/10 bg-[#0a2a22]/70 p-4 sm:p-5">
+                  <div className="mb-5 flex items-center justify-between gap-4">
+                    <div className="flex items-center gap-3">
+                      <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-[#E8C165]/15 ring-1 ring-[#E8C165]/30">
+                        <span className="text-xl font-black text-[#E8C165]">A</span>
+                      </div>
+                      <div>
+                        <p className="text-[10px] font-bold uppercase tracking-[0.22em] text-white/60">
+                          ASIATECH
+                        </p>
+                        <p className="text-lg font-bold text-white">SYNC</p>
+                      </div>
+                    </div>
+                    <span className="rounded-full border border-[#7AE4A0]/30 bg-[#7AE4A0]/10 px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.14em] text-[#B9F5C6]">
+                      Live
+                    </span>
+                  </div>
+
+                  <div className="space-y-4">
+                    <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
+                      <div className="mb-3 flex items-center justify-between text-[11px] font-semibold uppercase tracking-[0.18em] text-white/65">
+                        <span>Featured jobs</span>
+                        <span>12 new</span>
+                      </div>
+                      <div className="space-y-3">
+                        {[
+                          ["Administrative Assistant", "Full-time"],
+                          ["IT Support Intern", "Internship"],
+                          ["Marketing Coordinator", "OJT"],
+                        ].map(([title, type]) => (
+                          <div key={title} className="flex items-center justify-between gap-3 rounded-2xl bg-[#113c32]/90 px-3 py-2.5">
+                            <div>
+                              <p className="text-sm font-semibold text-white">{title}</p>
+                              <p className="text-[11px] text-white/60">{type}</p>
+                            </div>
+                            <span className="inline-flex items-center rounded-full bg-[#E8C165]/12 px-2 py-1 text-[10px] font-bold uppercase tracking-[0.12em] text-[#E8C165]">
+                              Apply
+                            </span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+
+                    <div className="grid gap-3 sm:grid-cols-3">
+                      {[
+                        ["450+", "Students"],
+                        ["120+", "Partners"],
+                        ["96%", "Match rate"],
+                      ].map(([value, label]) => (
+                        <div key={label} className="rounded-2xl border border-white/10 bg-white/5 p-3 text-center">
+                          <p className="text-xl font-black text-white">{value}</p>
+                          <p className="mt-1 text-[10px] uppercase tracking-[0.14em] text-white/60">{label}</p>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </motion.div>
           </motion.div>
-        </motion.div>
+        </div>
       </section>
 
       {/* About Section */}
@@ -450,7 +514,7 @@ const LandingPage = ({ intro = false, onIntroComplete }) => {
                 </p>
               </div>
             )}
-            <div className="relative mx-auto grid h-[250px] min-h-0 w-full max-w-[22rem] grid-cols-[2.5rem_minmax(0,1fr)_2.5rem] items-center gap-1 py-3 sm:h-[320px] sm:max-w-none sm:grid-cols-[3rem_minmax(0,1fr)_3rem] md:h-full md:max-w-none md:grid-cols-1">
+            <div className="relative mx-auto grid h-[250px] min-h-0 w-full max-w-[22rem] grid-cols-[2.5rem_minmax(0,1fr)_2.5rem] items-center gap-1 py-3 sm:h-[320px] sm:max-w-none sm:grid-cols-[3rem_minmax(0,1fr)_3rem]">
               <button
                 type="button"
                 onClick={() => moveAboutSlide(-1)}
@@ -655,12 +719,12 @@ const LandingPage = ({ intro = false, onIntroComplete }) => {
               },
               {
                 quote:
-                  "What I liked most about AsiatechSync was having everything in one place. I could explore opportunities, review company information, and submit applications without jumping between multiple tabs.",
+                  "What I liked most about AsiatechSync was having everything in one place. I could explore opportunities, review company information, and submit applications without jumping between different tools.",
                 attribution: "OJT Student",
               },
               {
                 quote:
-                  "AsiatechSync gave me access to opportunities I might not have found on my own. Through the platform, I connected with an industry partner that allowed me to apply what I learned in class to real-world scenarios.",
+                  "AsiatechSync gave me access to opportunities I might not have found on my own. Through the platform, I connected with an industry partner that allowed me to apply what I learned in school.",
                 attribution: "Internship Applicant",
               },
             ].map((testimonial) => (

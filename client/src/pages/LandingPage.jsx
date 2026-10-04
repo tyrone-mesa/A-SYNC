@@ -534,7 +534,7 @@ const LandingPage = ({ intro = false, onIntroComplete }) => {
                 ? { duration: 0 }
                 : { type: "spring", stiffness: 150, damping: 25 }
             }
-            className="grid min-w-0 gap-6 md:min-h-[480px] md:grid-cols-[1.2fr_0.8fr] md:items-center md:gap-10"
+            className="grid min-w-0 gap-3 md:min-h-[450px] md:grid-cols-[1.2fr_0.8fr] md:items-center md:gap-5"
           >
             {aboutSlide % 2 === 0 && (
               <div className="min-w-0">

@@ -350,9 +350,9 @@ const LandingPage = ({ intro = false, onIntroComplete }) => {
                 : undefined
             }
             variants={heroContent}
-            className="flex min-h-[560px] items-center justify-center"
+            className="flex min-h-[560px] items-center justify-start"
           >
-            <div className="mx-auto max-w-3xl text-center sm:max-w-4xl">
+            <div className="max-w-2xl text-left sm:max-w-3xl">
               <motion.p
                 variants={heroItem}
                 className="mb-5 inline-flex items-center rounded-full border border-[#E8C165]/40 bg-[#E8C165]/10 px-3 py-1.5 text-[10px] font-bold uppercase tracking-[0.28em] text-[#E8A000]"
@@ -362,19 +362,19 @@ const LandingPage = ({ intro = false, onIntroComplete }) => {
 
               <motion.h1
                 variants={heroItem}
-                className="mb-6 font-bespoke text-[clamp(2.8rem,7vw,6rem)] font-bold italic leading-[0.94] tracking-[-0.05em] text-[#0F3D2E]"
+                className="mb-6 font-bespoke text-[clamp(2.8rem,7vw,6rem)] font-bold italic leading-[0.94] tracking-[-0.05em] text-white [text-shadow:0_2px_24px_rgba(15,61,46,0.45)]"
               >
                 Your Future Starts With the Right Opportunity.
               </motion.h1>
 
               <motion.p
                 variants={heroItem}
-                className="mx-auto mb-8 max-w-2xl text-base leading-relaxed text-[#4B5768] sm:text-lg"
+                className="mb-8 max-w-2xl text-base leading-relaxed text-white/85 [text-shadow:0_1px_14px_rgba(15,61,46,0.4)] sm:text-lg"
               >
                 AsiatechSync connects Asia Technological School of Science and Arts students with OJT, internship, and career opportunities from industry partners.
               </motion.p>
 
-              <motion.div variants={heroItem} className="flex flex-col items-center justify-center gap-3 sm:flex-row">
+              <motion.div variants={heroItem} className="flex flex-col items-start gap-3 sm:flex-row sm:items-center">
                 <a
                   href="/jobs"
                   className="inline-flex items-center justify-center rounded-full bg-[#E8C165] px-6 py-3.5 text-center text-sm font-bold text-[#0F3D2E] shadow-[0_14px_30px_rgba(232,193,101,0.38)] transition duration-200 hover:-translate-y-1 hover:scale-[1.02] hover:bg-[#DEB24E] sm:px-7"
@@ -392,7 +392,7 @@ const LandingPage = ({ intro = false, onIntroComplete }) => {
 
               <motion.div
                 variants={heroItem}
-                className="mt-8 flex flex-wrap items-center justify-center gap-4 text-sm text-[#4B5768]"
+                className="mt-8 flex flex-wrap items-center gap-4 text-sm text-[#4B5768]"
               >
                 <div className="flex items-center gap-2">
                   <span className="flex h-2.5 w-2.5 rounded-full bg-[#1E5D46]" />

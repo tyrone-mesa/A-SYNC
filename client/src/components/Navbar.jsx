@@ -139,10 +139,10 @@ const Navbar = ({ variant = "static" }) => {
 
   return (
     <header
-      className={`${headerPositionClass} ${headerAnimationClass} z-40 px-3 py-3 sm:px-6`}
+      className={`${headerPositionClass} ${headerAnimationClass} relative z-50 px-3 py-3 sm:px-6`}
     >
-      <nav className="w-full">
-        <div className="glass-panel mx-auto flex min-h-[60px] w-full max-w-7xl items-center justify-between rounded-[28px] px-3 shadow-[0_12px_30px_rgba(15,30,53,0.14)] sm:px-5 lg:w-fit lg:max-w-none">
+      <nav className="relative z-50 w-full">
+        <div className="glass-panel relative z-50 mx-auto flex min-h-[60px] w-full max-w-7xl items-center justify-between rounded-[28px] px-3 shadow-[0_12px_30px_rgba(15,30,53,0.14)] sm:px-5 lg:w-fit lg:max-w-none">
           <a
             href="/"
             aria-label="Go to ASIATECH SYNC home page"
@@ -184,7 +184,7 @@ const Navbar = ({ variant = "static" }) => {
                   <button
                     type="button"
                     onClick={openPartnerSignup}
-                    className="nav-slide btn-lift bg-white text-[#0b5d3d] font-bold text-[13px] px-4 py-2 rounded-full shadow-[0_6px_18px_rgba(255,255,255,0.2)] hover:shadow-[0_10px_22px_rgba(255,255,255,0.25)]"
+                    className="nav-slide btn-lift bg-white text-[#0b5d3d] font-bold text-[13px] px-4 py-2 rounded-full shadow-[0_6px_18px_rgba(255,255,255,0.2)] hover:shadow-[0_10px_22px_rgba(255,255,255,0.28)]"
                   >
                     Become a Partner
                   </button>
@@ -229,7 +229,7 @@ const Navbar = ({ variant = "static" }) => {
         <div className="lg:hidden">
           <div className="mt-3 flex justify-center">
             <div className="flex items-center gap-4 whitespace-nowrap overflow-x-auto sm:gap-6 pb-2">
-              <div className="relative flex-shrink-0" ref={dropdownRef}>
+              <div className="relative z-[60] flex-shrink-0" ref={dropdownRef}>
                 <button
                   type="button"
                   onClick={() => setMobileMenuOpen((open) => !open)}
@@ -240,7 +240,7 @@ const Navbar = ({ variant = "static" }) => {
                 >
                   Home
                   <motion.span
-                    className="inline-block ml-1 transition-transform duration-300"
+                    className="ml-1 inline-block transition-transform duration-300"
                     animate={{ rotate: mobileMenuOpen ? 180 : 0 }}
                     transition={{ type: "spring", stiffness: 300, damping: 25 }}
                   >
@@ -258,7 +258,7 @@ const Navbar = ({ variant = "static" }) => {
                         duration: 0.25,
                         ease: [0.34, 1.56, 0.64, 1],
                       }}
-                      className="absolute left-0 top-full z-[200] mt-2 w-48 -translate-x-0 overflow-hidden rounded-xl border border-white/20 bg-gradient-to-b from-[#1a4d42] to-[#0f3d35] shadow-[0_12px_30px_rgba(0,0,0,0.3)]"
+                      className="absolute left-0 top-full z-[70] mt-2 w-48 overflow-hidden rounded-xl border border-white/20 bg-gradient-to-b from-[#1a4d42] to-[#0f3d35] shadow-[0_12px_30px_rgba(0,0,0,0.3)]"
                     >
                       <Link
                         to="/"

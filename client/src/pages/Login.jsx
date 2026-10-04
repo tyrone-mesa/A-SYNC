@@ -121,9 +121,9 @@ const Login = ({ modal = false, onClose, onCompanyRegister, onForgotPassword, in
         {[
           ["student", "Student"],
           ["company", "Company"],
-          ["coordinator", "Coordinator"],
           ["registrar", "Registrar"],
-           ["admin", "Admin"],
+          ["coordinator", "Coordinator"],
+          ["admin", "Admin"],
         ].map(([value, label]) => (
           <button
             key={value}
@@ -324,4 +324,4 @@ const Login = ({ modal = false, onClose, onCompanyRegister, onForgotPassword, in
   );
 };
 
-export default Login;2
+export default Login;

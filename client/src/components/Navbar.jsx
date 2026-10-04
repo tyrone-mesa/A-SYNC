@@ -55,7 +55,6 @@ const Navbar = ({ variant = "static" }) => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [authModal, setAuthModal] = useState(null);
   const dropdownRef = useRef(null);
-  const navContainerRef = useRef(null);
 
   const showNotifications =
     user &&
@@ -91,22 +90,20 @@ const Navbar = ({ variant = "static" }) => {
     setMobileMenuOpen(false);
   }, [location.pathname]);
 
-  // Close dropdown when clicking outside - improved logic
+  // Close dropdown when clicking outside
   useEffect(() => {
     const handleClickOutside = (event) => {
-      // Only close if clicking outside the navbar entirely
-      if (navContainerRef.current && !navContainerRef.current.contains(event.target)) {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
         setMobileMenuOpen(false);
       }
     };
 
     if (mobileMenuOpen) {
-      // Use capturing phase to ensure we catch clicks
-      document.addEventListener("mousedown", handleClickOutside, true);
-      document.addEventListener("touchstart", handleClickOutside, true);
+      document.addEventListener("mousedown", handleClickOutside);
+      document.addEventListener("touchstart", handleClickOutside);
       return () => {
-        document.removeEventListener("mousedown", handleClickOutside, true);
-        document.removeEventListener("touchstart", handleClickOutside, true);
+        document.removeEventListener("mousedown", handleClickOutside);
+        document.removeEventListener("touchstart", handleClickOutside);
       };
     }
   }, [mobileMenuOpen]);
@@ -136,14 +133,13 @@ const Navbar = ({ variant = "static" }) => {
     variant === "overlay" ? "" : "animate-nav-fade";
 
   const mobileNavLinkClass = (isActive) =>
-    `relative text-[14px] font-semibold text-white transition-all duration-200 hover:text-white/80 pb-1 cursor-pointer active:scale-95 ${
+    `relative text-[14px] font-semibold text-white transition-all duration-200 hover:text-white/80 pb-1 cursor-pointer ${
       isActive ? "border-b-2 border-[#F6C744]" : "border-b-2 border-transparent"
     }`;
 
   return (
     <header
       className={`${headerPositionClass} ${headerAnimationClass} z-40 px-3 py-3 sm:px-6`}
-      ref={navContainerRef}
     >
       <nav className="w-full">
         <div className="glass-panel mx-auto flex min-h-[60px] w-full max-w-7xl items-center justify-between rounded-[28px] px-3 shadow-[0_12px_30px_rgba(15,30,53,0.14)] sm:px-5 lg:w-fit lg:max-w-none">
@@ -232,8 +228,7 @@ const Navbar = ({ variant = "static" }) => {
         {/* Mobile Navigation */}
         <div className="lg:hidden">
           <div className="mt-3 flex justify-center">
-            <div className="flex items-center gap-4 whitespace-nowrap overflow-x-auto sm:gap-6 pb-2 px-2">
-              {/* Home Dropdown - Fixed positioning to escape parent overflow */}
+            <div className="flex items-center gap-4 whitespace-nowrap overflow-x-auto sm:gap-6 pb-2">
               <div className="relative flex-shrink-0" ref={dropdownRef}>
                 <button
                   type="button"
@@ -263,7 +258,7 @@ const Navbar = ({ variant = "static" }) => {
                         duration: 0.25,
                         ease: [0.34, 1.56, 0.64, 1],
                       }}
-                      className="fixed left-1/2 top-16 z-[9999] w-48 -translate-x-1/2 overflow-hidden rounded-xl border border-white/20 bg-gradient-to-b from-[#1a4d42] to-[#0f3d35] shadow-[0_12px_30px_rgba(0,0,0,0.3)]"
+                      className="absolute left-0 top-full z-[200] mt-2 w-48 -translate-x-0 overflow-hidden rounded-xl border border-white/20 bg-gradient-to-b from-[#1a4d42] to-[#0f3d35] shadow-[0_12px_30px_rgba(0,0,0,0.3)]"
                     >
                       <Link
                         to="/"
@@ -293,7 +288,6 @@ const Navbar = ({ variant = "static" }) => {
                 </AnimatePresence>
               </div>
 
-              {/* Opportunities Link */}
               <Link
                 to="/jobs"
                 onClick={() => setMobileMenuOpen(false)}
@@ -302,7 +296,6 @@ const Navbar = ({ variant = "static" }) => {
                 Opportunities
               </Link>
 
-              {/* Dashboard Link - visible only when logged in */}
               {user && (
                 <Link
                   to={roleHome[user.role]}
@@ -315,7 +308,6 @@ const Navbar = ({ variant = "static" }) => {
                 </Link>
               )}
 
-              {/* Logout/Login Button */}
               {user ? (
                 <button
                   type="button"

@@ -127,7 +127,7 @@ const ABOUT_SLIDES = [
     alt: "A-Sync official logo",
     name: "Connecting ASIATECH Students to the Industry",
     role: "AsiatechSync connects students with meaningful industry opportunities.",
-    desktopClass: "md:translate-x-6",
+    desktopClass: "md:translate-x-10",
   },
   {
     image: "/system-logo/Igot.png",
@@ -141,14 +141,14 @@ const ABOUT_SLIDES = [
     alt: "Leonor Olivera",
     name: "Leonor Olivera",
     role: "Back-end development and API integration",
-    desktopClass: "md:translate-y-6 md:scale-[1.55]",
+    desktopClass: "md:translate-y-3 md:scale-[1.80]",
   },
   {
     image: "/system-logo/Mesa.png",
     alt: "Tyrone James Rafael A. Mesa",
     name: "Tyrone James Rafael A. Mesa",
     role: "Documentation and system development support",
-    desktopClass: "md:translate-x-6 md:translate-y-2 md:scale-[1.7]",
+    desktopClass: "md:translate-x-10 md:translate-y-4 md:scale-[1.7]",
   },
 ];
 
@@ -173,7 +173,7 @@ const LandingPage = ({ intro = false, onIntroComplete }) => {
   const [aboutSlide, setAboutSlide] = useState(0);
   const [aboutDirection, setAboutDirection] = useState(1);
   const [featureSlide, setFeatureSlide] = useState(0);
-  const prefersReducedMotion = useReducedMotion();
+  const prefersReducedM2otion = useReducedMotion();
 
   const finishIntroVideo = useCallback(() => {
     setIsIntroRevealed(true);

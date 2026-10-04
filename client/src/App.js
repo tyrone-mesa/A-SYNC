@@ -1,6 +1,6 @@
 import React, { useRef, useState } from "react";
 import { Navigate, Routes, Route, useLocation } from "react-router-dom";
-import { AnimatePresence, motion, MotionConfig } from "framer-motion";
+import { motion, MotionConfig } from "framer-motion";
 
 import Navbar from "./components/Navbar";
 import ProtectedRoute from "./components/ProtectedRoute";
@@ -82,14 +82,6 @@ const RegistrarStudentDetail = React.lazy(
   () => import("./pages/staff/RegistrarStudentDetail"),
 );
 
-// Soft cross-fade + slide between routes. mode="wait" lets the outgoing page finish its exit
-// animation before the incoming one starts, so they never overlap awkwardly.
-const pageVariants = {
-  initial: { opacity: 0, x: 10 },
-  animate: { opacity: 1, x: 0 },
-  exit: { opacity: 0, x: -10 },
-};
-
 function App() {
   const location = useLocation();
   // The intro plays automatically on every full page load at "/" (and replays on
@@ -160,7 +152,6 @@ function App() {
         {/* Navbar is now visible on all pages EXCEPT home (which has its own navbar in the hero) */}
         {!isHome && <Navbar variant={isDashboardRoute ? "dashboard" : "static"} />}
         <main className="flex-1">
-          <AnimatePresence mode="wait">
             <motion.div
               key={
                 isDashboardRoute
@@ -169,11 +160,9 @@ function App() {
                     ? "/messages"
                     : location.pathname
               }
-              variants={pageVariants}
-              initial={isDashboardRoute ? false : "initial"}
-              animate={isDashboardRoute ? false : "animate"}
-              exit="exit"
-              transition={{ duration: 0.34, ease: [0.22, 1, 0.36, 1] }}
+              initial={isDashboardRoute ? false : { opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ duration: 0.3, ease: "easeOut" }}
             >
               <React.Suspense
                 fallback={
@@ -490,7 +479,6 @@ function App() {
                 </Routes>
               </React.Suspense>
             </motion.div>
-          </AnimatePresence>
         </main>
         <FloatingMessageCircle />
         <footer className="border-t border-white/10 bg-[#2f4d46] py-6 text-center text-white/65 text-xs">

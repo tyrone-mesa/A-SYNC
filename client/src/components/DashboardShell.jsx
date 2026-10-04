@@ -59,6 +59,11 @@ const mobileNavTransition = {
   mass: 0.8,
 };
 
+// Mount-in animations play only once per session. Every dashboard page shares
+// this shell, and without this flag each route change remounts the shell and
+// replays every fade — the source of the mobile glitch/flicker.
+let dashboardShellHasAnimated = false;
+
 const DashboardShell = ({
   role,
   title,
@@ -109,17 +114,22 @@ const DashboardShell = ({
     }
   }, [location.pathname]);
 
+  const markShellAnimated = () => {
+    dashboardShellHasAnimated = true;
+  };
+
   return (
     <motion.div
       className="relative z-10 min-h-[calc(100vh-6rem)] overflow-x-hidden bg-[radial-gradient(circle_at_top,_#edf8f2_0%,_#dfeae3_24%,_#cfe0d3_48%,_#bfd3c7_70%,_#b3c8bc_100%)] px-3 py-4 sm:px-6 sm:py-6 lg:h-[calc(100vh-6rem)]"
-      initial={{ opacity: 0 }}
+      initial={dashboardShellHasAnimated ? false : { opacity: 0 }}
       animate={{ opacity: 1 }}
       transition={{ duration: 0.18 }}
+      onAnimationComplete={markShellAnimated}
     >
       <div className="mx-auto flex min-h-full min-w-0 max-w-[1380px] flex-col gap-4 lg:h-full lg:min-h-0 lg:flex-row lg:items-stretch">
         <motion.aside
           className="hidden lg:flex lg:flex-col w-64 rounded-[20px] bg-gradient-to-b from-[#5a8c7e] via-[#4a7d72] to-[#3a6e66] border border-[#4a8876]/40 shadow-[0_12px_40px_rgba(23,61,52,0.18)]"
-          initial={{ opacity: 0, x: -30 }}
+          initial={dashboardShellHasAnimated ? false : { opacity: 0, x: -30 }}
           animate={{ opacity: 1, x: 0 }}
           transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
         >
@@ -143,7 +153,7 @@ const DashboardShell = ({
               return (
                 <motion.div
                   key={item.to}
-                  initial={{ opacity: 0, x: -15 }}
+                  initial={dashboardShellHasAnimated ? false : { opacity: 0, x: -15 }}
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ duration: 0.25, delay: idx * 0.04 }}
                 >
@@ -221,7 +231,7 @@ const DashboardShell = ({
 
         <motion.main
           className="glass-panel relative z-10 flex min-w-0 flex-1 flex-col overflow-x-hidden rounded-[22px] border border-white/25 bg-[rgba(255,255,255,0.16)] shadow-[0_20px_45px_rgba(15,30,53,0.10)]"
-          initial={{ opacity: 0, y: 6 }}
+          initial={dashboardShellHasAnimated ? false : { opacity: 0, y: 6 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.24, ease: [0.22, 1, 0.36, 1] }}
         >
@@ -282,7 +292,8 @@ const DashboardShell = ({
                               border: linkActive
                                 ? "1px solid rgba(210, 233, 225, 0.5)"
                                 : "1px solid transparent",
-                              transition: "all 0.35s cubic-bezier(0.34, 1.56, 0.64, 1)",
+                              // No CSS transition here — framer-motion animates these
+                              // same properties; the two fighting caused tap flicker.
                               pointerEvents: "auto",
                               cursor: "pointer",
                             }}
@@ -300,7 +311,7 @@ const DashboardShell = ({
                               )}
                             </span>
                           </motion.div>
-                        )}
+                        );
                       </NavLink>
                     );
                   })}
@@ -309,14 +320,14 @@ const DashboardShell = ({
 
               <motion.div
                 className="hidden lg:flex lg:items-start lg:gap-3"
-                initial={{ opacity: 0, y: -10 }}
+                initial={dashboardShellHasAnimated ? false : { opacity: 0, y: -10 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.3, delay: 0.1 }}
               >
                 <div>
                   <motion.p
                     className="text-xs uppercase tracking-[0.2em] text-white/60 font-semibold"
-                    initial={{ opacity: 0 }}
+                    initial={dashboardShellHasAnimated ? false : { opacity: 0 }}
                     animate={{ opacity: 1 }}
                     transition={{ duration: 0.3, delay: 0.15 }}
                   >
@@ -324,7 +335,7 @@ const DashboardShell = ({
                   </motion.p>
                   <motion.h1
                     className="mt-1 font-display text-2xl font-bold tracking-tight text-white"
-                    initial={{ opacity: 0 }}
+                    initial={dashboardShellHasAnimated ? false : { opacity: 0 }}
                     animate={{ opacity: 1 }}
                     transition={{ duration: 0.3, delay: 0.2 }}
                   >
@@ -336,7 +347,7 @@ const DashboardShell = ({
               {user && (
                 <motion.div
                   className="ml-auto rounded-full border border-white/20 bg-white/10 px-3 py-1.5 text-xs sm:text-sm text-white backdrop-blur-sm whitespace-nowrap shadow-sm"
-                  initial={{ opacity: 0, scale: 0.9 }}
+                  initial={dashboardShellHasAnimated ? false : { opacity: 0, scale: 0.9 }}
                   animate={{ opacity: 1, scale: 1 }}
                   transition={{
                     duration: 0.3,
@@ -356,7 +367,7 @@ const DashboardShell = ({
 
             <motion.div
               className="flex lg:hidden min-w-0 items-center justify-between gap-2"
-              initial={{ opacity: 0 }}
+              initial={dashboardShellHasAnimated ? false : { opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ duration: 0.3, delay: 0.15 }}
             >
@@ -375,7 +386,7 @@ const DashboardShell = ({
             {actions && (
               <motion.div
                 className="hidden lg:flex min-w-0 flex-wrap items-center gap-3"
-                initial={{ opacity: 0 }}
+                initial={dashboardShellHasAnimated ? false : { opacity: 0 }}
                 animate={{ opacity: 1 }}
                 transition={{ duration: 0.3, delay: 0.2 }}
               >
@@ -391,7 +402,7 @@ const DashboardShell = ({
               <motion.div
                 key={location.pathname}
                 className="min-w-0"
-                initial={{ opacity: 0, y: 4 }}
+                initial={false}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -4 }}
                 transition={{
@@ -402,7 +413,7 @@ const DashboardShell = ({
                 {subtitle && (
                   <motion.p
                     className="mb-5 text-sm text-[#0F1E35]/70"
-                    initial={{ opacity: 0 }}
+                    initial={dashboardShellHasAnimated ? false : { opacity: 0 }}
                     animate={{ opacity: 1 }}
                     transition={{ duration: 0.3, delay: 0.1 }}
                   >

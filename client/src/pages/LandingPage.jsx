@@ -128,28 +128,28 @@ const ABOUT_SLIDES = [
     alt: "A-Sync official logo",
     name: "Connecting ASIATECH Students to the Industry",
     role: "AsiatechSync connects students with meaningful industry opportunities.",
-    desktopClass: "md:translate-x-[220px] md:translate-y-[4px]",
+    desktopClass: "md:translate-x-[240px] md:translate-y-[2px]",
   },
   {
     image: "/system-logo/Igot.png",
     alt: "Romel S. Igot Jr.",
     name: "Romel S. Igot Jr.",
     role: "Front-end development and integration",
-    desktopClass: "md:translate-y-[4px] md:scale-[1.7]",
+    desktopClass: "md:translate-y-[2px] md:scale-[1.7]",
   },
   {
     image: "/system-logo/Olivera.png",
     alt: "Leonor Olivera",
     name: "Leonor Olivera",
     role: "Back-end development and API integration",
-    desktopClass: "md:-translate-y-[1200px] md:scale-[2.2]",
+    desktopClass: "md:-translate-y-[120px] md:scale-[2.2]",
   },
   {
     image: "/system-logo/Mesa.png",
     alt: "Tyrone James Rafael A. Mesa",
     name: "Tyrone James Rafael A. Mesa",
     role: "Documentation and system development support",
-    desktopClass: "md:translate-x-[250px] md:translate-y-[2px] md:scale-[1.5]",
+    desktopClass: "md:translate-x-[270px] md:translate-y-[2px] md:scale-[1.5]",
   },
 ];
 

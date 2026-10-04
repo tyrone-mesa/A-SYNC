@@ -141,14 +141,14 @@ const ABOUT_SLIDES = [
     alt: "Leonor Olivera",
     name: "Leonor Olivera",
     role: "Back-end development and API integration",
-    desktopClass: "md:translate-y-2 md:scale-[1.80]",
+    desktopClass: "md:translate-y-6 md:scale-[3.5]",
   },
   {
     image: "/system-logo/Mesa.png",
     alt: "Tyrone James Rafael A. Mesa",
     name: "Tyrone James Rafael A. Mesa",
     role: "Documentation and system development support",
-    desktopClass: "md:translate-x-15 md:translate-y-1 md:scale-[1.7]",
+    desktopClass: "md:translate-x-15 md:translate-y-4 md:scale-[1.7]",
   },
 ];
 

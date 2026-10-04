@@ -169,10 +169,9 @@ const Login = ({
       >
         {modal && (
           <>
-            <div className="pointer-events-none relative hidden max-h-[50vh] overflow-hidden bg-[#0f3d2e] sm:block">
+            <div className="pointer-events-none relative h-40 overflow-hidden rounded-t-[28px] bg-[#0f3d2e] sm:h-auto sm:max-h-[50vh] sm:rounded-l-[28px] sm:rounded-tr-none">
               <video
                 className="h-full w-full object-cover object-[50%_20%]"
-                style={{ clipPath: "inset(0 0 0 0 round 28px 0 0 28px)" }}
                 src="/media/hero-intro-2.mp4"
                 autoPlay
                 muted
@@ -180,11 +179,11 @@ const Login = ({
                 playsInline
               />
               <div className="absolute inset-0 bg-[#0f3d2e]/55" />
-              <div className="absolute inset-0 flex flex-col items-center justify-center px-8 text-center text-white">
+              <div className="absolute inset-0 flex flex-col items-center justify-center px-6 text-center text-white sm:px-8">
                 <p className="text-xs font-bold uppercase tracking-[0.2em] text-[#e8c165]">
                   ASIATECH SYNC
                 </p>
-                <p className="mt-2 text-2xl font-bold leading-tight">
+                <p className="mt-2 text-lg font-bold leading-tight sm:text-2xl">
                   Connect with your next opportunity.
                 </p>
               </div>

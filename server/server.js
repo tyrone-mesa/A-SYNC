@@ -470,25 +470,10 @@ app.use(
        */
       const normalizedOrigin = normalizeOrigin(origin);
 
-      console.log(
-        "[ASIATECH SYNC] CORS request origin:",
-        normalizedOrigin
-      );
-
-      console.log(
-        "[ASIATECH SYNC] CORS allowed origins:",
-        allowedOrigins
-      );
-
       /*
        * Check normalized origin against normalized allowed origins.
        */
       if (allowedOrigins.includes(normalizedOrigin)) {
-        console.log(
-          "[ASIATECH SYNC] ✓ CORS origin allowed:",
-          normalizedOrigin
-        );
-
         return callback(null, true);
       }
 
@@ -596,6 +581,14 @@ app.use("/api/auth", authLimiter);
 
 app.use("/uploads", async (req, res, next) => {
   try {
+    /*
+     * Public logo assets are served directly without a
+     * database lookup on every request.
+     */
+    if (req.path.startsWith("/company-logos/")) {
+      return next();
+    }
+
     const fileUrl = `/uploads/${path.basename(
       req.path
     )}`;

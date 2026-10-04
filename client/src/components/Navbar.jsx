@@ -76,6 +76,10 @@ const Navbar = ({ variant = "static" }) => {
     setAuthModal({ type: "login", portal: "student" });
   };
 
+  const openCompanySignup = () => {
+    window.dispatchEvent(new CustomEvent("asiatech:partner-signup"));
+  };
+
   useEffect(() => {
     if (location.pathname === "/" && location.search === "?auth=login") {
       setAuthModal({ type: "login", portal: "student" });
@@ -122,6 +126,12 @@ const Navbar = ({ variant = "static" }) => {
               <NavbarLink href="/jobs" active={location.pathname === "/jobs"}>
                 Opportunities
               </NavbarLink>
+              <NavbarLink href="/#about" active={location.hash === "#about"}>
+                About Us
+              </NavbarLink>
+              <NavbarLink href="/#contact" active={location.hash === "#contact"}>
+                Contact Us
+              </NavbarLink>
 
               {user ? (
                 <NavbarLink to={roleHome[user.role]} active={location.pathname.startsWith(roleHome[user.role])}>
@@ -146,6 +156,16 @@ const Navbar = ({ variant = "static" }) => {
                   className="nav-slide rounded-full border border-white/30 px-3.5 py-1.5 text-[14px] font-medium text-white transition duration-150 hover:border-white/60 hover:bg-white/10"
                 >
                   Login
+                </button>
+              )}
+
+              {!user && (
+                <button
+                  type="button"
+                  onClick={openCompanySignup}
+                  className="nav-slide rounded-full bg-[#E8C165] px-4 py-1.5 text-[14px] font-bold text-[#0F3D2E] shadow-[0_8px_20px_rgba(232,193,101,0.35)] transition duration-150 hover:bg-[#DEB24E] hover:shadow-[0_10px_24px_rgba(232,193,101,0.45)]"
+                >
+                  Company Sign up
                 </button>
               )}
             </div>

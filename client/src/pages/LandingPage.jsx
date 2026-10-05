@@ -549,7 +549,7 @@ const LandingPage = ({ intro = false, onIntroComplete }) => {
                 </p>
               </div>
             )}
-            <div className="relative mx-auto grid h-[310px] min-h-0 w-full max-w-none grid-cols-1 items-center gap-0 py-3 md:absolute md:inset-0">
+            <div className="relative mx-auto grid h-[310px] min-h-1 w-full max-w-none grid-cols-1 items-center gap-0 py-0 md:absolute md:inset-1">
               <div className="relative h-full min-w-0 overflow-hidden md:absolute md:inset-0">
                 <div className="flex h-full items-center justify-center">
                   <img

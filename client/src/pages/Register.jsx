@@ -249,7 +249,7 @@ const Register = ({ modal = false, onClose, onBack, onLogin }) => {
               </div>
               <div className="sm:col-span-2">
                 <label className="label" htmlFor="register-logo">
-                  Company logo (optional)
+                  Company logo
                 </label>
                 <input
                   id="register-logo"

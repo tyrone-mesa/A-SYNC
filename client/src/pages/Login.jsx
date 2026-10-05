@@ -190,7 +190,7 @@ const Login = ({ modal = false, onClose, onCompanyRegister, onForgotPassword, in
           <input
             id="login-email"
             type={portal === "student" ? "text" : "email"}
-            autoComplete="email"
+            autoComplete="username"
             inputMode={portal === "student" ? "email" : undefined}
             value={email}
             onChange={(e) => setEmail(e.target.value)}

@@ -132,8 +132,8 @@ const ABOUT_SLIDES = [
   },
   {
     image: "/system-logo/Igot.png",
-    alt: "Romel S. Igot Jr.",
-    name: "Romel S. Igot Jr.",
+    alt: "Romel Jr, S. Igot.",
+    name: "Romel Jr, S. Igot.",
     role: "Front-end development and integration",
     desktopClass: "md:translate-y-2 md:scale-[1.7]",
   },
@@ -149,7 +149,7 @@ const ABOUT_SLIDES = [
     alt: "Tyrone James Rafael A. Mesa",
     name: "Tyrone James Rafael A. Mesa",
     role: "Documentation and system development support",
-    desktopClass: "md:translate-x-[250px] md:translate-y-[50px] md:scale-[1.5]",
+    desktopClass: "md:translate-x-[250px] md:translate-y-[50px] md:scale-[1.7]",
   },
 ];
 

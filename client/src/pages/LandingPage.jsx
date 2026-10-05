@@ -128,7 +128,7 @@ const ABOUT_SLIDES = [
     alt: "A-Sync official logo",
     name: "Connecting ASIATECH Students to the Industry",
     role: "AsiatechSync connects students with meaningful industry opportunities.",
-    desktopClass: "md:translate-x-[220px] md:translate-y-[30px]",
+    desktopClass: "md:translate -x-[250px] md:translate-y-[30px]",
   },
   {
     image: "/system-logo/Igot.png",

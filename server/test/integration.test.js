@@ -1,13 +1,17 @@
 const assert = require("node:assert/strict");
+const crypto = require("node:crypto");
 const { after, before, describe, it, mock } = require("node:test");
 const express = require("express");
 const jwt = require("jsonwebtoken");
 const Application = require("../models/Application");
 const CompanyProfile = require("../models/CompanyProfile");
+const SecurityAuditLog = require("../models/SecurityAuditLog");
 const StudentProfile = require("../models/StudentProfile");
 const User = require("../models/User");
 const registerHealthRoute = require("../utils/health");
 const { buildArchivePdf } = require("../utils/archivePdf");
+const { getPhilippineMonthString } = require("../utils/philippineTime");
+const authRoutes = require("../routes/authRoutes");
 const studentRoutes = require("../routes/studentRoutes");
 
 process.env.JWT_SECRET = "integration-test-secret-with-at-least-32-characters";
@@ -75,7 +79,9 @@ describe("server integration protections", { concurrency: false }, () => {
     mock.method(Application, "exists", async () => false);
 
     const app = express();
+    app.use(express.json());
     registerHealthRoute(app, () => databaseReadyState);
+    app.use("/api/auth", authRoutes);
     app.use("/api/students", studentRoutes);
     server = app.listen(0);
     await new Promise((resolve) => server.once("listening", resolve));
@@ -127,6 +133,74 @@ describe("server integration protections", { concurrency: false }, () => {
 
     assert.equal(pdf.subarray(0, 5).toString(), "%PDF-");
     assert.ok(pdf.length > 500);
+  });
+
+  it("finds a registered student by school ID for OTP and login when their email differs", async (t) => {
+    const schoolId = "1-230250";
+    const loginCode = "123456";
+    const studentUser = {
+      _id: ids.student,
+      email: "student.account@asiatech.edu.ph",
+      role: "student",
+      isActive: true,
+      isArchived: false,
+      loginLockedUntil: null,
+      monthlyOtpHash: crypto
+        .createHash("sha256")
+        .update(loginCode)
+        .digest("hex"),
+      monthlyOtpMonth: getPhilippineMonthString(),
+      failedLoginAttempts: 0,
+      comparePassword: async (password) => password === "student-password",
+      save: async () => {},
+      toSafeObject: () => ({ id: ids.student, role: "student" }),
+    };
+
+    const profileLookup = t.mock.method(StudentProfile, "findOne", (filter) => {
+      assert.deepEqual(filter, { studentId: schoolId });
+      return {
+        select: () => ({
+          lean: async () => ({ user: ids.student }),
+        }),
+      };
+    });
+    const userLookup = t.mock.method(User, "findOne", (filter) => {
+      assert.deepEqual(filter, { _id: ids.student, role: "student" });
+      return { select: async () => studentUser };
+    });
+    t.mock.method(SecurityAuditLog, "create", async () => ({}));
+
+    const credentials = {
+      email: `${schoolId}@asiatech.edu.ph`,
+      studentId: schoolId,
+      password: "student-password",
+    };
+    const otpResponse = await fetch(`${baseUrl}/api/auth/send-otp`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(credentials),
+    });
+    const otpBody = await otpResponse.json();
+
+    assert.equal(otpResponse.status, 200);
+    assert.equal(otpBody.alreadyActive, true);
+
+    const loginResponse = await fetch(`${baseUrl}/api/auth/login`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        ...credentials,
+        portal: "student",
+        otp: loginCode,
+      }),
+    });
+    const loginBody = await loginResponse.json();
+
+    assert.equal(loginResponse.status, 200);
+    assert.equal(loginBody.user.id, ids.student);
+    assert.ok(loginBody.token);
+    assert.equal(profileLookup.mock.callCount(), 2);
+    assert.equal(userLookup.mock.callCount(), 2);
   });
 
   it("rejects requests without authentication and blocks students from company profile routes", async () => {

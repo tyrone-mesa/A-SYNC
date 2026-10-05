@@ -51,8 +51,12 @@ const Login = ({ modal = false, onClose, onCompanyRegister, onForgotPassword, in
 
     try {
       const trimmedEmail = email.trim();
-      const normalizedEmail =
+      const studentId =
         portal === "student" && !trimmedEmail.includes("@")
+          ? trimmedEmail
+          : undefined;
+      const normalizedEmail =
+        studentId
           ? `${trimmedEmail}@asiatech.edu.ph`
           : trimmedEmail;
 
@@ -60,13 +64,14 @@ const Login = ({ modal = false, onClose, onCompanyRegister, onForgotPassword, in
         const { data } = await api.post("/auth/send-otp", {
           email: normalizedEmail,
           password,
+          studentId,
         });
         setOtpMessage(data.message);
         setStudentStep("otp");
         return;
       }
 
-      await login(normalizedEmail, password, portal, otp);
+      await login(normalizedEmail, password, portal, otp, studentId);
       setBlockedMessage("");
       if (isModal && onClose) {
         onClose();

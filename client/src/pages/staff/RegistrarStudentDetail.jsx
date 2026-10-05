@@ -5,10 +5,7 @@ import { Link, useParams } from "react-router-dom";
 import api from "../../api/axios";
 import DashboardShell from "../../components/DashboardShell";
 import DashboardLoading from "../../components/DashboardLoading";
-
-const API_ORIGIN = (
-  process.env.REACT_APP_API_URL || "http://localhost:5000/api"
-).replace("/api", "");
+import { resolveFileUrl } from "../../utils/fileUrl";
 
 const RegistrarStudentDetail = () => {
   const { id } = useParams();
@@ -39,11 +36,7 @@ const RegistrarStudentDetail = () => {
   if (loading || !profile) return <DashboardLoading role="registrar" />;
   const complete =
     (profile.completedOJTHours || 0) >= (profile.requiredOJTHours || 0);
-  const certificateUrl = profile.certificateUrl
-    ? /^https?:\/\//i.test(profile.certificateUrl)
-      ? profile.certificateUrl
-      : `${API_ORIGIN}${profile.certificateUrl.startsWith("/") ? "" : "/"}${profile.certificateUrl}`
-    : "";
+  const certificateUrl = resolveFileUrl(profile.certificateUrl);
   const certificateFile =
     profile.certificateOriginalName || certificateUrl;
   const certificateIsImage = /\.(jpe?g|png)(?:[?#].*)?$/i.test(

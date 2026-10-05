@@ -8,20 +8,14 @@
 // an initials avatar (see CompanyLogo.jsx) instead of pointing at another
 // external image API — that way there's nothing left that can go dark again.
 
-// The API base URL looks like "http://localhost:5000/api" — uploaded logo
-// paths are relative to the server's origin (no "/api"), e.g. "/uploads/x.png".
-const API_BASE = process.env.REACT_APP_API_URL || "http://localhost:5000/api";
-const SERVER_ORIGIN = API_BASE.replace(/\/api\/?$/, "");
+import { resolveFileUrl } from "./fileUrl";
 
 /**
  * Turns a stored logo path into a URL the browser can actually load.
  * Handles: already-absolute URLs, relative "/uploads/..." paths, and empty values.
  */
 export function resolveCompanyLogoUrl(company) {
-  const path = company?.companyUploadedLogo;
-  if (!path) return null;
-  if (/^https?:\/\//i.test(path)) return path;
-  return `${SERVER_ORIGIN}${path.startsWith("/") ? "" : "/"}${path}`;
+  return resolveFileUrl(company?.companyUploadedLogo) || null;
 }
 
 /** 1-2 letter initials for a company name, e.g. "Globe Telecom" -> "GT" */

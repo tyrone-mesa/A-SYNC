@@ -6,11 +6,9 @@ import ExportButtons from "../../components/ExportButtons";
 import DashboardShell from "../../components/DashboardShell";
 import DashboardLoading from "../../components/DashboardLoading";
 import { openProtectedFile } from "../../utils/protectedFile";
+import { resolveFileUrl } from "../../utils/fileUrl";
 
 const STATUS_OPTIONS = ["in_review", "approved", "declined"];
-const API_ORIGIN = (
-  process.env.REACT_APP_API_URL || "http://localhost:5000/api"
-).replace("/api", "");
 
 const ApplicantsList = () => {
   const { jobId } = useParams();
@@ -126,7 +124,7 @@ const ApplicantsList = () => {
               )}
               {app.student?.transcriptUrl && (
                 <a
-                  href={`${API_ORIGIN}${app.student.transcriptUrl}`}
+                  href={resolveFileUrl(app.student.transcriptUrl)}
                   target="_blank"
                   rel="noreferrer"
                   className="text-xs font-medium text-[#457D53] hover:underline"

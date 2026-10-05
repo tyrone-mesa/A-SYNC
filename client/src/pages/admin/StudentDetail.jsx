@@ -9,10 +9,7 @@ import DashboardShell from "../../components/DashboardShell";
 import DashboardLoading from "../../components/DashboardLoading";
 import { openProtectedFile } from "../../utils/protectedFile";
 import AvatarCropper from "../../components/AvatarCropper";
-
-const API_ORIGIN = (
-  process.env.REACT_APP_API_URL || "http://localhost:5000/api"
-).replace("/api", "");
+import { resolveFileUrl } from "../../utils/fileUrl";
 
 const StudentDetail = () => {
   const { id } = useParams();
@@ -643,7 +640,7 @@ const StudentDetail = () => {
                 <span className="text-navy/65">Transcript / COR</span>
                 {profile.transcriptUrl ? (
                   <a
-                    href={`${API_ORIGIN}${profile.transcriptUrl}`}
+                    href={resolveFileUrl(profile.transcriptUrl)}
                     target="_blank"
                     rel="noreferrer"
                     className="text-[#457D53] hover:underline"

@@ -107,7 +107,11 @@ const ManageStudents = () => {
         .forEach(([key, value]) => payload.append(key, value));
       if (avatarFile) payload.append("avatar", avatarFile);
       const { data } = await api.post("/admin/students", payload);
-      setSuccessMessage(`Student account created for ${data.user.email}.`);
+      setSuccessMessage(
+        data.monthlyOtp
+          ? `Student account created for ${data.user.email}. Monthly 6-digit OTP: ${data.monthlyOtp}. It is valid through the end of this calendar month.`
+          : `Student account created for ${data.user.email}. The monthly OTP was sent to the student's school email.`,
+      );
       setForm(emptyForm);
       setAvatarFile(null);
       loadStudents();
@@ -333,6 +337,11 @@ const ManageStudents = () => {
             The student logs in with this email and password directly — share
             both with them securely. They can change their password any time
             from the login page's "Forgot password?" link.
+          </p>
+          <p className="text-xs text-navy/65">
+            A random 6-digit monthly login OTP is generated and emailed to the
+            student when the account is created. The code is also shown here
+            once and is valid through the end of this calendar month.
           </p>
 
           <button type="submit" disabled={creating} className="btn-primary">

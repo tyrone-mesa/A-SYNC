@@ -106,32 +106,6 @@ const Login = ({ modal = false, onClose, onCompanyRegister, onForgotPassword, in
     }
   };
 
-  const verifyAccount = async () => {
-    if (!email.trim()) {
-      setError("Enter your email address first so we know which account to verify.");
-      return;
-    }
-
-    setLoading(true);
-    setError("");
-    try {
-      const { data } = await api.post("/auth/verify-account/request", {
-        email: email.trim(),
-      });
-      navigate("/verify-account", {
-        state: {
-          email: data.email || email.trim(),
-          otpId: data.otpId,
-          expiresInMinutes: data.expiresInMinutes,
-        },
-      });
-    } catch (err) {
-      setError(err.response?.data?.message || "Unable to send the verification code right now.");
-    } finally {
-      setLoading(false);
-    }
-  };
-
   const content = (
     <div className="flex h-full flex-col justify-center px-6 py-8 sm:px-10 sm:py-12">
       <div className="text-center">
@@ -311,14 +285,6 @@ const Login = ({ modal = false, onClose, onCompanyRegister, onForgotPassword, in
               : portal === "student" && studentStep === "credentials"
                 ? "Continue to code"
                 : "Log in"}
-          </button>
-          <button
-            type="button"
-            onClick={verifyAccount}
-            disabled={loading}
-            className="h-11 w-full rounded-full border border-[#b9dec6] bg-[#eaf8ee] text-sm font-semibold text-[#1e5d46] transition hover:bg-[#dff3e5] sm:text-base"
-          >
-            Verify account
           </button>
         </div>
 

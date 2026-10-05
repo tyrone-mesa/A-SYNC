@@ -11,6 +11,9 @@ const Login = ({ modal = false, onClose, onCompanyRegister, onForgotPassword, in
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [blockedMessage, setBlockedMessage] = useState("");
+  const [studentStep, setStudentStep] = useState("credentials");
+  const [otp, setOtp] = useState("");
+  const [otpMessage, setOtpMessage] = useState("");
   const { login } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
@@ -53,7 +56,17 @@ const Login = ({ modal = false, onClose, onCompanyRegister, onForgotPassword, in
           ? `${trimmedEmail}@asiatech.edu.ph`
           : trimmedEmail;
 
-      await login(normalizedEmail, password, portal);
+      if (portal === "student" && studentStep === "credentials") {
+        const { data } = await api.post("/auth/send-otp", {
+          email: normalizedEmail,
+          password,
+        });
+        setOtpMessage(data.message);
+        setStudentStep("otp");
+        return;
+      }
+
+      await login(normalizedEmail, password, portal, otp);
       setBlockedMessage("");
       if (isModal && onClose) {
         onClose();
@@ -70,7 +83,10 @@ const Login = ({ modal = false, onClose, onCompanyRegister, onForgotPassword, in
       };
       navigate(roleHome[portal] || "/");
     } catch (err) {
-      if (err.response?.status === 423) {
+      if (err.response?.data?.otpRequired) {
+        setStudentStep("otp");
+        setOtpMessage(err.response.data.message);
+      } else if (err.response?.status === 423) {
         setBlockedMessage(
           "Your account has been disabled. If you believe this is a mistake, please contact the admin office."
         );
@@ -142,6 +158,9 @@ const Login = ({ modal = false, onClose, onCompanyRegister, onForgotPassword, in
               setPortal(value);
               setError("");
               setBlockedMessage("");
+              setStudentStep("credentials");
+              setOtp("");
+              setOtpMessage("");
             }}
             className={`flex-1 min-w-[92px] rounded-full border px-3 py-2 text-xs sm:text-sm font-semibold transition ${
               portal === value
@@ -158,23 +177,30 @@ const Login = ({ modal = false, onClose, onCompanyRegister, onForgotPassword, in
         <p className="mt-4 text-center text-sm text-[#d94f3d]">{blockedMessage}</p>
       )}
       <p className="mt-4 text-center text-xs text-[#7d948a]">
-        Use the @asiatech.edu.ph email assigned to you by the admin office.
+        {portal === "student"
+          ? "Use your school ID or the @asiatech.edu.ph email assigned by the admin office."
+          : "Use the email address registered to your account."}
       </p>
 
       <form onSubmit={handleSubmit} className="mt-8 space-y-5 sm:mt-10">
         <div className="space-y-1.5 text-left">
           <label htmlFor="login-email" className="text-xs font-semibold uppercase tracking-[0.18em] text-[#567066] sm:text-sm sm:normal-case sm:tracking-normal sm:font-medium">
-            Email address
+            {portal === "student" ? "School ID or email" : "Email address"}
           </label>
           <input
             id="login-email"
-            type="email"
+            type={portal === "student" ? "text" : "email"}
             autoComplete="email"
+            inputMode={portal === "student" ? "email" : undefined}
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             required
             className="input-field h-11 w-full"
-            placeholder="Enter your Email"
+            placeholder={
+              portal === "student"
+                ? "Enter your school ID or email"
+                : "Enter your Email"
+            }
           />
         </div>
 
@@ -230,6 +256,37 @@ const Login = ({ modal = false, onClose, onCompanyRegister, onForgotPassword, in
           </div>
         </div>
 
+        {portal === "student" && studentStep === "otp" && (
+          <div className="space-y-2 text-left">
+            <label
+              htmlFor="login-otp"
+              className="text-xs font-semibold uppercase tracking-[0.18em] text-[#567066] sm:text-sm sm:normal-case sm:tracking-normal sm:font-medium"
+            >
+              Monthly login code
+            </label>
+            <input
+              id="login-otp"
+              type="text"
+              inputMode="numeric"
+              autoComplete="one-time-code"
+              pattern="[0-9]{6}"
+              maxLength={6}
+              value={otp}
+              onChange={(e) =>
+                setOtp(e.target.value.replace(/\D/g, "").slice(0, 6))
+              }
+              required
+              className="input-field h-11 w-full text-center font-semibold tracking-[0.5em]"
+              placeholder="Enter 6-digit code"
+            />
+            {otpMessage && (
+              <p className="rounded-2xl border border-[#b9dec6] bg-[#eaf8ee] px-3 py-2 text-sm text-[#1e5d46]">
+                {otpMessage}
+              </p>
+            )}
+          </div>
+        )}
+
         {error && (
           <div className="rounded-2xl border border-[#f3c2ba] bg-[#fdf3f1] px-3 py-2 text-sm text-[#c0392b]">
             {error}
@@ -242,7 +299,13 @@ const Login = ({ modal = false, onClose, onCompanyRegister, onForgotPassword, in
             disabled={loading}
             className="btn-primary h-11 w-full text-sm sm:text-base"
           >
-            {loading ? "Signing in…" : "Log in"}
+            {loading
+              ? portal === "student" && studentStep === "credentials"
+                ? "Sending code…"
+                : "Signing in…"
+              : portal === "student" && studentStep === "credentials"
+                ? "Continue to code"
+                : "Log in"}
           </button>
           <button
             type="button"

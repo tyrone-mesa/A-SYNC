@@ -47,31 +47,29 @@ const Login = ({ modal = false, onClose, onCompanyRegister, onForgotPassword, in
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
+    const normalizedEmail = email.trim().toLowerCase();
+    if (
+      portal === "student" &&
+      studentStep === "credentials" &&
+      !normalizedEmail.endsWith("@asiatech.edu.ph")
+    ) {
+      setError("Use your assigned @asiatech.edu.ph school email to continue.");
+      return;
+    }
     setLoading(true);
 
     try {
-      const trimmedEmail = email.trim();
-      const studentId =
-        portal === "student" && !trimmedEmail.includes("@")
-          ? trimmedEmail
-          : undefined;
-      const normalizedEmail =
-        studentId
-          ? `${trimmedEmail}@asiatech.edu.ph`
-          : trimmedEmail;
-
       if (portal === "student" && studentStep === "credentials") {
         const { data } = await api.post("/auth/send-otp", {
           email: normalizedEmail,
           password,
-          studentId,
         });
         setOtpMessage(data.message);
         setStudentStep("otp");
         return;
       }
 
-      await login(normalizedEmail, password, portal, otp, studentId);
+      await login(normalizedEmail, password, portal, otp);
       setBlockedMessage("");
       if (isModal && onClose) {
         onClose();
@@ -157,27 +155,27 @@ const Login = ({ modal = false, onClose, onCompanyRegister, onForgotPassword, in
       )}
       <p className="mt-4 text-center text-xs text-[#7d948a]">
         {portal === "student"
-          ? "Use your school ID or the @asiatech.edu.ph email assigned by the admin office."
+          ? "Use the @asiatech.edu.ph school email assigned by the admin office."
           : "Use the email address registered to your account."}
       </p>
 
       <form onSubmit={handleSubmit} className="mt-8 space-y-5 sm:mt-10">
         <div className="space-y-1.5 text-left">
           <label htmlFor="login-email" className="text-xs font-semibold uppercase tracking-[0.18em] text-[#567066] sm:text-sm sm:normal-case sm:tracking-normal sm:font-medium">
-            {portal === "student" ? "School ID or email" : "Email address"}
+            {portal === "student" ? "School email" : "Email address"}
           </label>
           <input
             id="login-email"
-            type={portal === "student" ? "text" : "email"}
+            type="email"
             autoComplete="username"
-            inputMode={portal === "student" ? "email" : undefined}
+            inputMode="email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             required
             className="input-field h-11 w-full"
             placeholder={
               portal === "student"
-                ? "Enter your school ID or email"
+                ? "name@asiatech.edu.ph"
                 : "Enter your Email"
             }
           />

@@ -3,7 +3,6 @@ const crypto = require("crypto");
 const { body, validationResult } = require("express-validator");
 const User = require("../models/User");
 const CompanyProfile = require("../models/CompanyProfile");
-const StudentProfile = require("../models/StudentProfile");
 const generateToken = require("../utils/generateToken");
 const { protect } = require("../middleware/auth");
 const { sendMail } = require("../utils/mailer");
@@ -16,22 +15,15 @@ const {
 const { createInAppNotification } = require("../utils/notify");
 const { recordAudit } = require("../utils/securityAudit");
 const { getPhilippineMonthString } = require("../utils/philippineTime");
-const { validatePortalAccess } = require("../utils/loginEligibility");
+const {
+  STUDENT_EMAIL_DOMAIN,
+  validatePortalAccess,
+} = require("../utils/loginEligibility");
 const upload = require("../middleware/upload");
 const scanUploadedFile = require("../middleware/scanUpload");
 const { persistUpload, renameUpload } = require("../utils/persistUpload");
 
 const router = express.Router();
-
-const findStudentBySchoolId = async (schoolId, select) => {
-  const profile = await StudentProfile.findOne({
-    studentId: String(schoolId).trim(),
-  })
-    .select("user")
-    .lean();
-  if (!profile) return null;
-  return User.findOne({ _id: profile.user, role: "student" }).select(select);
-};
 
 // @route   POST /api/auth/register
 // @desc    Self-registration is for company (employer) accounts only. Student accounts are
@@ -156,14 +148,19 @@ router.post(
 router.post(
   "/login",
   [
-    body("email").isEmail().withMessage("A valid email is required."),
-    body("password").notEmpty().withMessage("Password is required."),
-    body("studentId")
-      .optional({ checkFalsy: true })
-      .custom((value, { req }) =>
-        req.body.portal === "student" && /^\d+-\d+$/.test(value.trim()),
+    body("email")
+      .isEmail()
+      .withMessage("A valid email is required.")
+      .bail()
+      .custom(
+        (value, { req }) =>
+          req.body.portal !== "student" ||
+          value.trim().toLowerCase().endsWith(`@${STUDENT_EMAIL_DOMAIN}`),
       )
-      .withMessage("Enter a valid school ID."),
+      .withMessage(
+        `Students must use their @${STUDENT_EMAIL_DOMAIN} school email.`,
+      ),
+    body("password").notEmpty().withMessage("Password is required."),
     body("otp")
       .optional({ checkFalsy: true })
       .customSanitizer((value) =>
@@ -183,14 +180,22 @@ router.post(
     }
 
     try {
-      const { email, password, portal, otp, studentId } = req.body;
+      const { email, password, portal, otp } = req.body;
       const normalizedEmail = email.trim().toLowerCase();
       const userSelect =
         "+password +monthlyOtpHash +monthlyOtpMonth +failedLoginAttempts +loginLockedUntil";
-      const user =
-        portal === "student" && studentId
-          ? await findStudentBySchoolId(studentId, userSelect)
-          : await User.findOne({ email: normalizedEmail }).select(userSelect);
+      const user = await User.findOne({ email: normalizedEmail }).select(
+        userSelect,
+      );
+
+      if (
+        user?.role === "student" &&
+        !normalizedEmail.endsWith(`@${STUDENT_EMAIL_DOMAIN}`)
+      ) {
+        return res.status(400).json({
+          message: `Students must use their @${STUDENT_EMAIL_DOMAIN} school email.`,
+        });
+      }
 
       const now = Date.now();
       if (user?.loginLockedUntil && user.loginLockedUntil > now) {
@@ -333,12 +338,17 @@ router.post(
 router.post(
   "/send-otp",
   [
-    body("email").isEmail().withMessage("A valid email is required."),
+    body("email")
+      .isEmail()
+      .withMessage("A valid email is required.")
+      .bail()
+      .custom((value) =>
+        value.trim().toLowerCase().endsWith(`@${STUDENT_EMAIL_DOMAIN}`),
+      )
+      .withMessage(
+        `Students must use their @${STUDENT_EMAIL_DOMAIN} school email.`,
+      ),
     body("password").notEmpty().withMessage("Password is required."),
-    body("studentId")
-      .optional({ checkFalsy: true })
-      .matches(/^\d+-\d+$/)
-      .withMessage("Enter a valid school ID."),
   ],
   async (req, res) => {
     const errors = validationResult(req);
@@ -349,9 +359,7 @@ router.post(
       const email = req.body.email.trim().toLowerCase();
       const userSelect =
         "+password +loginLockedUntil +monthlyOtpHash +monthlyOtpMonth";
-      const user = req.body.studentId
-        ? await findStudentBySchoolId(req.body.studentId, userSelect)
-        : await User.findOne({ email }).select(userSelect);
+      const user = await User.findOne({ email }).select(userSelect);
       if (!user || user.role !== "student") {
         await recordAudit(req, {
           action: "student_otp_request",
@@ -366,7 +374,7 @@ router.post(
       }
       const accessCheck = validatePortalAccess({
         user,
-        email: user.email || email,
+        email,
         portal: "student",
       });
       if (!accessCheck.ok) {

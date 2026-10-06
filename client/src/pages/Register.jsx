@@ -249,7 +249,7 @@ const Register = ({ modal = false, onClose, onBack, onLogin }) => {
               </div>
               <div className="sm:col-span-2">
                 <label className="label" htmlFor="register-logo">
-                  Company logo
+                  Company logo (optional)
                 </label>
                 <input
                   id="register-logo"
@@ -262,7 +262,8 @@ const Register = ({ modal = false, onClose, onBack, onLogin }) => {
                   className="input-field cursor-pointer text-sm"
                 />
                 <p className="mt-1 text-xs text-navy/65">
-                  JPG, JPEG, or PNG. Maximum 3MB.
+                  Skip this for now and add your logo later from your company
+                  dashboard. If uploading now, use JPG, JPEG, or PNG up to 3MB.
                 </p>
               </div>
               <label className="flex items-start gap-2 text-xs text-[#1b2d2b] sm:col-span-2">

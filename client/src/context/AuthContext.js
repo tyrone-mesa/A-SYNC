@@ -44,13 +44,12 @@ export const AuthProvider = ({ children }) => {
       .finally(() => setLoading(false));
   }, [user]);
 
-  const login = useCallback(async (email, password, portal, otp, studentId) => {
+  const login = useCallback(async (email, password, portal, otp) => {
     const { data } = await api.post("/auth/login", {
       email,
       password,
       portal,
       otp,
-      studentId,
     });
     localStorage.setItem("asiatech_token", data.token);
     localStorage.setItem("asiatech_user", JSON.stringify(data.user));

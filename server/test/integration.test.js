@@ -135,12 +135,12 @@ describe("server integration protections", { concurrency: false }, () => {
     assert.ok(pdf.length > 500);
   });
 
-  it("finds a registered student by school ID for OTP and login when their email differs", async (t) => {
-    const schoolId = "1-230250";
+  it("requires the registered school email for student OTP and login", async (t) => {
+    const schoolEmail = "student.account@asiatech.edu.ph";
     const loginCode = "123456";
     const studentUser = {
       _id: ids.student,
-      email: "student.account@asiatech.edu.ph",
+      email: schoolEmail,
       role: "student",
       isActive: true,
       isArchived: false,
@@ -156,23 +156,14 @@ describe("server integration protections", { concurrency: false }, () => {
       toSafeObject: () => ({ id: ids.student, role: "student" }),
     };
 
-    const profileLookup = t.mock.method(StudentProfile, "findOne", (filter) => {
-      assert.deepEqual(filter, { studentId: schoolId });
-      return {
-        select: () => ({
-          lean: async () => ({ user: ids.student }),
-        }),
-      };
-    });
     const userLookup = t.mock.method(User, "findOne", (filter) => {
-      assert.deepEqual(filter, { _id: ids.student, role: "student" });
+      assert.deepEqual(filter, { email: schoolEmail });
       return { select: async () => studentUser };
     });
     t.mock.method(SecurityAuditLog, "create", async () => ({}));
 
     const credentials = {
-      email: `${schoolId}@asiatech.edu.ph`,
-      studentId: schoolId,
+      email: schoolEmail,
       password: "student-password",
     };
     const otpResponse = await fetch(`${baseUrl}/api/auth/send-otp`, {
@@ -199,8 +190,55 @@ describe("server integration protections", { concurrency: false }, () => {
     assert.equal(loginResponse.status, 200);
     assert.equal(loginBody.user.id, ids.student);
     assert.ok(loginBody.token);
-    assert.equal(profileLookup.mock.callCount(), 2);
     assert.equal(userLookup.mock.callCount(), 2);
+  });
+
+  it("rejects non-school email addresses before OTP or login", async (t) => {
+    for (const [path, credentials] of [
+      [
+        "/send-otp",
+        {
+          email: "student@example.test",
+          password: "student-password",
+        },
+      ],
+      [
+        "/login",
+        {
+          email: "student@example.test",
+          password: "student-password",
+          portal: "student",
+          otp: "123456",
+        },
+      ],
+    ]) {
+      const response = await fetch(`${baseUrl}/api/auth${path}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(credentials),
+      });
+      const body = await response.json();
+
+      assert.equal(response.status, 400);
+      assert.match(body.message, /@asiatech\.edu\.ph/);
+    }
+
+    t.mock.method(User, "findOne", () => ({
+      select: async () => ({ role: "student" }),
+    }));
+    const loginResponse = await fetch(`${baseUrl}/api/auth/login`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        email: "student@example.test",
+        password: "student-password",
+        otp: "123456",
+      }),
+    });
+    const loginBody = await loginResponse.json();
+
+    assert.equal(loginResponse.status, 400);
+    assert.match(loginBody.message, /@asiatech\.edu\.ph/);
   });
 
   it("rejects requests without authentication and blocks students from company profile routes", async () => {

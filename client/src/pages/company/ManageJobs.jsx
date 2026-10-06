@@ -7,6 +7,8 @@ import DashboardLoading from "../../components/DashboardLoading";
 const ManageJobs = () => {
   const [jobs, setJobs] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [updatingJobId, setUpdatingJobId] = useState("");
+  const [error, setError] = useState("");
 
   const loadJobs = () => {
     setLoading(true);
@@ -20,8 +22,24 @@ const ManageJobs = () => {
 
   const toggleStatus = async (job) => {
     const newStatus = job.status === "open" ? "closed" : "open";
-    await api.put(`/jobs/${job._id}`, { status: newStatus });
-    loadJobs();
+    setError("");
+    setUpdatingJobId(job._id);
+    try {
+      const { data } = await api.put(`/jobs/${job._id}`, {
+        status: newStatus,
+      });
+      setJobs((currentJobs) =>
+        currentJobs.map((currentJob) =>
+          currentJob._id === job._id ? data.job : currentJob,
+        ),
+      );
+    } catch (err) {
+      setError(
+        err.response?.data?.message || "Unable to update this job posting.",
+      );
+    } finally {
+      setUpdatingJobId("");
+    }
   };
 
   const deleteJob = async (job) => {
@@ -44,6 +62,14 @@ const ManageJobs = () => {
         </Link>
       }
     >
+      {error && (
+        <div
+          role="alert"
+          className="mb-4 rounded-lg border border-coral/40 bg-coral/15 px-4 py-3 text-sm text-[#DF2E1B]"
+        >
+          {error}
+        </div>
+      )}
       <div className="rounded-[24px] border border-black/5 bg-[#f8faf8] p-4 shadow-sm">
         <div className="divide-y divide-black/10">
           {jobs.length === 0 && (
@@ -80,12 +106,20 @@ const ManageJobs = () => {
                   Applicants
                 </Link>
                 <button
+                  type="button"
                   onClick={() => toggleStatus(job)}
-                  className="text-xs font-medium text-navy/70 hover:underline"
+                  disabled={updatingJobId === job._id}
+                  aria-label={`${job.status === "open" ? "Close" : "Open"} ${job.title}`}
+                  className="text-xs font-medium text-navy/70 hover:underline disabled:cursor-wait disabled:opacity-50"
                 >
-                  {job.status === "open" ? "Close" : "Reopen"}
+                  {updatingJobId === job._id
+                    ? "Saving…"
+                    : job.status === "open"
+                      ? "Close"
+                      : "Open"}
                 </button>
                 <button
+                  type="button"
                   onClick={() => deleteJob(job)}
                   className="text-xs font-medium text-[#DF2E1B] hover:underline"
                 >

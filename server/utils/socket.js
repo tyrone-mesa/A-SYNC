@@ -4,21 +4,26 @@ const User = require("../models/User");
 
 /*
 |--------------------------------------------------------------------------
-| Real-time notification layer (Socket.IO)
+| Real-time layer (Socket.IO)
 |--------------------------------------------------------------------------
 |
-| The REST endpoints in routes/notificationRoutes.js stay exactly as they
-| are — the bell still polls every 30 seconds as a fallback. This module
-| only ADDS a push channel: whenever utils/notify.js writes a Notification
-| document, it also emits it here so online users see it instantly.
+| Two channels share one authenticated connection:
+|
+|   1. Notifications — utils/notify.js emits "notification:new" to a user's
+|      private room; the bell's 30-second REST polling stays as a fallback.
+|   2. Dashboards — routes call emitDashboardUpdate() after a mutation and
+|      every connected client in the target user/role rooms receives
+|      "dashboard:update", then simply refetches from the REST API. If the
+|      socket is unavailable, every page behaves exactly as before.
 |
 */
 
 let io = null;
 
-// Each user gets a private room so a notification can never leak to a
-// different account.
+// Each user gets a private room so an event can never leak to a different
+// account; each role gets a shared room for dashboard fan-out.
 const userRoom = (userId) => `user:${userId}`;
+const roleRoom = (role) => `role:${role}`;
 
 const initSocket = (httpServer, isOriginAllowed) => {
   io = new Server(httpServer, {
@@ -54,6 +59,7 @@ const initSocket = (httpServer, isOriginAllowed) => {
       }
 
       socket.userId = String(user._id);
+      socket.userRole = user.role;
       next();
     } catch (err) {
       next(new Error("Not authorized. Invalid or expired token."));
@@ -62,10 +68,15 @@ const initSocket = (httpServer, isOriginAllowed) => {
 
   io.on("connection", (socket) => {
     socket.join(userRoom(socket.userId));
+    if (socket.userRole) {
+      socket.join(roleRoom(socket.userRole));
+    }
   });
 
   return io;
 };
+
+const getIO = () => io;
 
 // Called by utils/notify.js after a Notification document is saved.
 // Fails silently — a broken socket layer must never affect the action that
@@ -79,4 +90,28 @@ const emitNotificationToUser = (userId, notification) => {
   }
 };
 
-module.exports = { initSocket, emitNotificationToUser };
+// Emit a "dashboard:update" event to specific users AND/OR roles.
+// `scope` tells clients which part of the dashboard changed; clients respond
+// by refetching from the REST API, so socket payloads are never trusted as
+// state and a socket failure can never corrupt a dashboard.
+const emitDashboardUpdate = ({ users = [], roles = [], scope } = {}) => {
+  try {
+    if (!io) return;
+
+    const rooms = [
+      ...users.filter(Boolean).map((userId) => userRoom(userId)),
+      ...roles.filter(Boolean).map((role) => roleRoom(role)),
+    ];
+
+    rooms.forEach((room) => io.to(room).emit("dashboard:update", { scope }));
+  } catch (err) {
+    console.error("Failed to emit dashboard update:", err.message);
+  }
+};
+
+module.exports = {
+  initSocket,
+  getIO,
+  emitNotificationToUser,
+  emitDashboardUpdate,
+};

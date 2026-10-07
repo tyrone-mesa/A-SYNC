@@ -5,6 +5,7 @@ const User = require("../models/User");
 const { protect, authorize } = require("../middleware/auth");
 const { seedJobs } = require("../utils/seedJobs");
 const { notify } = require("../utils/notify");
+const { emitDashboardUpdate } = require("../utils/socket");
 
 const router = express.Router();
 
@@ -174,6 +175,9 @@ router.post("/", protect, authorize("company"), async (req, res) => {
       ),
     );
 
+    // Real-time: student dashboards and admin job counts refresh instantly.
+    emitDashboardUpdate({ roles: ["student", "admin"], scope: "jobs" });
+
     res.status(201).json({ job });
   } catch (err) {
     res
@@ -202,6 +206,9 @@ router.put("/:id", protect, authorize("company"), async (req, res) => {
 
     Object.assign(job, req.body);
     await job.save();
+
+    emitDashboardUpdate({ roles: ["student", "admin"], scope: "jobs" });
+
     res.json({ job });
   } catch (err) {
     res
@@ -224,6 +231,9 @@ router.delete("/:id", protect, authorize("company"), async (req, res) => {
     return res
       .status(404)
       .json({ message: "Job posting not found or not owned by you." });
+
+  emitDashboardUpdate({ roles: ["student", "admin"], scope: "jobs" });
+
   res.json({ message: "Job posting deleted." });
 });
 

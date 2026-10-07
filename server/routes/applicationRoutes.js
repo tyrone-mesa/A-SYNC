@@ -11,6 +11,7 @@ const {
   applicationStatusEmail,
 } = require("../utils/emailTemplates");
 const { createInAppNotification, notify } = require("../utils/notify");
+const { emitDashboardUpdate } = require("../utils/socket");
 const { MIN_HOURS_FOR_FULLTIME_JOBS } = require("../config/constants");
 const { isRemoteUrl } = require("../utils/storage");
 
@@ -243,6 +244,14 @@ router.put("/:id/status", protect, authorize("company"), async (req, res) => {
         link: "/student/applications",
       });
     }
+
+    // Real-time: the student's dashboard sees it instantly and every online
+    // company's applicant list refreshes.
+    emitDashboardUpdate({
+      users: [application.student?.user?._id],
+      roles: ["company"],
+      scope: "applications",
+    });
 
     res.json({ application });
   } catch (err) {

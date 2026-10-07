@@ -12,9 +12,18 @@ const Message = require("../models/Message");
 const PDFDocument = require("pdfkit");
 const { protect, authorize } = require("../middleware/auth");
 const { buildArchivePdf } = require("../utils/archivePdf");
+const upload = require("../middleware/upload");
+const scanUploadedFile = require("../middleware/scanUpload");
+const { persistUpload } = require("../utils/persistUpload");
+const { emitDashboardUpdate } = require("../utils/socket");
 
 const router = express.Router();
 router.use(protect);
+
+// The coordinator certificate is optional, so the upload scan only runs when a
+// file was actually attached (mirrors scanUploadedFileIfProvided in adminRoutes).
+const scanUploadedFileIfProvided = (req, res, next) =>
+  req.file ? scanUploadedFile(req, res, next) : next();
 
 // In-memory PIN attempt tracker. Tracks failed PIN attempts per IP address to
 // prevent brute-forcing the 4-digit admin PIN. Entries auto-expire after the
@@ -120,6 +129,9 @@ router.get(
 router.put(
   "/coordinator/students/:id/assessment",
   authorize("coordinator"),
+  // Optional certificate: multipart when a file is included, plain JSON otherwise.
+  upload.single("certificate"),
+  scanUploadedFileIfProvided,
   async (req, res) => {
     const { performanceGrade, evaluation } = req.body;
     const profile = await StudentProfile.findById(req.params.id);
@@ -144,6 +156,25 @@ router.put(
         .json({ message: "Grade and evaluation are required." });
     }
 
+    const update = {
+      performanceGrade: String(performanceGrade).trim(),
+      evaluation: String(evaluation).trim(),
+      assessmentSubmittedAt: new Date(),
+    };
+
+    // Same storage pipeline the company assessment uses; a storage
+    // failure must not discard the grade.
+    if (req.file) {
+      try {
+        update.certificateUrl = await persistUpload(req.file, {
+          folder: "certificates",
+        });
+        update.certificateOriginalName = req.file.originalname;
+      } catch (err) {
+        console.error("Coordinator certificate storage failed:", err.message);
+      }
+    }
+
     // Make the one-time submission atomic so concurrent requests cannot overwrite a final assessment.
     const updatedProfile = await StudentProfile.findOneAndUpdate(
       {
@@ -156,13 +187,7 @@ router.put(
           ],
         },
       },
-      {
-        $set: {
-          performanceGrade: String(performanceGrade).trim(),
-          evaluation: String(evaluation).trim(),
-          assessmentSubmittedAt: new Date(),
-        },
-      },
+      { $set: update },
       { new: true },
     );
 
@@ -178,6 +203,13 @@ router.put(
           "Assessment is available only after the student completes the required OJT hours.",
       });
     }
+
+    // Real-time refresh: staff rosters flip to "Assessment complete".
+    emitDashboardUpdate({
+      users: [updatedProfile.user],
+      roles: ["coordinator", "registrar"],
+      scope: "assessment",
+    });
 
     res.json({ profile: updatedProfile });
   },
@@ -370,7 +402,7 @@ const getArchivedUserData = async (id) => {
       $in: conversations.map((conversation) => conversation._id),
     },
   })
-    .populate("sender", "fullName email role")
+    .populate("sender", "fullName email")
     .sort({ createdAt: 1 })
     .lean();
   const [applications, attendance, jobs] = await Promise.all([

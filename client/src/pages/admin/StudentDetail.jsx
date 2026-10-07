@@ -40,6 +40,7 @@ const StudentDetail = () => {
     performanceGrade: "",
     evaluation: "",
   });
+  const [assessmentCertificate, setAssessmentCertificate] = useState(null);
   const [assessmentError, setAssessmentError] = useState("");
   const [assessmentBusy, setAssessmentBusy] = useState(false);
 
@@ -223,7 +224,14 @@ const StudentDetail = () => {
     setAssessmentBusy(true);
     setAssessmentError("");
     try {
-      await api.put(`/staff/coordinator/students/${id}/assessment`, assessment);
+      const payload = new FormData();
+      payload.append("performanceGrade", assessment.performanceGrade);
+      payload.append("evaluation", assessment.evaluation);
+      if (assessmentCertificate) {
+        payload.append("certificate", assessmentCertificate);
+      }
+      await api.put(`/staff/coordinator/students/${id}/assessment`, payload);
+      setAssessmentCertificate(null);
       load();
     } catch (err) {
       setAssessmentError(
@@ -444,6 +452,20 @@ const StudentDetail = () => {
               />
             </div>
           </div>
+          <div>
+            <label className="label" htmlFor="studentdetail-certificate">
+              Certificate (optional)
+            </label>
+            <input
+              id="studentdetail-certificate"
+              type="file"
+              accept=".pdf,.jpg,.jpeg,.png"
+              className="input-field"
+              onChange={(event) =>
+                setAssessmentCertificate(event.target.files?.[0] || null)
+              }
+            />
+          </div>
           <button
             className="btn-primary px-4 py-2 text-sm"
             disabled={assessmentBusy || completed < goal}
@@ -460,6 +482,16 @@ const StudentDetail = () => {
         <div className="mb-8 rounded-2xl border border-forest/20 bg-[#dfeecf] px-4 py-3 text-sm text-[#5E7867]">
           Final grade and evaluation submitted and locked.
         </div>
+      )}
+      {!isAdmin && profile.assessmentSubmittedAt && profile.certificateUrl && (
+        <a
+          href={resolveFileUrl(profile.certificateUrl)}
+          target="_blank"
+          rel="noreferrer"
+          className="mb-8 inline-block text-sm font-semibold text-[#457D53] hover:underline"
+        >
+          View attached certificate
+        </a>
       )}
 
       {isAdmin && editing && (

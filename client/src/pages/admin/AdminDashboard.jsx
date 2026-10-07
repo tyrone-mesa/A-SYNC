@@ -1,20 +1,29 @@
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import api from "../../api/axios";
 import DashboardShell from "../../components/DashboardShell";
 import DashboardLoading from "../../components/DashboardLoading";
+import { useRealtimeDashboard } from "../../hooks/useRealtimeDashboard";
 
 const AdminDashboard = () => {
   const [stats, setStats] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    api
-      .get("/admin/stats")
-      .then(({ data }) => setStats(data || {}))
-      .catch(() => setStats({}))
-      .finally(() => setLoading(false));
+  const fetchStats = useCallback(async () => {
+    try {
+      const { data } = await api.get("/admin/stats");
+      setStats(data || {});
+    } catch {
+      setStats({});
+    }
   }, []);
+
+  useEffect(() => {
+    fetchStats().finally(() => setLoading(false));
+  }, [fetchStats]);
+
+  // Refetch instantly when the server reports a dashboard-relevant mutation.
+  useRealtimeDashboard(fetchStats);
 
   if (loading) return <DashboardLoading role="admin" />;
 

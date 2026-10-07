@@ -1,12 +1,10 @@
 import { io } from "socket.io-client";
 
 /*
- * Singleton real-time connection for the notification bell.
- *
- * Polling in NotificationBell stays in place as a fallback — this module only
- * adds instant delivery while the socket is connected. It authenticates with
- * the same JWT used by the REST API (see api/axios.js), and the server puts
- * the connection into a private per-user room (server/utils/socket.js).
+ * Singleton real-time connection shared by the notification bell and the
+ * real-time dashboards. Authenticates with the same JWT used by the REST
+ * API. REST polling stays in place everywhere as a fallback — if the socket
+ * is unavailable, every page behaves exactly as before.
  */
 
 let socket = null;
@@ -24,33 +22,46 @@ const getSocketUrl = () => {
   return `${window.location.protocol}//${window.location.hostname}:5000`;
 };
 
-export const connectNotificationSocket = (onNotification) => {
+// Returns the shared authenticated socket, creating it if needed.
+const getSharedSocket = () => {
   const token = localStorage.getItem("asiatech_token");
   if (!token) return null;
 
-  if (socket) {
-    // Connection already exists (e.g. the bell remounted) — refresh the handler.
-    socket.off("notification:new");
-    socket.on("notification:new", onNotification);
-    return socket;
+  if (!socket) {
+    socket = io(getSocketUrl(), {
+      auth: { token },
+      transports: ["websocket", "polling"],
+      reconnectionAttempts: 10,
+    });
+
+    // If the session ended (token removed), drop the connection quietly.
+    socket.on("connect_error", () => {
+      if (!localStorage.getItem("asiatech_token")) {
+        disconnectNotificationSocket();
+      }
+    });
   }
 
-  socket = io(getSocketUrl(), {
-    auth: { token },
-    transports: ["websocket", "polling"],
-    reconnectionAttempts: 10,
-  });
-
-  socket.on("notification:new", onNotification);
-
-  // If the session ended (token removed), drop the connection quietly.
-  socket.on("connect_error", () => {
-    if (!localStorage.getItem("asiatech_token")) {
-      disconnectNotificationSocket();
-    }
-  });
-
   return socket;
+};
+
+export const connectNotificationSocket = (onNotification) => {
+  const shared = getSharedSocket();
+  if (!shared) return null;
+
+  // Connection may already exist (e.g. the bell remounted) — refresh the handler.
+  shared.off("notification:new");
+  shared.on("notification:new", onNotification);
+  return shared;
+};
+
+// Dashboards: subscribe to "dashboard:update". Returns an unsubscribe fn.
+export const subscribeToDashboardUpdates = (handler) => {
+  const shared = getSharedSocket();
+  if (!shared) return () => {};
+
+  shared.on("dashboard:update", handler);
+  return () => shared.off("dashboard:update", handler);
 };
 
 export const disconnectNotificationSocket = () => {

@@ -1,22 +1,30 @@
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import api from "../../api/axios";
 import DashboardShell from "../../components/DashboardShell";
 import DashboardLoading from "../../components/DashboardLoading";
+import { useRealtimeDashboard } from "../../hooks/useRealtimeDashboard";
 
 const CompanyDashboard = () => {
   const [profile, setProfile] = useState(null);
   const [jobs, setJobs] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    Promise.all([api.get("/companies/me"), api.get("/jobs/company/mine")])
-      .then(([profileRes, jobsRes]) => {
-        setProfile(profileRes.data.profile);
-        setJobs(jobsRes.data.jobs);
-      })
-      .finally(() => setLoading(false));
+  const fetchDashboard = useCallback(async () => {
+    const [profileRes, jobsRes] = await Promise.all([
+      api.get("/companies/me"),
+      api.get("/jobs/company/mine"),
+    ]);
+    setProfile(profileRes.data.profile);
+    setJobs(jobsRes.data.jobs);
   }, []);
+
+  useEffect(() => {
+    fetchDashboard().finally(() => setLoading(false));
+  }, [fetchDashboard]);
+
+  // Refetch instantly when the server reports a dashboard-relevant mutation.
+  useRealtimeDashboard(fetchDashboard);
 
   if (loading) return <DashboardLoading role="company" />;
 

@@ -1,10 +1,11 @@
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import api from "../../api/axios";
 import StatusBadge from "../../components/StatusBadge";
 import TimeTracker from "../../components/TimeTracker";
 import DashboardShell from "../../components/DashboardShell";
 import DashboardLoading from "../../components/DashboardLoading";
+import { useRealtimeDashboard } from "../../hooks/useRealtimeDashboard";
 
 const StudentDashboard = () => {
   const navigate = useNavigate();
@@ -14,22 +15,30 @@ const StudentDashboard = () => {
   const [loadError, setLoadError] = useState("");
   const [messagingAdmin, setMessagingAdmin] = useState(false);
 
-  useEffect(() => {
-    Promise.all([api.get("/students/me"), api.get("/applications/mine")])
-      .then(([profileRes, appsRes]) => {
-        setProfile(profileRes.data.profile);
-        setApplications(appsRes.data.applications);
-      })
-      .catch((error) => {
-        setProfile(null);
-        setApplications([]);
-        setLoadError(
-          error.response?.data?.message ||
-            "Unable to load your dashboard. Please refresh and try again.",
-        );
-      })
-      .finally(() => setLoading(false));
+  const fetchDashboard = useCallback(async () => {
+    try {
+      const [profileRes, appsRes] = await Promise.all([
+        api.get("/students/me"),
+        api.get("/applications/mine"),
+      ]);
+      setProfile(profileRes.data.profile);
+      setApplications(appsRes.data.applications);
+    } catch (error) {
+      setProfile(null);
+      setApplications([]);
+      setLoadError(
+        error.response?.data?.message ||
+          "Unable to load your dashboard. Please refresh and try again.",
+      );
+    }
   }, []);
+
+  useEffect(() => {
+    fetchDashboard().finally(() => setLoading(false));
+  }, [fetchDashboard]);
+
+  // Refetch instantly when the server reports a dashboard-relevant mutation.
+  useRealtimeDashboard(fetchDashboard);
 
   const handleMessageAdmin = async () => {
     setMessagingAdmin(true);

@@ -1,8 +1,11 @@
 import React, { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { AnimatePresence, motion } from "framer-motion";
 import api from "../api/axios";
+import { connectNotificationSocket } from "../utils/socket";
 
 const POLL_INTERVAL_MS = 30000;
+const TOAST_DURATION_MS = 6000;
 
 const timeAgo = (dateStr) => {
   const seconds = Math.floor((Date.now() - new Date(dateStr)) / 1000);
@@ -24,13 +27,30 @@ const NotificationBell = () => {
   const [unreadCount, setUnreadCount] = useState(0);
   const [notifications, setNotifications] = useState([]);
   const [loadingNotifications, setLoadingNotifications] = useState(false);
+  const [toast, setToast] = useState(null);
 
-  const refreshUnreadCount = () => {
-    api
-      .get("/notifications/unread-count")
-      .then(({ data }) => setUnreadCount(data.count))
-      .catch(() => {});
-  };
+  // Real-time push: the server emits every new notification the moment it is
+  // created (server/utils/socket.js). The polling below stays as a fallback
+  // for when the socket is disconnected or unsupported.
+  useEffect(() => {
+    const socket = connectNotificationSocket((payload) => {
+      const notification = payload && payload.notification;
+      if (!notification) return;
+      setUnreadCount((c) => c + 1);
+      setNotifications((prev) => [notification, ...prev].slice(0, 30));
+      setToast(notification);
+    });
+    return () => {
+      if (socket) socket.off("notification:new");
+    };
+  }, []);
+
+  // Auto-dismiss the toast after a few seconds.
+  useEffect(() => {
+    if (!toast) return undefined;
+    const timer = setTimeout(() => setToast(null), TOAST_DURATION_MS);
+    return () => clearTimeout(timer);
+  }, [toast]);
 
   useEffect(() => {
     let requestInFlight = false;
@@ -87,6 +107,24 @@ const NotificationBell = () => {
 
   const handleSelect = async (notification) => {
     setOpen(false);
+    if (!notification.read) {
+      setUnreadCount((c) => Math.max(c - 1, 0));
+      setNotifications((prev) =>
+        prev.map((n) =>
+          n._id === notification._id ? { ...n, read: true } : n,
+        ),
+      );
+      api.put(`/notifications/${notification._id}/read`).catch(() => {});
+    }
+    if (notification.link) navigate(notification.link);
+  };
+
+  // Tapping the toast acts exactly like selecting the same notification in
+  // the dropdown: mark it read, then follow its link if it has one.
+  const handleToastOpen = () => {
+    if (!toast) return;
+    const notification = toast;
+    setToast(null);
     if (!notification.read) {
       setUnreadCount((c) => Math.max(c - 1, 0));
       setNotifications((prev) =>
@@ -193,6 +231,66 @@ const NotificationBell = () => {
           )}
         </div>
       )}
+
+      {/* Real-time toast: styled with the same palette as the dropdown
+          (white card, navy text, gold accent) so it stays on theme. */}
+      <AnimatePresence>
+        {toast && (
+          <motion.div
+            initial={{ opacity: 0, y: 12, scale: 0.98 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: 8, scale: 0.98 }}
+            transition={{ duration: 0.25, ease: [0.22, 1, 0.36, 1] }}
+            className="fixed bottom-5 right-5 z-[200] w-80 max-w-[calc(100vw-2.5rem)]"
+          >
+            <div className="bg-white rounded-xl shadow-xl border border-black/10 px-4 py-3">
+              <div className="flex items-start gap-2">
+                <span className="w-1.5 h-1.5 rounded-full bg-gold mt-1.5 shrink-0" />
+                <button
+                  type="button"
+                  onClick={handleToastOpen}
+                  className="flex-1 text-left"
+                >
+                  <p className="text-navy text-sm font-semibold leading-snug">
+                    {toast.title}
+                  </p>
+                  {toast.body && (
+                    <p className="text-navy/65 text-xs mt-0.5 leading-snug">
+                      {toast.body}
+                    </p>
+                  )}
+                  {toast.link && (
+                    <p className="text-gold text-[11px] font-medium mt-1">
+                      Tap to view
+                    </p>
+                  )}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setToast(null)}
+                  aria-label="Dismiss notification"
+                  className="text-navy/40 hover:text-navy transition p-0.5 shrink-0"
+                >
+                  <svg
+                    width="14"
+                    height="14"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      d="M6 18L18 6M6 6l12 12"
+                    />
+                  </svg>
+                </button>
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 };

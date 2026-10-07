@@ -132,8 +132,8 @@ const ABOUT_SLIDES = [
   },
   {
     image: "/system-logo/Igot.png",
-    alt: "Romel Jr, S. Igot.",
-    name: "Romel Jr, S. Igot.",
+    alt: "Romel Jr S. Igot",
+    name: "Romel Jr S. Igot",
     role: "Front-end development and integration",
     desktopClass: "md:translate-y-2 md:scale-[1.7]",
   },

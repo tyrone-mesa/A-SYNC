@@ -1,10 +1,11 @@
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 import api from "../../api/axios";
 import DashboardShell from "../../components/DashboardShell";
 import DashboardLoading from "../../components/DashboardLoading";
 import { BACHELOR_PROGRAMS, ASSOCIATE_PROGRAMS } from "../../constants/courses";
+import { useRealtimeDashboard } from "../../hooks/useRealtimeDashboard";
 
 const PROGRAMS = [...BACHELOR_PROGRAMS, ...ASSOCIATE_PROGRAMS];
 
@@ -18,12 +19,21 @@ const ManageStaffStudents = () => {
   const [programMenuOpen, setProgramMenuOpen] = useState(false);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    api
-      .get(`/staff${base}/students`)
-      .then(({ data }) => setStudents(data.students || []))
-      .finally(() => setLoading(false));
+  const fetchStudents = useCallback(async () => {
+    try {
+      const { data } = await api.get(`/staff${base}/students`);
+      setStudents(data.students || []);
+    } catch {
+      // Keep the existing list if a refresh fails.
+    }
   }, [base]);
+
+  useEffect(() => {
+    fetchStudents().finally(() => setLoading(false));
+  }, [fetchStudents]);
+
+  // Refetch instantly when the server reports a dashboard-relevant mutation.
+  useRealtimeDashboard(fetchStudents);
 
   if (loading) return <DashboardLoading role={user?.role} />;
   const filtered = students.filter((student) => {

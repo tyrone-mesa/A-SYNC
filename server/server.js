@@ -8,12 +8,14 @@ const helmet = require("helmet");
 const rateLimit = require("express-rate-limit");
 const morgan = require("morgan");
 const { execFileSync } = require("child_process");
+const http = require("http");
 
 const connectDB = require("./config/db");
 const StudentProfile = require("./models/StudentProfile");
 const { seedAdmin } = require("./utils/seedAdmin");
 const { seedJobs } = require("./utils/seedJobs");
 const mongoSanitize = require("./middleware/sanitize");
+const { initSocket } = require("./utils/socket");
 
 const {
   seedCompanyUploadedLogos,
@@ -190,7 +192,7 @@ const checkClamAV = () => {
     console.log("[ASIATECH SYNC] ✓ ClamAV scanning enabled.");
   } catch {
     console.error(
-      `[ASIATECH SYNC] ✗ ClamAV is enabled but was not found at "${process.env.CLAMSCAN_PATH}". File uploads will be rejected until ClamAV is installed or CLAMSCAN_PATH is corrected, or set CLAMAV_SCAN=false.`
+      `[ASIATECH SYNC] ✗ ClamAV is enabled but was not found at "${process.env.CLAMSCAN_PATH}". File uploads will be rejected until ClamAV is installed or CLAMAV_SCAN is corrected, or set CLAMAV_SCAN=false.`
     );
   }
 };
@@ -433,11 +435,34 @@ const getAllowedCorsOrigins = () => {
   ];
 };
 
+// Shared origin check used by both the Express CORS middleware below and the
+// Socket.IO server (utils/socket.js), so both channels accept exactly the
+// same set of origins.
+const isOriginAllowed = (origin) => {
+  /*
+   * Development mode.
+   */
+  if (process.env.NODE_ENV !== "production") {
+    return true;
+  }
+
+  /*
+   * Normalize the browser Origin.
+   *
+   * Example:
+   *
+   * https://A-SYNC.up.railway.app/
+   *
+   * becomes:
+   *
+   * https://a-sync.up.railway.app
+   */
+  return getAllowedCorsOrigins().includes(normalizeOrigin(origin));
+};
+
 app.use(
   cors({
     origin: (origin, callback) => {
-      const allowedOrigins = getAllowedCorsOrigins();
-
       /*
        * Requests without an Origin header include:
        * - server-to-server requests
@@ -450,30 +475,7 @@ app.use(
         return callback(null, true);
       }
 
-      /*
-       * Development mode.
-       */
-      if (process.env.NODE_ENV !== "production") {
-        return callback(null, true);
-      }
-
-      /*
-       * Normalize the browser Origin.
-       *
-       * Example:
-       *
-       * https://A-SYNC.up.railway.app/
-       *
-       * becomes:
-       *
-       * https://a-sync.up.railway.app
-       */
-      const normalizedOrigin = normalizeOrigin(origin);
-
-      /*
-       * Check normalized origin against normalized allowed origins.
-       */
-      if (allowedOrigins.includes(normalizedOrigin)) {
+      if (isOriginAllowed(origin)) {
         return callback(null, true);
       }
 
@@ -482,7 +484,7 @@ app.use(
        */
       console.error(
         "[ASIATECH SYNC] ✗ CORS blocked origin:",
-        normalizedOrigin
+        normalizeOrigin(origin)
       );
 
       return callback(
@@ -807,7 +809,16 @@ const startServer = () => {
   const PORT =
     process.env.PORT || 5000;
 
-  app.listen(
+  /*
+   * The HTTP server is created explicitly (instead of app.listen) so the
+   * Socket.IO real-time layer can share the same port as the REST API.
+   * All existing routes and middleware are untouched.
+   */
+  const server = http.createServer(app);
+
+  initSocket(server, isOriginAllowed);
+
+  server.listen(
     PORT,
     () => {
       console.log(

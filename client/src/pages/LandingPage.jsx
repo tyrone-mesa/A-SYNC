@@ -204,7 +204,7 @@ const LandingPage = ({ intro = false, onIntroComplete }) => {
     video.play().catch(() => setHasIntroVideoFailed(true));
   }, [hasIntroVideoFailed, prefersReducedMotion, shouldRenderHeroVideo]);
 
-  React.zuseEffect(() => {
+  React.useEffect(() => {
     if (!intro) return undefined;
 
     if (prefersReducedMotion || hasIntroVideoFailed) {

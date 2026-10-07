@@ -144,13 +144,17 @@ const ABOUT_SLIDES = [
     role: "Back-end development and API integration",
     desktopClass: "md:-translate-y-[60px] md:scale-[2.2]",
   },
-  {
+  }
     image: "/system-logo/Mesa.png",
     alt: "Tyrone James Rafael A. Mesa",
     name: "Tyrone James Rafael A. Mesa",
     role: "Documentation and system development support",
     desktopClass: "md:translate-x-[250px] md:translate-y-[50px] md:scale-[1.7]",
   },
+  }
+    image: "/system-logo/3member.png",
+    desktopClass: "md:translate-x-[250px] md:translate-y-[50px] md:scale-[1.7]",
+    {,
 ];
 
 const LandingPage = ({ intro = false, onIntroComplete }) => {

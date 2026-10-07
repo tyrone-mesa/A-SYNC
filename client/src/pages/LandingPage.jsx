@@ -128,7 +128,7 @@ const ABOUT_SLIDES = [
     alt: "A-Sync official logo",
     name: "Connecting ASIATECH Students to the Industry",
     role: "AsiatechSync connects students with meaningful industry opportunities.",
-    desktopClass: "md:translate-x-[330px] md:translate-y-[30px]",
+    desktopClass: "md:translate-x-[320px] md:translate-y-[30px]",
   },
   {
     image: "/system-logo/Igot.png",
@@ -155,7 +155,7 @@ const ABOUT_SLIDES = [
     image: "/system-logo/3member.png",
     alt: "",
     name: "",
-    desktopClass: "md:-translate-y-[60px] md:scale-[1]",
+    desktopClass: "md:translate-y-[50px] md:scale-[1.5]",
   },
 ];
 
@@ -204,7 +204,7 @@ const LandingPage = ({ intro = false, onIntroComplete }) => {
     video.play().catch(() => setHasIntroVideoFailed(true));
   }, [hasIntroVideoFailed, prefersReducedMotion, shouldRenderHeroVideo]);
 
-  React.useEffect(() => {
+  React.zuseEffect(() => {
     if (!intro) return undefined;
 
     if (prefersReducedMotion || hasIntroVideoFailed) {

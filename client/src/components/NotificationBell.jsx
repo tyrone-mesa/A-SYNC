@@ -232,17 +232,33 @@ const NotificationBell = () => {
         </div>
       )}
 
-      {/* Real-time toast: styled with the same palette as the dropdown
-          (white card, navy text, gold accent) so it stays on theme. */}
+      {/* Real-time toast: anchored to the bell so a new Socket.IO notification
+          pops out of the bell itself instead of the far bottom-right corner of
+          the screen. Styled with the same palette as the dropdown (white card,
+          navy text, gold accent) so it stays on theme.
+
+          Responsive reference (most common viewports, big to small):
+            - Desktop 16:9 / 16:10 / 21:9: 1920x1080, 1536x864, 1366x768
+            - Tablet 4:3 / 16:10: 768x1024, 1280x800
+            - Mobile 19.5:9 / 20:9: 390x844, 360x800, down to 320px wide
+          The card hangs from the bell's right edge (which always sits near the
+          right side of the navbar) and its width is capped at the viewport
+          minus a safety margin, so it never overflows on any screen size:
+          320px-wide phones included. */}
       <AnimatePresence>
         {toast && (
           <motion.div
-            initial={{ opacity: 0, y: 12, scale: 0.98 }}
+            initial={{ opacity: 0, y: -10, scale: 0.9 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: 8, scale: 0.98 }}
-            transition={{ duration: 0.25, ease: [0.22, 1, 0.36, 1] }}
-            className="fixed bottom-5 right-5 z-[200] w-80 max-w-[calc(100vw-2.5rem)]"
+            exit={{ opacity: 0, y: -6, scale: 0.95 }}
+            transition={{ type: "spring", stiffness: 400, damping: 28 }}
+            style={{ transformOrigin: "top right" }}
+            className="absolute right-0 top-full mt-2 z-[200] w-72 sm:w-80 max-w-[calc(100vw-2rem)]"
           >
+            {/* Caret pointing up at the bell, so the toast visually pops out
+                of it. Sits above the card edge; the rotation makes a diamond
+                whose top half reads as an arrow. */}
+            <span className="absolute -top-1.5 right-3 w-3 h-3 rotate-45 bg-white border-l border-t border-black/10" />
             <div className="bg-white rounded-xl shadow-xl border border-black/10 px-4 py-3">
               <div className="flex items-start gap-2">
                 <span className="w-1.5 h-1.5 rounded-full bg-gold mt-1.5 shrink-0" />

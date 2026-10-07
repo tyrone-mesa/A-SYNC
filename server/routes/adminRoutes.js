@@ -25,6 +25,7 @@ const {
 } = require("../utils/emailTemplates");
 const { persistUpload, renameUpload } = require("../utils/persistUpload");
 const { removeFile, serveFile } = require("../utils/storage");
+const { emitDashboardUpdate } = require("../utils/socket");
 
 const router = express.Router();
 
@@ -209,6 +210,7 @@ router.put("/users/:id/toggle-active", authorize("admin"), async (req, res) => {
   if (!user) return res.status(404).json({ message: "User not found." });
   user.isActive = !user.isActive;
   await user.save();
+  emitDashboardUpdate({ roles: ["admin"], scope: "users" });
   res.json({ user: user.toSafeObject() });
 });
 
@@ -239,6 +241,8 @@ router.delete("/users/:id/archive", authorize("admin"), async (req, res) => {
       );
     }
   }
+
+  emitDashboardUpdate({ roles: ["admin"], scope: "users" });
 
   res.json({ message: "User account archived.", user: user.toSafeObject() });
 });
@@ -292,6 +296,8 @@ router.post(
           email: email.toLowerCase(),
         }),
       });
+
+      emitDashboardUpdate({ roles: ["admin"], scope: "users" });
 
       res.status(201).json({
         message:
@@ -364,6 +370,9 @@ router.post(
         password: req.body.password,
         role: "registrar",
       });
+
+      emitDashboardUpdate({ roles: ["admin"], scope: "users" });
+
       res.status(201).json({
         message: "Registrar account created.",
         user: user.toSafeObject(),
@@ -584,6 +593,11 @@ router.post(
           ...studentMonthlyOtpEmail({ fullName, code: monthlyOtp }),
         }),
       ]);
+
+      emitDashboardUpdate({
+        roles: ["admin", "coordinator", "registrar"],
+        scope: "students",
+      });
 
       res.status(201).json({
         message:
@@ -875,6 +889,11 @@ router.put(
       }
       await user.save();
 
+      emitDashboardUpdate({
+        roles: ["admin", "coordinator", "registrar"],
+        scope: "students",
+      });
+
       const updated = await StudentProfile.findById(profile._id).populate(
         "user",
         "fullName email isActive",
@@ -915,6 +934,12 @@ router.put(
         Math.round((profile.completedOJTHours + hoursToAdd) * 100) / 100;
       await profile.save();
 
+      emitDashboardUpdate({
+        users: [profile.user],
+        roles: ["coordinator", "registrar"],
+        scope: "attendance",
+      });
+
       res.json({
         message: `${hoursToAdd} hour(s) added.`,
         profile,
@@ -938,6 +963,11 @@ router.delete("/students/:id", authorize("admin"), async (req, res) => {
     isActive: false,
     isArchived: true,
     archivedAt: new Date(),
+  });
+
+  emitDashboardUpdate({
+    roles: ["admin", "coordinator", "registrar"],
+    scope: "students",
   });
 
   res.json({ message: "Student account deleted." });
@@ -996,6 +1026,8 @@ router.put("/companies/:id/verify", authorize("admin"), async (req, res) => {
         }),
       });
     }
+
+    emitDashboardUpdate({ roles: ["admin"], scope: "companies" });
 
     res.json({ company });
   } catch (err) {

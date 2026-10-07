@@ -14,6 +14,7 @@ const {
   getPhilippineTimeString,
 } = require("../utils/philippineTime");
 const { createInAppNotification } = require("../utils/notify");
+const { emitDashboardUpdate } = require("../utils/socket");
 const scanUploadedFile = require("../middleware/scanUpload");
 const { persistUpload, renameUpload } = require("../utils/persistUpload");
 const { removeFile } = require("../utils/storage");
@@ -682,6 +683,13 @@ router.post(
 
       await profile.save();
 
+      // Real-time: staff rosters and the student's dashboard refresh instantly.
+      emitDashboardUpdate({
+        users: [profile.user],
+        roles: ["coordinator", "registrar"],
+        scope: "assessment",
+      });
+
       return res.status(201).json({
         message:
           "Assessment submitted and locked.",
@@ -1101,6 +1109,14 @@ router.post(
         },
       );
 
+      // Real-time: coordinator/registrar rosters and the student's
+      // dashboard refresh the moment attendance is written.
+      emitDashboardUpdate({
+        users: [studentProfile.user._id],
+        roles: ["coordinator", "registrar"],
+        scope: "attendance",
+      });
+
       const populatedAttendance =
         await AttendanceLog.findById(
           attendance._id,
@@ -1260,6 +1276,14 @@ router.post(
           },
         );
       }
+
+      // Real-time: coordinator/registrar rosters and the student's
+      // dashboard refresh the moment attendance is written.
+      emitDashboardUpdate({
+        users: [attendance.student?.user?._id],
+        roles: ["coordinator", "registrar"],
+        scope: "attendance",
+      });
 
       return res.json({
         message:

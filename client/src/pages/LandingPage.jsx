@@ -1,4 +1,4 @@
-import React, { useCallback, useRef, useState } from "react";
+wimport React, { useCallback, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { motion, useReducedMotion } from "framer-motion";
 import Navbar from "../components/Navbar";
@@ -408,7 +408,7 @@ const LandingPage = ({ intro = false, onIntroComplete }) => {
 
               <motion.h1
                 variants={heroItem}
-                className="mb-5 font-bespoke text-[clamp(2rem,4vw,4rem)] font-bold italic leading-[0.96] tracking-[-0.04em] text-white [text-shadow:0_2px_20px_rgba(15,61,46,0.45)]"
+                className="mb-5 font-bespoke text-[clamp(2rem,5vw,4rem)] font-bold italic leading-[0.96] tracking-[-0.04em] text-white [text-shadow:0_2px_20px_rgba(15,61,46,0.45)]"
               >
                 Your Future Starts With the Right Opportunity.
               </motion.h1>

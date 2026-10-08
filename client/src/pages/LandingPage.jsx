@@ -155,7 +155,7 @@ const ABOUT_SLIDES = [
     image: "/system-logo/3member.png",
     alt: "",
     name: "",
-    desktopClass: "md:translate-y-[50px] md:scale-[1.3]",
+    desktopClass: "md:translate-y-[55px] md:scale-[1.4]",
   },
 ];
 

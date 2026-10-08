@@ -1,4 +1,4 @@
-React, { useCallback, useRef, useState } from "react";
+import React, { useCallback, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { motion, useReducedMotion } from "framer-motion";
 import Navbar from "../components/Navbar";

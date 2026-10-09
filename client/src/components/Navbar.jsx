@@ -81,6 +81,22 @@ const Navbar = ({ variant = "static" }) => {
     window.dispatchEvent(new CustomEvent("asiatech:partner-signup"));
   };
 
+  // Keep the active pill visible in the scrollable mobile strip — same
+  // behavior as the dashboard shell's mobile nav.
+  const mobileNavRef = useRef(null);
+  useEffect(() => {
+    const activeLink = mobileNavRef.current?.querySelector(
+      "[aria-current='page']",
+    );
+    if (activeLink) {
+      activeLink.scrollIntoView({
+        behavior: "smooth",
+        block: "nearest",
+        inline: "center",
+      });
+    }
+  }, [location.pathname, location.hash]);
+
   useEffect(() => {
     if (location.pathname === "/" && location.search === "?auth=login") {
       setAuthModal({ type: "login", portal: "student" });
@@ -104,10 +120,10 @@ const Navbar = ({ variant = "static" }) => {
     variant === "overlay" ? "" : "animate-nav-fade";
 
   const mobileNavLinkClass = (isActive) =>
-    `relative inline-flex items-center rounded-full border px-3 py-1.5 text-[12px] font-semibold tracking-[-0.01em] transition-all duration-200 ${
+    `relative inline-flex shrink-0 snap-center items-center rounded-full border px-3 py-1.5 text-[12px] font-semibold tracking-[-0.01em] transition-colors duration-200 ${
       isActive
-        ? "border-[#F6C744] bg-[#F6C744]/10 text-white"
-        : "border-white/15 bg-white/5 text-white/85 hover:bg-white/10 hover:text-white"
+        ? "border-[#d2e9e1]/50 bg-[#eaf3ee] text-[#173d34] shadow-[0_6px_18px_rgba(23,61,52,0.16),inset_0_1px_2px_rgba(255,255,255,0.35)]"
+        : "border-transparent bg-white/10 text-white/80 hover:bg-white/[0.18]"
     }`;
 
   return (
@@ -195,10 +211,19 @@ const Navbar = ({ variant = "static" }) => {
         </div>
 
         <div className="lg:hidden">
-          <div className="mt-3 flex justify-center overflow-x-auto pb-1">
+          <div
+            ref={mobileNavRef}
+            className="mt-3 flex snap-x snap-mandatory overflow-x-auto pb-1 scrollbar-hide"
+            style={{ WebkitOverflowScrolling: "touch" }}
+          >
             <div className="flex items-center gap-2 whitespace-nowrap">
               <Link
                 to="/"
+                aria-current={
+                  location.pathname === "/" && !location.hash
+                    ? "page"
+                    : undefined
+                }
                 className={mobileNavLinkClass(location.pathname === "/" && !location.hash)}
               >
                 Home
@@ -206,6 +231,7 @@ const Navbar = ({ variant = "static" }) => {
 
               <Link
                 to="/jobs"
+                aria-current={location.pathname === "/jobs" ? "page" : undefined}
                 className={mobileNavLinkClass(location.pathname === "/jobs")}
               >
                 Opportunities
@@ -214,6 +240,11 @@ const Navbar = ({ variant = "static" }) => {
               {user && (
                 <Link
                   to={roleHome[user.role]}
+                  aria-current={
+                    location.pathname.startsWith(roleHome[user.role])
+                      ? "page"
+                      : undefined
+                  }
                   className={mobileNavLinkClass(
                     location.pathname.startsWith(roleHome[user.role]),
                   )}

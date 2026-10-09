@@ -207,14 +207,14 @@ const ManageCompanies = () => {
                 </div>
               ) : (
                 // Company Row
-                <div className="flex items-center justify-between gap-4 py-4 first:pt-0 last:pb-0">
+                <div className="flex flex-col gap-3 py-4 first:pt-0 last:pb-0 sm:flex-row sm:items-center sm:justify-between sm:gap-4">
                   <div>
                     <p className="font-medium text-navy">{c.companyName}</p>
-                    <p className="text-sm text-navy/65">
+                    <p className="hidden text-sm text-navy/65 sm:block">
                       {c.user?.email} · {c.industry || "Industry not set"}
                     </p>
                   </div>
-                  <div className="flex items-center gap-3 shrink-0">
+                  <div className="flex flex-wrap items-center gap-2 sm:gap-3 sm:shrink-0">
                     <span
                       className={`badge ${c.isVerified ? "bg-[#dfeecf] text-[#5E7867] border border-forest/20" : "bg-navy/10 text-navy/65"}`}
                     >

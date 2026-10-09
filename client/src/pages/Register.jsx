@@ -86,7 +86,7 @@ const Register = ({ modal = false, onClose, onBack, onLogin }) => {
         initial={modal ? { opacity: 0, scale: 0.96, y: 12 } : false}
         animate={modal ? { opacity: 1, scale: 1, y: 0 } : undefined}
         transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
-        className={`card relative w-full ${modal ? "min-h-[680px] max-w-4xl overflow-hidden border-[#b8d2c0] !bg-white p-7 shadow-[0_24px_60px_rgba(15,61,46,0.24)] sm:p-9 lg:pl-[25rem] lg:pr-9" : "max-w-md p-8"} ${modal ? "backdrop-blur-none" : ""}`}
+        className={`card relative w-full ${modal ? "max-h-[92dvh] min-h-[min(680px,85dvh)] max-w-4xl overflow-hidden border-[#b8d2c0] !bg-white p-7 shadow-[0_24px_60px_rgba(15,61,46,0.24)] sm:p-9 lg:pl-[25rem] lg:pr-9 xl:max-w-5xl" : "max-w-md p-8"} ${modal ? "backdrop-blur-none" : ""}`}
       >
         {modal && (
           <>

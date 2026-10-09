@@ -86,11 +86,11 @@ const Register = ({ modal = false, onClose, onBack, onLogin }) => {
         initial={modal ? { opacity: 0, scale: 0.96, y: 12 } : false}
         animate={modal ? { opacity: 1, scale: 1, y: 0 } : undefined}
         transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
-        className={`card relative w-full ${modal ? "min-h-[680px] max-w-4xl overflow-hidden border-[#b8d2c0] !bg-white p-7 shadow-[0_24px_60px_rgba(15,61,46,0.24)] sm:pl-[25rem] sm:pr-9 sm:p-9" : "max-w-md p-8"} ${modal ? "backdrop-blur-none" : ""}`}
+        className={`card relative w-full ${modal ? "min-h-[680px] max-w-4xl overflow-hidden border-[#b8d2c0] !bg-white p-7 shadow-[0_24px_60px_rgba(15,61,46,0.24)] sm:p-9 lg:pl-[25rem] lg:pr-9" : "max-w-md p-8"} ${modal ? "backdrop-blur-none" : ""}`}
       >
         {modal && (
           <>
-            <div className="pointer-events-none absolute inset-y-0 left-0 hidden w-[23rem] overflow-hidden bg-[#0f3d2e] sm:block">
+            <div className="pointer-events-none absolute inset-y-0 left-0 hidden w-[23rem] overflow-hidden bg-[#0f3d2e] lg:block">
               <video
                 className="h-full w-full object-cover object-[50%_20%]"
                 src="/media/hero-intro-2.mp4"

@@ -468,3 +468,45 @@
     }
   }
 }
+
+
+/* ===== A-Sync UI pass: responsive register, mobile dashboards, clean shell motion ===== */
+
+/* --- Small screens: stop root-level horizontal overflow --- */
+@media (max-width: 767px) {
+  #root {
+    overflow-x: clip;
+  }
+}
+
+/* --- Stat cards: 2-up between 640-767px instead of cramped 3-across --- */
+@media (min-width: 640px) and (max-width: 767px) {
+  .sm\:grid-cols-3 {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+/* --- Forms on phones: readable labels, no iOS zoom-on-focus, thumb-friendly buttons --- */
+@media (max-width: 639px) {
+  .input-field {
+    font-size: 16px; /* prevents iOS zoom-on-focus */
+  }
+  .label {
+    font-size: 0.95rem;
+  }
+  .card .btn-primary,
+  .card .btn-secondary,
+  .card .btn-danger {
+    width: 100%;
+    min-height: 48px;
+  }
+}
+
+/* --- Dashboard tables: horizontal scroll instead of breaking the page --- */
+.dashboard-table-wrap {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+.dashboard-table-wrap table {
+  min-width: 560px;
+}

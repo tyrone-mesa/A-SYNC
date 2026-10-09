@@ -254,63 +254,29 @@ const DashboardShell = ({
                           item.to === "/company/jobs" ||
                           item.to === "/company/jobs/new"
                         }
-                        className="shrink-0 snap-center"
                         data-active={isActive}
                         aria-current={isActive ? "page" : undefined}
+                        style={{ pointerEvents: "auto", cursor: "pointer" }}
+                        className={({ isActive: linkActive }) =>
+                          `relative shrink-0 snap-center whitespace-nowrap rounded-full px-4 py-2.5 text-xs sm:text-sm font-medium transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-white/30 focus:ring-offset-2 ${
+                            linkActive
+                              ? "border border-[#d2e9e1]/50 bg-[#eaf3ee] text-[#173d34] shadow-[0_6px_18px_rgba(23,61,52,0.16),inset_0_1px_2px_rgba(255,255,255,0.35)]"
+                              : "border border-transparent bg-white/10 text-white/80 hover:bg-white/[0.18]"
+                          }`
+                        }
                       >
                         {({ isActive: linkActive }) => (
-                          <motion.div
-                            initial={false}
-                            animate={{
-                              backgroundColor: linkActive
-                                ? "rgba(234, 243, 238, 1)"
-                                : "rgba(255, 255, 255, 0.1)",
-                              color: linkActive
-                                ? "rgba(23, 61, 52, 1)"
-                                : "rgba(255, 255, 255, 0.78)",
-                              boxShadow: linkActive
-                                ? "0 6px 18px rgba(23, 61, 52, 0.16), inset 0 1px 2px rgba(255, 255, 255, 0.35)"
-                                : "none",
-                            }}
-                            whileHover={{
-                              backgroundColor: linkActive
-                                ? "rgba(234, 243, 238, 1)"
-                                : "rgba(255, 255, 255, 0.18)",
-                              y: -2,
-                              scale: 1.01,
-                              boxShadow: linkActive
-                                ? "0 8px 20px rgba(23, 61, 52, 0.16), inset 0 1px 2px rgba(255, 255, 255, 0.38)"
-                                : "0 6px 14px rgba(23, 61, 52, 0.08)",
-                            }}
-                            whileTap={{
-                              scale: 0.97,
-                              y: 0,
-                            }}
+                          <motion.span
+                            whileTap={{ scale: 0.97 }}
+                            whileHover={{ y: -2 }}
                             transition={mobileNavTransition}
-                            className="relative whitespace-nowrap rounded-full px-4 py-2.5 text-xs sm:text-sm font-medium focus:outline-none focus:ring-2 focus:ring-white/30 focus:ring-offset-2"
-                            style={{
-                              border: linkActive
-                                ? "1px solid rgba(210, 233, 225, 0.5)"
-                                : "1px solid transparent",
-                              // No CSS transition here — framer-motion animates these
-                              // same properties; the two fighting caused tap flicker.
-                              pointerEvents: "auto",
-                              cursor: "pointer",
-                            }}
+                            className="relative z-10 flex items-center gap-2"
                           >
-                            <span className="relative z-10 flex items-center gap-2">
-                              {item.label}
-                              {linkActive && (
-                                <motion.span
-                                  className="h-1.5 w-1.5 rounded-full bg-[#173d34]"
-                                  initial={{ scale: 0, opacity: 0 }}
-                                  animate={{ scale: 1, opacity: 1 }}
-                                  exit={{ scale: 0, opacity: 0 }}
-                                  transition={{ type: "spring", stiffness: 500, damping: 24 }}
-                                />
-                              )}
-                            </span>
-                          </motion.div>
+                            {item.label}
+                            {linkActive && (
+                              <span className="h-1.5 w-1.5 rounded-full bg-[#173d34]" />
+                            )}
+                          </motion.span>
                         )}
                       </NavLink>
                     );

@@ -510,3 +510,13 @@
 .dashboard-table-wrap table {
   min-width: 560px;
 }
+
+
+/* --- Scrollable pill strips (dashboard shell mobile nav + public navbar) --- */
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}

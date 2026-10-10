@@ -129,7 +129,7 @@ const BrowseJobs = () => {
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               transition={{ duration: 0.28, ease: [0.22, 1, 0.36, 1] }}
-              className="fixed inset-0 z-50 flex items-start justify-center bg-[#0F1E35]/25 px-4 py-10 backdrop-blur-[2px] sm:px-6"
+              className="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto overscroll-contain bg-[#0F1E35]/25 px-4 py-4 backdrop-blur-[2px] sm:px-6 sm:py-6"
             >
               <motion.div
                 initial={{
@@ -141,7 +141,7 @@ const BrowseJobs = () => {
                 animate={{ opacity: 1, y: 0, scale: 1, filter: "blur(0px)" }}
                 exit={{ opacity: 0, y: 18, scale: 0.98, filter: "blur(2px)" }}
                 transition={{ duration: 0.32, ease: [0.22, 1, 0.36, 1] }}
-                className="w-full max-w-[760px]"
+                className="my-auto w-full max-w-[760px]"
               >
                 <JobDetail
                   job={selectedJob}

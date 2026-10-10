@@ -6,7 +6,8 @@
     "node": "20.x"
   },
   "scripts": {
-    "build": "npm install --prefix server && npm install --prefix client && npm run build --prefix client",
+    "build": "npm ci --prefix server && npm ci --prefix client && npm run build --prefix client",
     "start": "npm start --prefix server"
-  }
+  },
+  "packageManager": "npm@10.8.2"
 }

@@ -221,7 +221,7 @@ const ManageCompanies = () => {
                   </div>
                   <div className="flex flex-wrap items-center gap-2 sm:gap-3 sm:shrink-0">
                     <span
-                      className={`badge ${c.isVerified ? "bg-[#dfeecf] text-[#5E7867] border border-forest/20" : "bg-navy/10 text-navy/65"}`}
+                      className={c.isVerified ? "text-sm font-bold text-[#5E7867]" : "badge bg-navy/10 text-navy/65"}
                     >
                       {c.isVerified ? "Verified" : "Pending"}
                     </span>
@@ -233,23 +233,19 @@ const ManageCompanies = () => {
                     </Link>
                     <button
                       onClick={() => startEdit(c)}
-                      className="bg-blue-100 text-blue-700 border border-blue-200 rounded-full px-3 py-1.5 text-xs font-medium shadow-sm hover:brightness-95"
+                      className="text-xs font-medium text-blue-700 hover:underline"
                     >
                       Edit
                     </button>
                     <button
                       onClick={() => deleteCompany(c._id, c.companyName)}
-                      className="bg-red-100 text-red-700 border border-red-200 rounded-full px-3 py-1.5 text-xs font-medium shadow-sm hover:brightness-95"
+                      className="text-xs font-medium text-red-700 hover:underline"
                     >
                       Archive
                     </button>
                     <button
                       onClick={() => setVerified(c._id, !c.isVerified)}
-                      className={
-                        c.isVerified
-                          ? "bg-[#dfeecf] text-[#5E7867] border border-forest/20 rounded-full px-3 py-1.5 text-xs font-medium shadow-sm"
-                          : "bg-[#dfeecf] text-[#5E7867] border border-forest/20 rounded-full px-3 py-1.5 text-xs font-medium shadow-sm hover:brightness-95"
-                      }
+                      className="text-xs font-medium text-[#5E7867] hover:underline"
                     >
                       {c.isVerified ? "Revoke" : "Approve"}
                     </button>

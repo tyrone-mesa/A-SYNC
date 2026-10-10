@@ -182,7 +182,7 @@ const ManageUsers = () => {
                 </div>
                 <div className="flex shrink-0 flex-wrap items-center gap-3">
                   <span
-                    className={`badge ${u.isActive ? "bg-[#dfeecf] text-[#5E7867] border border-forest/20" : "bg-coral/15 text-[#DF2E1B]"}`}
+                    className={u.isActive ? "text-sm font-bold text-[#5E7867]" : "badge bg-coral/15 text-[#DF2E1B]"}
                   >
                     {u.isActive ? "Active" : "Disabled"}
                   </span>

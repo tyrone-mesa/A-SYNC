@@ -419,12 +419,12 @@ const ManageStudents = () => {
                     {s.completedOJTHours || 0}/{s.requiredOJTHours || 0} hrs
                   </span>
                   <span
-                    className={`badge ${s.isProfileComplete ? "bg-[#dfeecf] text-[#5E7867] border border-forest/20" : "bg-navy/10 text-navy/65"}`}
+                    className={s.isProfileComplete ? "text-sm font-bold text-[#5E7867]" : "badge bg-navy/10 text-navy/65"}
                   >
                     {s.isProfileComplete ? "Profile Complete" : "Incomplete"}
                   </span>
                   <span
-                    className={`badge ${s.user?.isActive ? "bg-[#dfeecf] text-[#5E7867] border border-forest/20" : "bg-coral/15 text-[#DF2E1B]"}`}
+                    className={s.user?.isActive ? "text-sm font-bold text-[#5E7867]" : "badge bg-coral/15 text-[#DF2E1B]"}
                   >
                     {s.user?.isActive ? "Active" : "Disabled"}
                   </span>

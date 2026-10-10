@@ -65,12 +65,12 @@ const CompanyDetail = () => {
       <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
         <div className="flex items-center gap-2 flex-wrap">
           <span
-            className={`badge ${company.isVerified ? "bg-[#dfeecf] text-[#5E7867] border border-forest/20" : "bg-navy/10 text-navy/65"}`}
+            className={company.isVerified ? "text-sm font-bold text-[#5E7867]" : "badge bg-navy/10 text-navy/65"}
           >
             {company.isVerified ? "Verified" : "Pending"}
           </span>
           <span
-            className={`badge ${company.user?.isActive ? "bg-[#dfeecf] text-[#5E7867] border border-forest/20" : "bg-coral/15 text-[#DF2E1B]"}`}
+            className={company.user?.isActive ? "text-sm font-bold text-[#5E7867]" : "badge bg-coral/15 text-[#DF2E1B]"}
           >
             {company.user?.isActive ? "Active" : "Disabled"}
           </span>
@@ -79,11 +79,7 @@ const CompanyDetail = () => {
           <button
             onClick={toggleVerified}
             disabled={busy}
-            className={
-              company.isVerified
-                ? "bg-[#dfeecf] text-[#5E7867] border border-forest/20 rounded-full px-3 py-2 text-xs font-medium shadow-sm"
-                : "bg-[#dfeecf] text-[#5E7867] border border-forest/20 rounded-full px-3 py-2 text-xs font-medium shadow-sm hover:brightness-95"
-            }
+            className="text-xs font-medium text-[#5E7867] hover:underline"
           >
             {company.isVerified ? "Revoke Verification" : "Approve"}
           </button>

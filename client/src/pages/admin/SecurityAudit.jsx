@@ -146,9 +146,9 @@ const SecurityAudit = () => {
                 {log.action.replace(/_/g, " ")}
               </p>
               <span
-                className={`shrink-0 inline-flex rounded-full px-2.5 py-1 text-xs font-bold capitalize ${
+                className={`shrink-0 inline-flex text-xs font-bold capitalize ${
                   log.outcome === "success"
-                    ? "bg-[#dfeecf] text-[#5E7867]"
+                    ? "text-[#5E7867]"
                     : "bg-coral/15 text-[#DF2E1B]"
                 }`}
               >
@@ -220,9 +220,9 @@ const SecurityAudit = () => {
                     </td>
                     <td className="p-4 align-top">
                       <span
-                        className={`inline-flex rounded-full px-2.5 py-1 text-xs font-bold capitalize ${
+                        className={`inline-flex text-xs font-bold capitalize ${
                           log.outcome === "success"
-                            ? "bg-[#dfeecf] text-[#5E7867]"
+                            ? "text-[#5E7867]"
                             : "bg-coral/15 text-[#DF2E1B]"
                         }`}
                       >

@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import api from "../../api/axios";
-import Loader from "../../components/Loader";
+import ListRowSkeleton from "../../components/ListRowSkeleton";
 import CourseSelect from "../../components/CourseSelect";
 import YearLevelSelect from "../../components/YearLevelSelect";
 import { useAuth } from "../../context/AuthContext";
@@ -375,7 +375,9 @@ const ManageStudents = () => {
       </div>
 
       {loading ? (
-        <Loader />
+        <div className="rounded-[24px] border border-black/5 bg-[#f8faf8] p-4 shadow-sm">
+          <ListRowSkeleton rows={8} />
+        </div>
       ) : (
         <div className="rounded-[24px] border border-black/5 bg-[#f8faf8] p-4 shadow-sm">
           <div className="divide-y divide-black/10">

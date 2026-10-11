@@ -4,6 +4,7 @@ import api from "../../api/axios";
 import Loader from "../../components/Loader";
 import DashboardShell from "../../components/DashboardShell";
 import { downloadBlob } from "../../utils/download";
+import SelectDropdown from "../../components/SelectDropdown";
 
 const InterviewSimulator = () => {
   const [sessions, setSessions] = useState([]);
@@ -150,26 +151,25 @@ const InterviewSimulator = () => {
                 >
                   Target Job Title
                 </label>
-                <select
+                                <SelectDropdown
                   id="interview-jobtitle"
                   name="jobTitle"
                   required
+                  allowEmpty
+                  placeholder={
+                    availableJobs.length > 0
+                      ? "Select a current job opening"
+                      : "No open jobs available right now"
+                  }
                   className="input-field h-11 py-2 text-sm"
                   value={form.jobTitle}
                   onChange={handleFormChange}
                   disabled={availableJobs.length === 0}
-                >
-                  <option value="">
-                    {availableJobs.length > 0
-                      ? "Select a current job opening"
-                      : "No open jobs available right now"}
-                  </option>
-                  {availableJobs.map((job) => (
-                    <option key={job._id} value={job.title}>
-                      {job.title}
-                    </option>
-                  ))}
-                </select>
+                  options={availableJobs.map((job) => ({
+                    value: job.title,
+                    label: job.title,
+                  }))}
+                />
               </div>
               <div>
                 <label

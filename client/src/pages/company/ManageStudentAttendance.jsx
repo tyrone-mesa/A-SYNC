@@ -219,7 +219,7 @@ const ManageStudentAttendance = () => {
     <DashboardShell
       role="company"
       title="Student Attendance"
-      subtitle="Manage OJT student check-in and check-out"
+      subtitle="Manage OJT student time-in and time-out"
     >
       {message.text && (
         <div

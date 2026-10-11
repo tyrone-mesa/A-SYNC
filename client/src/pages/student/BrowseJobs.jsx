@@ -2,7 +2,7 @@ import React, { useEffect, useState, useCallback } from "react";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import api from "../../api/axios";
 import JobCard from "../../components/JobCard";
-import Loader, { SkeletonRow } from "../../components/Loader";
+import JobCardSkeleton from "../../components/JobCardSkeleton";
 import Logo from "../../components/Logo";
 import JobDetail from "./JobDetail";
 
@@ -426,9 +426,11 @@ const BrowseJobs = () => {
 
             <motion.section variants={browseItem} className="min-w-0">
               {loading ? (
-                <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
+                <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3 xl:auto-rows-fr">
                   {Array.from({ length: 6 }).map((_, i) => (
-                    <SkeletonRow key={i} className="h-40" />
+                    <div key={i} className="flex h-full min-w-0">
+                      <JobCardSkeleton />
+                    </div>
                   ))}
                 </div>
               ) : error ? (

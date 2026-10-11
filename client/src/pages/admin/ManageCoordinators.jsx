@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import api from "../../api/axios";
 import DashboardShell from "../../components/DashboardShell";
-import Loader from "../../components/Loader";
+import ListRowSkeleton from "../../components/ListRowSkeleton";
 
 const emptyForm = { fullName: "", email: "", password: "" };
 
@@ -213,7 +213,9 @@ const ManageCoordinators = () => {
         </div>
 
         {loading ? (
-          <Loader />
+          <div className="card p-4">
+            <ListRowSkeleton rows={6} />
+          </div>
         ) : (
           <div className="card divide-y divide-black/10">
             {filteredCoordinators.length === 0 && (

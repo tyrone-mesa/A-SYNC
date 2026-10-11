@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import api from "../../api/axios";
-import Loader from "../../components/Loader";
+import ProfileSkeleton from "../../components/ProfileSkeleton";
 import { useAuth } from "../../context/AuthContext";
 
 const MIN_HOURS_FOR_FULLTIME = 300;
@@ -79,7 +79,7 @@ const JobDetail = ({ job: modalJob, onClose, modal = false }) => {
     }
   };
 
-  if (loading) return <Loader fullScreen />;
+  if (loading) return <ProfileSkeleton />;
   if (!job)
     return (
       <div className="p-10 text-center text-navy/65">

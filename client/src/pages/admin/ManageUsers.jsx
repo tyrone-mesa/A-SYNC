@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import api from "../../api/axios";
 import DashboardShell from "../../components/DashboardShell";
-import Loader from "../../components/Loader";
+import ListRowSkeleton from "../../components/ListRowSkeleton";
 import { useAuth } from "../../context/AuthContext";
 
 const renderNumericEmail = (email) =>
@@ -159,7 +159,9 @@ const ManageUsers = () => {
         </div>
 
         {loading ? (
-          <Loader />
+          <div className="card p-4">
+            <ListRowSkeleton rows={8} />
+          </div>
         ) : (
           <div className="card divide-y divide-black/10">
             {filteredUsers.length === 0 && (

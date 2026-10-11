@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import api from "../../api/axios";
 import DashboardShell from "../../components/DashboardShell";
+import SelectDropdown from "../../components/SelectDropdown";
 
 const emptyJob = {
   jobType: "",
@@ -263,17 +264,18 @@ const PostJob = () => {
             <label className="label" htmlFor="postjob-worksetup">
               Work Setup
             </label>
-            <select
+                        <SelectDropdown
               id="postjob-worksetup"
               name="workSetup"
               className="input-field"
               value={form.workSetup}
               onChange={handleChange}
-            >
-              <option>On-site</option>
-              <option>Remote</option>
-              <option>Hybrid</option>
-            </select>
+              options={[
+                { value: "On-site", label: "On-site" },
+                { value: "Remote", label: "Remote" },
+                { value: "Hybrid", label: "Hybrid" },
+              ]}
+            />
           </div>
           <div>
             <label className="label" htmlFor="postjob-minhours">

@@ -7,6 +7,7 @@ import DashboardShell from "../../components/DashboardShell";
 import DashboardLoading from "../../components/DashboardLoading";
 import { openProtectedFile } from "../../utils/protectedFile";
 import { resolveFileUrl } from "../../utils/fileUrl";
+import SelectDropdown from "../../components/SelectDropdown";
 
 const STATUS_OPTIONS = ["in_review", "approved", "declined"];
 
@@ -163,22 +164,21 @@ const ApplicantsList = () => {
                 >
                   Application Status
                 </label>
-                <select
+                                <SelectDropdown
                   id={`applicant-status-${app._id}`}
                   value={app.status}
                   onChange={(e) => updateStatus(app._id, e.target.value)}
-                  className="input-field w-full py-1.5 text-sm"
-                >
-                  {STATUS_OPTIONS.map((s) => (
-                    <option key={s} value={s}>
-                      {s === "in_review"
+                  options={STATUS_OPTIONS.map((s) => ({
+                    value: s,
+                    label:
+                      s === "in_review"
                         ? "In Review"
                         : s === "approved"
                           ? "Approved"
-                          : "Declined"}
-                    </option>
-                  ))}
-                </select>
+                          : "Declined",
+                  }))}
+                  className="input-field py-1.5 text-sm"
+                />
               </div>
             </div>
           </div>

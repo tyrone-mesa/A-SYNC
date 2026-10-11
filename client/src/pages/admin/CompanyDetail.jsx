@@ -3,6 +3,7 @@ import { useParams, Link } from "react-router-dom";
 import api from "../../api/axios";
 import DashboardShell from "../../components/DashboardShell";
 import DashboardLoading from "../../components/DashboardLoading";
+import StatusBadge from "../../components/StatusBadge";
 
 const CompanyDetail = () => {
   const { id } = useParams();
@@ -10,6 +11,9 @@ const CompanyDetail = () => {
   const [jobs, setJobs] = useState([]);
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState(false);
+  const [openJobId, setOpenJobId] = useState(null);
+  const [applicantsByJob, setApplicantsByJob] = useState({});
+  const [applicantsLoading, setApplicantsLoading] = useState(false);
 
   const load = () => {
     setLoading(true);
@@ -43,6 +47,24 @@ const CompanyDetail = () => {
       load();
     } finally {
       setBusy(false);
+    }
+  };
+
+  const toggleApplicants = async (jobId) => {
+    if (openJobId === jobId) {
+      setOpenJobId(null);
+      return;
+    }
+    setOpenJobId(jobId);
+    if (applicantsByJob[jobId]) return;
+    setApplicantsLoading(true);
+    try {
+      const { data } = await api.get(`/applications/job/${jobId}`);
+      setApplicantsByJob((prev) => ({ ...prev, [jobId]: data.applications }));
+    } catch {
+      setApplicantsByJob((prev) => ({ ...prev, [jobId]: [] }));
+    } finally {
+      setApplicantsLoading(false);
     }
   };
 
@@ -133,27 +155,70 @@ const CompanyDetail = () => {
             </div>
           )}
           {jobs.map((job) => (
-            <div
-              key={job._id}
-              className="flex items-center justify-between gap-4 py-4 first:pt-0 last:pb-0"
-            >
-              <div>
-                <p className="font-medium text-navy">{job.title}</p>
-                <p className="text-sm text-navy/65">
-                  {job.department} · {job.applicantCount} applicant
-                  {job.applicantCount === 1 ? "" : "s"}
-                </p>
+            <div key={job._id} className="py-4 first:pt-0 last:pb-0">
+              <div className="flex items-center justify-between gap-4">
+                <div>
+                  <p className="font-medium text-navy">{job.title}</p>
+                  <p className="text-sm text-navy/65">
+                    {job.department} · {job.applicantCount} applicant
+                    {job.applicantCount === 1 ? "" : "s"}
+                  </p>
+                </div>
+                <div className="flex items-center gap-3 shrink-0">
+                  <span
+                    className={`badge ${job.status === "open" ? "bg-gold text-navy" : "bg-navy/10 text-navy/65"}`}
+                  >
+                    {job.status}
+                  </span>
+                  <span className="badge bg-gray text-navy">
+                    {job.slotsFilled}/{job.slotsAvailable} filled
+                  </span>
+                  {job.applicantCount > 0 && (
+                    <button
+                      type="button"
+                      onClick={() => toggleApplicants(job._id)}
+                      className="text-xs font-medium text-[#457D53] hover:underline"
+                    >
+                      {openJobId === job._id
+                        ? "Hide applicants"
+                        : "View applicants"}
+                    </button>
+                  )}
+                </div>
               </div>
-              <div className="flex items-center gap-3 shrink-0">
-                <span
-                  className={`badge ${job.status === "open" ? "bg-gold text-navy" : "bg-navy/10 text-navy/65"}`}
-                >
-                  {job.status}
-                </span>
-                <span className="badge bg-gray text-navy">
-                  {job.slotsFilled}/{job.slotsAvailable} filled
-                </span>
-              </div>
+              {openJobId === job._id && (
+                <div className="mt-3 rounded-2xl border border-black/5 bg-white/70 p-4">
+                  {applicantsLoading && !applicantsByJob[job._id] ? (
+                    <p className="py-2 text-sm text-navy/60">
+                      Loading applicants…
+                    </p>
+                  ) : (applicantsByJob[job._id] || []).length === 0 ? (
+                    <p className="py-2 text-sm text-navy/60">
+                      No applicants yet for this posting.
+                    </p>
+                  ) : (
+                    <div className="divide-y divide-black/10">
+                      {(applicantsByJob[job._id] || []).map((app) => (
+                        <div
+                          key={app._id}
+                          className="flex items-center justify-between gap-4 py-3 first:pt-0 last:pb-0"
+                        >
+                          <div className="min-w-0">
+                            <p className="font-medium text-navy">
+                              {app.student?.user?.fullName}
+                            </p>
+                            <p className="truncate text-sm text-navy/65">
+                              {app.student?.user?.email} ·{" "}
+                              {app.student?.course || "No course set"}
+                            </p>
+                          </div>
+                          <StatusBadge status={app.status} />
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
           ))}
         </div>

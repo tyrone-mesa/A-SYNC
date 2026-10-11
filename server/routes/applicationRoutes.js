@@ -164,17 +164,21 @@ router.delete("/:id", protect, authorize("student"), async (req, res) => {
 });
 
 // @route   GET /api/applications/job/:jobId
-// @desc    Company views all applicants for one of its job postings
-router.get("/job/:jobId", protect, authorize("company"), async (req, res) => {
-  const companyProfile = await CompanyProfile.findOne({ user: req.user._id });
-  const job = await Job.findOne({
-    _id: req.params.jobId,
-    company: companyProfile._id,
-  });
+// @desc    Company views all applicants for one of its job postings.
+//          Admins can view applicants for any posting (admin company drill-down).
+router.get(
+  "/job/:jobId",
+  protect,
+  authorize("company", "admin"),
+  async (req, res) => {
+  const jobQuery = { _id: req.params.jobId };
+  if (req.user.role === "company") {
+    const companyProfile = await CompanyProfile.findOne({ user: req.user._id });
+    jobQuery.company = companyProfile._id;
+  }
+  const job = await Job.findOne(jobQuery);
   if (!job)
-    return res
-      .status(404)
-      .json({ message: "Job posting not found or not owned by you." });
+    return res.status(404).json({ message: "Job posting not found." });
 
   const applications = await Application.find({ job: job._id })
     .populate({

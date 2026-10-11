@@ -213,7 +213,7 @@ const Navbar = ({ variant = "static" }) => {
         <div className="lg:hidden">
           <div
             ref={mobileNavRef}
-            className="mt-3 flex snap-x snap-mandatory overflow-x-auto pb-1 scrollbar-hide"
+            className="mt-3 flex snap-x snap-mandatory justify-center overflow-x-auto pb-1 scrollbar-hide"
             style={{ WebkitOverflowScrolling: "touch" }}
           >
             <div className="flex items-center gap-2 whitespace-nowrap">

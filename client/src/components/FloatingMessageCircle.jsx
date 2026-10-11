@@ -4,6 +4,7 @@ import { MessageCircle, X } from "lucide-react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import api from "../api/axios";
+import SelectDropdown from "./SelectDropdown";
 
 const POLL_INTERVAL_MS = 30000;
 const THREAD_POLL_INTERVAL_MS = 15000;
@@ -1129,17 +1130,15 @@ const FloatingMessageCircle = () => {
                     </label>
                     <label className="block text-xs font-semibold text-navy">
                       Category
-                      <select
+                                            <SelectDropdown
                         value={category}
                         onChange={(event) => setCategory(event.target.value)}
-                        className="input-field mt-1 h-10 w-full px-3 py-2 text-sm"
-                      >
-                        {categories.map(([value, label]) => (
-                          <option key={value} value={value}>
-                            {label}
-                          </option>
-                        ))}
-                      </select>
+                        options={categories.map(([value, label]) => ({
+                          value,
+                          label,
+                        }))}
+                        className="input-field mt-1 h-10 px-3 py-2 text-sm"
+                      />
                     </label>
                     <label className="block text-xs font-semibold text-navy">
                       Description

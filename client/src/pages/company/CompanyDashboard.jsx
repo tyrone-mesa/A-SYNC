@@ -118,7 +118,7 @@ const CompanyDashboard = () => {
           </div>
 
           <p className="text-sm text-[#0b5d3d]/70 mb-4">
-            Manage check-in and check-out for your OJT students
+            Manage time-in and time-out for your OJT students
           </p>
 
           <div className="text-sm font-medium text-[#0b5d3d]">

@@ -66,4 +66,15 @@ const authorize = (...roles) => {
   };
 };
 
-module.exports = { protect, optionalProtect, authorize };
+// Full admins only. Read-only admins can view dashboards and use messaging,
+// but every mutating admin route composes this after authorize("admin").
+const authorizeFullAdmin = (req, res, next) => {
+  if (req.user.role === "admin" && req.user.adminType === "read-only") {
+    return res.status(403).json({
+      message: "This admin account is read-only.",
+    });
+  }
+  next();
+};
+
+module.exports = { protect, optionalProtect, authorize, authorizeFullAdmin };

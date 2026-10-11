@@ -19,6 +19,12 @@ const UserSchema = new mongoose.Schema(
       required: true,
       default: "student",
     },
+    // Admin accounts: "full" (everything) or "read-only" (view + messages only).
+    adminType: {
+      type: String,
+      enum: ["full", "read-only"],
+      default: "full",
+    },
     isActive: { type: Boolean, default: true },
     isArchived: { type: Boolean, default: false },
     archivedAt: { type: Date },
@@ -74,6 +80,7 @@ UserSchema.methods.toSafeObject = function toSafeObject() {
     fullName: this.fullName,
     email: this.email,
     role: this.role,
+    adminType: this.adminType,
     isActive: this.isActive,
     createdAt: this.createdAt,
   };

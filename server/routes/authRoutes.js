@@ -21,6 +21,10 @@ const {
 } = require("../utils/loginEligibility");
 const upload = require("../middleware/upload");
 const scanUploadedFile = require("../middleware/scanUpload");
+
+// Company logo is optional during registration — skip scanning when none uploaded.
+const scanUploadedFileIfProvided = (req, res, next) =>
+  req.file ? scanUploadedFile(req, res, next) : next();
 const { persistUpload, renameUpload } = require("../utils/persistUpload");
 
 const router = express.Router();
@@ -33,7 +37,7 @@ const router = express.Router();
 router.post(
   "/register",
   upload.uploadLogo.single("logo"),
-  scanUploadedFile,
+  scanUploadedFileIfProvided,
   [
     body("fullName").trim().notEmpty().withMessage("Full name is required."),
     body("email").isEmail().withMessage("A valid email is required."),

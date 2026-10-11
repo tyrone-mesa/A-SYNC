@@ -3,7 +3,7 @@ import React from "react";
 // Maps application and attendance status to the correct palette treatment.
 const STATUS_STYLES = {
   in_review: "text-sm font-bold text-[#5E7867]",
-  approved: "bg-forest text-cream border border-cream/30",
+  approved: "text-sm font-bold text-[#5E7867]",
   declined: "bg-coral/20 text-[#DF2E1B] border border-coral/40",
   active: "text-sm font-bold text-[#5E7867]",
   inactive: "bg-gray-100 text-navy/70 border border-black/10",

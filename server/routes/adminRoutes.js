@@ -9,7 +9,7 @@ const Application = require("../models/Application");
 const AttendanceLog = require("../models/AttendanceLog");
 const Conversation = require("../models/Conversation");
 const Message = require("../models/Message");
-const { protect, authorize } = require("../middleware/auth");
+const { protect, authorize, authorizeFullAdmin } = require("../middleware/auth");
 const upload = require("../middleware/upload");
 const scanUploadedFile = require("../middleware/scanUpload");
 const generateTempPassword = require("../utils/generateTempPassword");
@@ -909,14 +909,14 @@ router.put(
 );
 
 // @route   PUT /api/admin/students/:id/hours
-// @desc    Admin adds manual OJT hours to a student's progress total.
+// @desc    Admin adds or subtracts manual OJT hours for a student's progress total.
 router.put(
   "/students/:id/hours",
   authorize("admin"),
   [
     body("hours")
-      .isFloat({ min: 0.01 })
-      .withMessage("Hours to add must be greater than zero."),
+      .isFloat({ min: -1000, max: 1000 })
+      .withMessage("Enter a valid number of hours to add or subtract."),
   ],
   async (req, res) => {
     const errors = validationResult(req);
@@ -929,9 +929,16 @@ router.put(
       if (!profile)
         return res.status(404).json({ message: "Student not found." });
 
-      const hoursToAdd = Number(req.body.hours);
-      profile.completedOJTHours =
-        Math.round((profile.completedOJTHours + hoursToAdd) * 100) / 100;
+      const hoursDelta = Number(req.body.hours);
+      const nextHours =
+        Math.round((profile.completedOJTHours + hoursDelta) * 100) / 100;
+      if (nextHours < 0) {
+        return res.status(400).json({
+          message:
+            "Subtracted hours cannot exceed the student's completed hours.",
+        });
+      }
+      profile.completedOJTHours = nextHours;
       await profile.save();
 
       emitDashboardUpdate({
@@ -941,12 +948,12 @@ router.put(
       });
 
       res.json({
-        message: `${hoursToAdd} hour(s) added.`,
+        message: `${Math.abs(hoursDelta)} hour(s) ${hoursDelta >= 0 ? "added" : "subtracted"}.`,
         profile,
       });
     } catch (err) {
       res.status(400).json({
-        message: "Failed to add hours.",
+        message: "Failed to update hours.",
         ...(process.env.DEBUG_ERRORS === "true" && { error: err.message }),
       });
     }
@@ -1153,5 +1160,49 @@ router.get("/jobs", authorize("admin"), async (req, res) => {
     .sort({ createdAt: -1 });
   res.json({ jobs });
 });
+
+// @route   POST /api/admin/admins
+// @desc    Full admin creates another admin account (full or read-only).
+router.post(
+  "/admins",
+  authorize("admin"),
+  authorizeFullAdmin,
+  [
+    body("fullName").trim().notEmpty().withMessage("Full name is required."),
+    body("email").isEmail().withMessage("A valid email is required."),
+    body("password")
+      .isLength({ min: 8 })
+      .withMessage("Password must be at least 8 characters."),
+    body("adminType")
+      .isIn(["full", "read-only"])
+      .withMessage("Admin type must be full or read-only."),
+  ],
+  async (req, res) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty())
+      return res.status(400).json({ message: errors.array()[0].msg });
+    try {
+      const email = req.body.email.toLowerCase();
+      const exists = await User.findOne({ email });
+      if (exists)
+        return res
+          .status(400)
+          .json({ message: "An account with this email already exists." });
+      const admin = await User.create({
+        fullName: req.body.fullName.trim(),
+        email,
+        password: req.body.password,
+        role: "admin",
+        adminType: req.body.adminType,
+        isActive: true,
+      });
+      return res.status(201).json({ user: admin.toSafeObject() });
+    } catch (err) {
+      return res
+        .status(400)
+        .json({ message: "Failed to create admin account." });
+    }
+  },
+);
 
 module.exports = router;

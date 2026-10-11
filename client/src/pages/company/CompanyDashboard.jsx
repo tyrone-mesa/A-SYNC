@@ -32,6 +32,13 @@ const CompanyDashboard = () => {
   const totalSlots = jobs.reduce((sum, j) => sum + j.slotsAvailable, 0);
   const filledSlots = jobs.reduce((sum, j) => sum + j.slotsFilled, 0);
 
+  const missingProfileFields = [
+    !profile?.industry && "Industry",
+    !profile?.address && "Address",
+    !profile?.contactPerson && "Contact person",
+    !profile?.contactPhone && "Contact phone",
+  ].filter(Boolean);
+
   return (
     <DashboardShell
       role="company"
@@ -47,6 +54,22 @@ const CompanyDashboard = () => {
         <div className="mb-6 rounded-xl border border-[#0b5d3d]/30 bg-[#0b5d3d]/10 px-4 py-3 text-sm text-[#0b5d3d]">
           Your company account is pending admin verification. Job postings
           remain visible to admins while awaiting approval.
+        </div>
+      )}
+      {missingProfileFields.length > 0 && (
+        <div className="mb-6 rounded-xl border border-[#b8860b]/40 bg-[#fdf6e3] px-4 py-3 text-sm text-[#7a5b12]">
+          <p className="font-semibold">
+            Complete your company profile to post a job or OJT opening.
+          </p>
+          <p className="mt-1">
+            Still required: {missingProfileFields.join(", ")}.
+          </p>
+          <Link
+            to="/company/profile"
+            className="mt-2 inline-block font-semibold underline"
+          >
+            Finish profile
+          </Link>
         </div>
       )}
 

@@ -110,8 +110,8 @@ const StudentDetail = () => {
 
   const handleAddHours = async () => {
     const value = Number(manualHours);
-    if (!manualHours || Number.isNaN(value) || value <= 0) {
-      setManualHoursError("Enter a valid number of hours to add.");
+    if (!manualHours || Number.isNaN(value) || value === 0) {
+      setManualHoursError("Enter a valid number of hours to add or subtract (use a negative number to subtract).");
       setManualHoursSuccess("");
       return;
     }
@@ -125,11 +125,11 @@ const StudentDetail = () => {
         hours: value,
       });
       setManualHours("");
-      setManualHoursSuccess(data.message || `${value} hour(s) added.`);
+      setManualHoursSuccess(data.message || `${Math.abs(value)} hour(s) ${value >= 0 ? "added" : "subtracted"}.`);
       load();
     } catch (err) {
       setManualHoursError(
-        err.response?.data?.message || "Unable to add hours right now.",
+        err.response?.data?.message || "Unable to update hours right now.",
       );
     } finally {
       setAddingHours(false);
@@ -707,13 +707,12 @@ const StudentDetail = () => {
         {isAdmin && (
           <div className="mt-5 rounded-2xl border border-black/5 bg-white p-4">
             <label className="label" htmlFor="studentdetail-manualhours">
-              Add manual OJT hours
+              Add or subtract manual OJT hours
             </label>
             <div className="flex items-center gap-3">
               <input
                 id="studentdetail-manualhours"
                 type="number"
-                min={0}
                 step="0.5"
                 value={manualHours}
                 onChange={(e) => setManualHours(e.target.value)}
@@ -726,7 +725,7 @@ const StudentDetail = () => {
                 disabled={addingHours}
                 className="btn-primary h-10 px-4 text-sm"
               >
-                {addingHours ? "Adding…" : "Add Hours"}
+                {addingHours ? "Applying…" : "Apply"}
               </button>
             </div>
             {manualHoursError && (

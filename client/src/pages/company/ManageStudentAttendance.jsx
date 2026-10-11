@@ -303,15 +303,10 @@ const ManageStudentAttendance = () => {
                       </div>
 
                       <div className="text-right mr-4">
-                        {openRecord ? (
+                        {openRecord && (
                           <StatusBadge
                             status="active"
                             label={`Timed in: ${formatTime(openRecord.timeIn)}`}
-                          />
-                        ) : (
-                          <StatusBadge
-                            status="inactive"
-                            label="Not checked in"
                           />
                         )}
                       </div>

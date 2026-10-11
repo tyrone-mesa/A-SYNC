@@ -152,6 +152,17 @@ router.post("/", protect, authorize("company"), async (req, res) => {
         message: "Complete your company profile before posting a job.",
       });
     }
+    const missingProfileFields = [
+      !companyProfile.industry && "industry",
+      !companyProfile.address && "address",
+      !companyProfile.contactPerson && "contact person",
+      !companyProfile.contactPhone && "contact phone",
+    ].filter(Boolean);
+    if (missingProfileFields.length) {
+      return res.status(400).json({
+        message: `Complete your company profile before posting a job or OJT opening. Missing: ${missingProfileFields.join(", ")}.`,
+      });
+    }
 
     const job = await Job.create({ ...req.body, company: companyProfile._id });
 

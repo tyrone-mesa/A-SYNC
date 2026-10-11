@@ -400,6 +400,13 @@ const DashboardShell = ({
                     {subtitle}
                   </motion.p>
                 )}
+                {user?.role === "admin" && user?.adminType === "read-only" && (
+                  <div className="mb-6 rounded-xl border border-[#0b5d3d]/30 bg-[#0b5d3d]/10 px-4 py-3 text-sm text-[#0b5d3d]">
+                    You are signed in as a read-only admin. You can view
+                    everything and use messages, but adding, editing, and
+                    deleting accounts is disabled.
+                  </div>
+                )}
                 {children}
               </motion.div>
             </AnimatePresence>

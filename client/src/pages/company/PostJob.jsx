@@ -50,8 +50,32 @@ const PostJob = () => {
   const handleChange = (e) =>
     setForm({ ...form, [e.target.name]: e.target.value });
 
+  const [companyProfile, setCompanyProfile] = useState(null);
+
+  useEffect(() => {
+    api
+      .get("/companies/me")
+      .then(({ data }) => setCompanyProfile(data.profile || null))
+      .catch(() => setCompanyProfile(null));
+  }, []);
+
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (!jobId && companyProfile) {
+      const missing = [
+        !companyProfile.industry && "industry",
+        !companyProfile.address && "address",
+        !companyProfile.contactPerson && "contact person",
+        !companyProfile.contactPhone && "contact phone",
+      ].filter(Boolean);
+      if (missing.length) {
+        setError(
+          `Complete your company profile before posting a job or OJT opening. Missing: ${missing.join(", ")}. Finish it under Profile.`,
+        );
+        return;
+      }
+    }
+
     if (!form.jobType) {
       setError(
         "Select whether this posting is an OJT slot or a Full-Time Job.",
@@ -102,6 +126,23 @@ const PostJob = () => {
           {error}
         </div>
       )}
+
+      {!jobId && companyProfile && (() => {
+        const missing = [
+          !companyProfile.industry && "industry",
+          !companyProfile.address && "address",
+          !companyProfile.contactPerson && "contact person",
+          !companyProfile.contactPhone && "contact phone",
+        ].filter(Boolean);
+        return missing.length ? (
+          <div className="mb-6 rounded-xl border border-[#b8860b]/40 bg-[#fdf6e3] px-4 py-3 text-sm text-[#7a5b12]">
+            <p className="font-semibold">
+              Complete your company profile to post a job or OJT opening.
+            </p>
+            <p className="mt-1">Still required: {missing.join(", ")}.</p>
+          </div>
+        ) : null;
+      })()}
 
       <form
         onSubmit={handleSubmit}

@@ -107,6 +107,42 @@ const ManageUsers = () => {
     }
   };
 
+  const [adminForm, setAdminForm] = useState({
+    fullName: "",
+    email: "",
+    password: "",
+    adminType: "full",
+  });
+  const [creatingAdmin, setCreatingAdmin] = useState(false);
+  const [adminError, setAdminError] = useState("");
+  const [adminSuccess, setAdminSuccess] = useState("");
+
+  const handleAdminFormChange = (e) =>
+    setAdminForm({ ...adminForm, [e.target.name]: e.target.value });
+
+  const handleCreateAdmin = async (e) => {
+    e.preventDefault();
+    setCreatingAdmin(true);
+    setAdminError("");
+    setAdminSuccess("");
+    try {
+      await api.post("/admin/admins", adminForm);
+      setAdminForm({
+        fullName: "",
+        email: "",
+        password: "",
+        adminType: "full",
+      });
+      setAdminSuccess("Admin account created.");
+    } catch (err) {
+      setAdminError(
+        err.response?.data?.message || "Failed to create admin account.",
+      );
+    } finally {
+      setCreatingAdmin(false);
+    }
+  };
+
   return (
     <DashboardShell
       title="Manage Users"
@@ -180,6 +216,9 @@ const ManageUsers = () => {
                   <p className="text-navy font-medium">{u.fullName}</p>
                   <p className="break-all text-navy/65 text-sm">
                     {renderNumericEmail(u.email)} · {u.role}
+                    {u.role === "admin" && u.adminType === "read-only" && (
+                      <span className="badge bg-gray text-navy">Read-only</span>
+                    )}
                   </p>
                 </div>
                 <div className="flex shrink-0 flex-wrap items-center gap-3">
@@ -217,6 +256,82 @@ const ManageUsers = () => {
             ))}
           </div>
         )}
+        {currentUser?.adminType !== "read-only" && (
+          <div className="mt-6 rounded-2xl border border-black/5 bg-[#f8fbfa] p-5 shadow-sm">
+            <h3 className="text-lg font-semibold text-navy">
+              Create admin account
+            </h3>
+            <p className="mt-1 text-sm text-navy/65">
+              Full admins can manage everything. Read-only admins can view all
+              dashboards and use messages, but cannot add, edit, or delete
+              accounts.
+            </p>
+            <form
+              onSubmit={handleCreateAdmin}
+              className="mt-4 grid gap-3 sm:grid-cols-2"
+            >
+              <input
+                name="fullName"
+                className="input-field"
+                placeholder="Full name"
+                value={adminForm.fullName}
+                onChange={handleAdminFormChange}
+                required
+              />
+              <input
+                name="email"
+                type="email"
+                className="input-field"
+                placeholder="Email"
+                value={adminForm.email}
+                onChange={handleAdminFormChange}
+                required
+              />
+              <input
+                name="password"
+                type="password"
+                className="input-field"
+                placeholder="Password (min 8 characters)"
+                value={adminForm.password}
+                onChange={handleAdminFormChange}
+                minLength={8}
+                required
+              />
+              <div className="flex items-center gap-4 text-sm text-navy">
+                <label className="flex items-center gap-2">
+                  <input
+                    type="radio"
+                    name="adminType"
+                    value="full"
+                    checked={adminForm.adminType === "full"}
+                    onChange={handleAdminFormChange}
+                  />
+                  Full admin
+                </label>
+                <label className="flex items-center gap-2">
+                  <input
+                    type="radio"
+                    name="adminType"
+                    value="read-only"
+                    checked={adminForm.adminType === "read-only"}
+                    onChange={handleAdminFormChange}
+                  />
+                  Read-only admin
+                </label>
+              </div>
+              <button className="btn-primary sm:col-span-2" disabled={creatingAdmin}>
+                {creatingAdmin ? "Creating…" : "Create admin account"}
+              </button>
+            </form>
+            {adminError && (
+              <p className="mt-2 text-xs text-[#DF2E1B]">{adminError}</p>
+            )}
+            {adminSuccess && (
+              <p className="mt-2 text-xs text-green-700">{adminSuccess}</p>
+            )}
+          </div>
+        )}
+
         {actionMessage && (
           <div className="mt-5 rounded-2xl bg-[#dfeecf] p-4 text-sm text-[#5E7867]">
             {actionMessage}

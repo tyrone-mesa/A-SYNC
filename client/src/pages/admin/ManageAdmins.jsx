@@ -218,6 +218,7 @@ const ManageAdmins = () => {
                         id={`admin-password-${admin._id}`}
                         name="password"
                         type="password"
+                        autoComplete="new-password"
                         className="input"
                         placeholder="Leave blank to keep current password"
                         value={form.password}

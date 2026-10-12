@@ -140,7 +140,9 @@ const ManageAdmins = () => {
                     >
                       {admin.isActive ? "Active" : "Archived"}
                     </span>
-                    {admin._id !== currentUser?._id && (
+                    {
+                      (admin._id !== currentUser?._id ||
+                        admin.adminType === "read-only") && (
                       <>
                         <button
                           type="button"

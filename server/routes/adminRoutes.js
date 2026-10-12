@@ -2,6 +2,7 @@ const express = require("express");
 const crypto = require("crypto");
 const { body, validationResult } = require("express-validator");
 const User = require("../models/User");
+const { recordAudit } = require("../utils/securityAudit");
 const StudentProfile = require("../models/StudentProfile");
 const CompanyProfile = require("../models/CompanyProfile");
 const Job = require("../models/Job");
@@ -1196,6 +1197,12 @@ router.post(
         adminType: req.body.adminType,
         isActive: true,
       });
+      recordAudit(req, {
+        action: "admin_account.create",
+        outcome: "success",
+        user: admin,
+        details: `Created ${req.body.adminType} admin account`,
+      });
       return res.status(201).json({ user: admin.toSafeObject() });
     } catch (err) {
       return res
@@ -1253,10 +1260,16 @@ router.put(
         email,
         _id: { $ne: target._id },
       });
-      if (duplicate)
+      if (duplicate) {
+        recordAudit(req, {
+          action: "admin_account.create",
+          outcome: "failure",
+          details: `Attempted to create admin with existing email`,
+        });
         return res
           .status(400)
           .json({ message: "An account with this email already exists." });
+      }
 
       // Never leave the system without an active full admin.
       if (target.adminType === "full" && req.body.adminType === "read-only") {
@@ -1277,6 +1290,12 @@ router.put(
       target.adminType = req.body.adminType;
       if (req.body.password) target.password = req.body.password;
       await target.save();
+      recordAudit(req, {
+        action: "admin_account.update",
+        outcome: "success",
+        user: target,
+        details: `Updated admin account${req.body.password ? " (password changed)" : ""}${target.adminType === "read-only" ? " [read-only]" : ""}`,
+      });
       return res.json({ user: target.toSafeObject() });
     } catch (err) {
       return res
@@ -1296,6 +1315,11 @@ router.put(
   async (req, res) => {
     try {
       if (req.params.id === String(req.user._id)) {
+        recordAudit(req, {
+          action: "admin_account.archive",
+          outcome: "failure",
+          details: "Attempted to archive own admin account",
+        });
         return res
           .status(400)
           .json({ message: "You cannot archive your own account." });
@@ -1311,14 +1335,27 @@ router.put(
           isActive: true,
           _id: { $ne: target._id },
         });
-        if (!otherFullAdmins)
+        if (!otherFullAdmins) {
+          recordAudit(req, {
+            action: "admin_account.archive",
+            outcome: "failure",
+            user: target,
+            details: "Blocked: archiving the last active full admin",
+          });
           return res.status(400).json({
             message: "At least one active full admin account is required.",
           });
+        }
       }
 
       target.isActive = !target.isActive;
       await target.save();
+      recordAudit(req, {
+        action: target.isActive ? "admin_account.restore" : "admin_account.archive",
+        outcome: "success",
+        user: target,
+        details: `${target.isActive ? "Restored" : "Archived"} admin account`,
+      });
       return res.json({
         message: `Admin account ${target.isActive ? "restored" : "archived"}.`,
         user: target.toSafeObject(),

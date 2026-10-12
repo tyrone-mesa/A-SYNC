@@ -1264,11 +1264,12 @@ router.put(
         recordAudit(req, {
           action: "admin_account.create",
           outcome: "failure",
-          details: `Attempted to create admin with existing email`,
+          details: `Attempted to update admin to an existing email`,
         });
-        return res
-          .status(400)
-          .json({ message: "An account with this email already exists." });
+        return res.status(400).json({
+          message:
+            "An account with this email already exists. Archive the duplicate admin account first, then save again.",
+        });
       }
 
       // Never leave the system without an active full admin.

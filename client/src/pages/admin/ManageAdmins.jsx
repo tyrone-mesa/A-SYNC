@@ -29,7 +29,7 @@ const ManageAdmins = () => {
   }, []);
 
   const startEdit = (admin) => {
-    setEditingId(admin._id);
+    setEditingId(admin.id);
     setForm({
       fullName: admin.fullName,
       email: admin.email,
@@ -72,7 +72,7 @@ const ManageAdmins = () => {
     setNotice("");
     setError("");
     try {
-      const { data } = await api.put(`/admin/admins/${admin._id}/archive`);
+      const { data } = await api.put(`/admin/admins/${admin.id}/archive`);
       setNotice(data.message || "Admin account updated.");
       await load();
     } catch (err) {
@@ -107,7 +107,7 @@ const ManageAdmins = () => {
         <div className="rounded-[24px] border border-black/5 bg-[#f8faf8] p-4 shadow-sm">
           <div className="divide-y divide-black/10">
             {admins.map((admin) => (
-              <div key={admin._id} className="py-4 first:pt-0 last:pb-0">
+              <div key={admin.id} className="py-4 first:pt-0 last:pb-0">
                 <div className="flex flex-wrap items-center justify-between gap-3">
                   <div className="min-w-0">
                     <p className="font-medium text-navy">{admin.fullName}</p>
@@ -141,7 +141,7 @@ const ManageAdmins = () => {
                       {admin.isActive ? "Active" : "Archived"}
                     </span>
                     {
-                      (admin._id !== currentUser?._id ||
+                      (admin.id !== currentUser?.id ||
                         admin.adminType === "read-only") && (
                       <>
                         <button
@@ -169,7 +169,7 @@ const ManageAdmins = () => {
                   </div>
                 </div>
 
-                {editingId === admin._id && (
+                {editingId === admin.id && (
                   <form
                     onSubmit={handleSave}
                     className="mt-4 grid gap-3 rounded-2xl border border-black/5 bg-white/70 p-4 sm:grid-cols-2"
@@ -177,12 +177,12 @@ const ManageAdmins = () => {
                     <div>
                       <label
                         className="label"
-                        htmlFor={`admin-name-${admin._id}`}
+                        htmlFor={`admin-name-${admin.id}`}
                       >
                         Full name
                       </label>
                       <input
-                        id={`admin-name-${admin._id}`}
+                        id={`admin-name-${admin.id}`}
                         name="fullName"
                         className="input"
                         value={form.fullName}
@@ -193,12 +193,12 @@ const ManageAdmins = () => {
                     <div>
                       <label
                         className="label"
-                        htmlFor={`admin-email-${admin._id}`}
+                        htmlFor={`admin-email-${admin.id}`}
                       >
                         Email
                       </label>
                       <input
-                        id={`admin-email-${admin._id}`}
+                        id={`admin-email-${admin.id}`}
                         name="email"
                         type="email"
                         className="input"
@@ -210,12 +210,12 @@ const ManageAdmins = () => {
                     <div>
                       <label
                         className="label"
-                        htmlFor={`admin-password-${admin._id}`}
+                        htmlFor={`admin-password-${admin.id}`}
                       >
                         New password
                       </label>
                       <input
-                        id={`admin-password-${admin._id}`}
+                        id={`admin-password-${admin.id}`}
                         name="password"
                         type="password"
                         autoComplete="new-password"

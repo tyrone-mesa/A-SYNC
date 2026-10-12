@@ -3,6 +3,7 @@ import api from "../../api/axios";
 import DashboardShell from "../../components/DashboardShell";
 import DashboardLoading from "../../components/DashboardLoading";
 import { downloadExport } from "../../utils/download";
+import { useAuth } from "../../context/AuthContext";
 
 const SecurityAudit = () => {
   const [logs, setLogs] = useState([]);
@@ -70,7 +71,17 @@ const SecurityAudit = () => {
     }
   };
 
+  const { user } = useAuth();
+
   if (loading) return <DashboardLoading role="admin" />;
+  if (user?.role === "admin" && user?.adminType === "read-only")
+    return (
+      <DashboardShell role="admin" title="Security Audit">
+        <p className="text-sm text-navy/65">
+          This section is not available for read-only admin accounts.
+        </p>
+      </DashboardShell>
+    );
 
   if (pinLocked) {
     return (

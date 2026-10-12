@@ -30,8 +30,8 @@ const navMap = {
     { label: "Registrars", to: "/admin/registrars" },
     { label: "Users", to: "/admin/users" },
     { label: "Admins", to: "/admin/admins", adminOnly: true },
-    { label: "Archive", to: "/admin/archive" },
-    { label: "Security Audit", to: "/admin/security-audit" },
+    { label: "Archive", to: "/admin/archive", adminOnly: true },
+    { label: "Security Audit", to: "/admin/security-audit", adminOnly: true },
     { label: "Reports", to: "/admin/reports" },
   ],
   coordinator: [

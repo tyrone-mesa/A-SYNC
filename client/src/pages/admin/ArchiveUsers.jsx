@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import api from "../../api/axios";
 import DashboardShell from "../../components/DashboardShell";
 import DashboardLoading from "../../components/DashboardLoading";
+import { useAuth } from "../../context/AuthContext";
 import { downloadExport } from "../../utils/download";
 
 const ArchiveUsers = () => {
@@ -136,7 +137,17 @@ const ArchiveUsers = () => {
       setDownloadingUserId(null);
     }
   };
+  const { user } = useAuth();
+
   if (loading) return <DashboardLoading role="admin" />;
+  if (user?.role === "admin" && user?.adminType === "read-only")
+    return (
+      <DashboardShell role="admin" title="Archive">
+        <p className="text-sm text-navy/65">
+          This section is not available for read-only admin accounts.
+        </p>
+      </DashboardShell>
+    );
 
   if (pinLocked) {
     return (

@@ -10,7 +10,11 @@ const Job = require("../models/Job");
 const Conversation = require("../models/Conversation");
 const Message = require("../models/Message");
 const PDFDocument = require("pdfkit");
-const { protect, authorize } = require("../middleware/auth");
+const {
+  protect,
+  authorize,
+  authorizeFullAdmin,
+} = require("../middleware/auth");
 const { buildArchivePdf } = require("../utils/archivePdf");
 const upload = require("../middleware/upload");
 const scanUploadedFile = require("../middleware/scanUpload");
@@ -74,6 +78,7 @@ const requireSensitivePin = async (req, res, next) => {
 router.post(
   "/admin/sensitive-access/verify",
   authorize("admin"),
+  authorizeFullAdmin,
   async (req, res) => {
     const pin = String(req.body?.pin || "").trim();
     if (!pin) {
@@ -261,6 +266,7 @@ router.get(
 router.get(
   "/admin/archive",
   authorize("admin"),
+  authorizeFullAdmin,
   requireSensitivePin,
   async (req, res) => {
     const users = await User.find({ isArchived: true }).sort({
@@ -273,6 +279,7 @@ router.get(
 router.get(
   "/admin/security-audit",
   authorize("admin"),
+  authorizeFullAdmin,
   requireSensitivePin,
   async (req, res) => {
     const logs = await SecurityAuditLog.find()
@@ -286,6 +293,7 @@ router.get(
 router.get(
   "/admin/security-audit/export",
   authorize("admin"),
+  authorizeFullAdmin,
   requireSensitivePin,
   async (req, res) => {
     const logs = await SecurityAuditLog.find()
@@ -337,6 +345,7 @@ router.get(
 router.get(
   "/admin/archive/export",
   authorize("admin"),
+  authorizeFullAdmin,
   requireSensitivePin,
   async (req, res) => {
     const users = await User.find({ isArchived: true }).sort({
@@ -434,6 +443,7 @@ const getArchivedUserData = async (id) => {
 router.get(
   "/admin/archive/:id",
   authorize("admin"),
+  authorizeFullAdmin,
   requireSensitivePin,
   async (req, res) => {
     const data = await getArchivedUserData(req.params.id);
@@ -446,6 +456,7 @@ router.get(
 router.get(
   "/admin/archive/:id/export",
   authorize("admin"),
+  authorizeFullAdmin,
   requireSensitivePin,
   async (req, res) => {
     const data = await getArchivedUserData(req.params.id);
@@ -466,6 +477,7 @@ router.get(
 router.put(
   "/admin/archive/:id/restore",
   authorize("admin"),
+  authorizeFullAdmin,
   requireSensitivePin,
   async (req, res) => {
     const user = await User.findOneAndUpdate(

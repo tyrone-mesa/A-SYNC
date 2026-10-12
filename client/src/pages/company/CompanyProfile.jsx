@@ -12,6 +12,7 @@ const CompanyProfile = () => {
   const [uploading, setUploading] = useState(false);
   const [editing, setEditing] = useState(false);
   const [message, setMessage] = useState("");
+  const [showIncompleteOnly, setShowIncompleteOnly] = useState(false);
   const logoInputRef = useRef(null);
   const [formData, setFormData] = useState({
     companyName: "",
@@ -22,6 +23,28 @@ const CompanyProfile = () => {
     contactPerson: "",
     contactPhone: "",
   });
+
+  // Same "filterize" pattern as the student profile: list what's still
+  // required and let the company filter the form down to just those fields.
+  const hasValue = (value) =>
+    value !== undefined && value !== null && String(value).trim() !== "";
+  const missingFields = profile
+    ? [
+        !hasValue(profile.industry) && { key: "industry", label: "Industry" },
+        !hasValue(profile.address) && { key: "address", label: "Address" },
+        !hasValue(profile.contactPerson) && {
+          key: "contactPerson",
+          label: "Contact Person",
+        },
+        !hasValue(profile.contactPhone) && {
+          key: "contactPhone",
+          label: "Contact Phone",
+        },
+      ].filter(Boolean)
+    : [];
+  const isProfileIncomplete = missingFields.length > 0;
+  const showField = (field) =>
+    !showIncompleteOnly || missingFields.some(({ key }) => key === field);
 
   useEffect(() => {
     loadProfile();
@@ -54,6 +77,17 @@ const CompanyProfile = () => {
 
   const handleSaveProfile = async (e) => {
     e.preventDefault();
+    const missingOnSave = [
+      "industry",
+      "address",
+      "contactPerson",
+      "contactPhone",
+    ].filter((key) => !formData[key] || !String(formData[key]).trim());
+    if (missingOnSave.length) {
+      setMessage("Please complete all required profile fields before saving.");
+      return;
+    }
+
     try {
       setUploading(true);
       const { data } = await api.put("/companies/me", formData);
@@ -213,6 +247,34 @@ const CompanyProfile = () => {
 
           {editing ? (
             <form onSubmit={handleSaveProfile} className="space-y-4">
+              {isProfileIncomplete && (
+                <div className="rounded-xl border border-coral/30 bg-coral/10 px-3 py-3 text-sm text-navy">
+                  <div className="flex flex-wrap items-center justify-between gap-3">
+                    <div>
+                      <p className="font-semibold text-[#DF2E1B]">
+                        {missingFields.length} required{" "}
+                        {missingFields.length === 1 ? "field" : "fields"} still
+                        need attention
+                      </p>
+                      <p className="text-xs text-navy/70">
+                        {missingFields.map(({ label }) => label).join(", ")}
+                      </p>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() =>
+                        setShowIncompleteOnly((current) => !current)
+                      }
+                      className="btn-secondary h-8 px-3 text-xs"
+                      aria-pressed={showIncompleteOnly}
+                    >
+                      {showIncompleteOnly
+                        ? "Show All Fields"
+                        : "Show Incomplete Only"}
+                    </button>
+                  </div>
+                </div>
+              )}
               <div className="grid gap-4 sm:grid-cols-2">
                 <div>
                   <label className="label" htmlFor="companyprofile-name">
@@ -227,6 +289,7 @@ const CompanyProfile = () => {
                     className="input"
                   />
                 </div>
+                {showField("industry") && (
                 <div>
                   <label className="label" htmlFor="companyprofile-industry">
                     Industry
@@ -239,8 +302,10 @@ const CompanyProfile = () => {
                     onChange={handleChange}
                     placeholder="e.g., Technology, Finance"
                     className="input"
+                    required
                   />
                 </div>
+                )}
               </div>
 
               <div>
@@ -273,6 +338,7 @@ const CompanyProfile = () => {
                     className="input"
                   />
                 </div>
+                {showField("address") && (
                 <div>
                   <label className="label" htmlFor="companyprofile-address">
                     Address
@@ -284,11 +350,14 @@ const CompanyProfile = () => {
                     value={formData.address}
                     onChange={handleChange}
                     className="input"
+                    required
                   />
                 </div>
+                )}
               </div>
 
               <div className="grid gap-4 sm:grid-cols-2">
+                {showField("contactPerson") && (
                 <div>
                   <label className="label" htmlFor="companyprofile-contactperson">
                     Contact Person
@@ -300,14 +369,18 @@ const CompanyProfile = () => {
                     value={formData.contactPerson}
                     onChange={handleChange}
                     className="input"
+                    required
                   />
                 </div>
+                )}
+                {showField("contactPhone") && (
                 <div>
                   <label className="label" htmlFor="companyprofile-contactphone">
                     Contact Phone
                   </label>
                   <input
                     id="companyprofile-contactphone"
+                    required
                     type="tel"
                     name="contactPhone"
                     value={formData.contactPhone}
@@ -315,6 +388,7 @@ const CompanyProfile = () => {
                     className="input"
                   />
                 </div>
+                )}
               </div>
 
               <div className="flex gap-2 pt-2">

@@ -29,6 +29,7 @@ const navMap = {
     { label: "Coordinators", to: "/admin/coordinators" },
     { label: "Registrars", to: "/admin/registrars" },
     { label: "Users", to: "/admin/users" },
+    { label: "Admins", to: "/admin/admins", adminOnly: true },
     { label: "Archive", to: "/admin/archive" },
     { label: "Security Audit", to: "/admin/security-audit" },
     { label: "Reports", to: "/admin/reports" },
@@ -161,7 +162,7 @@ const DashboardShell = ({
           </div>
 
           <nav className="flex-1 overflow-y-auto py-4 px-3 space-y-2">
-            {items.map((item, idx) => {
+            {items.filter((i) => !i.adminOnly || user?.adminType !== "read-only").map((item, idx) => {
               const active = isItemActive(item, location.pathname);
 
               return (
@@ -257,7 +258,7 @@ const DashboardShell = ({
                   className="flex min-w-0 flex-1 gap-2 overflow-x-auto scrollbar-hide pb-1 snap-x snap-mandatory"
                   style={{ WebkitOverflowScrolling: "touch" }}
                 >
-                  {items.map((item) => {
+                  {items.filter((i) => !i.adminOnly || user?.adminType !== "read-only").map((item) => {
                     const isActive = isItemActive(item, location.pathname);
 
                     return (
@@ -401,11 +402,10 @@ const DashboardShell = ({
                   </motion.p>
                 )}
                 {user?.role === "admin" && user?.adminType === "read-only" && (
-                  <div className="mb-6 rounded-xl border border-[#0b5d3d]/30 bg-[#0b5d3d]/10 px-4 py-3 text-sm text-[#0b5d3d]">
-                    You are signed in as a read-only admin. You can view
-                    everything and use messages, but adding, editing, and
-                    deleting accounts is disabled.
-                  </div>
+                  <p className="mb-8 px-1 text-sm font-medium text-[#0b5d3d]">
+                    Read-only admin — you can view everything and use messages,
+                    but adding, editing, and deleting accounts is disabled.
+                  </p>
                 )}
                 {children}
               </motion.div>

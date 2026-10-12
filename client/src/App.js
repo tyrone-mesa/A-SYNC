@@ -58,6 +58,7 @@ const AdminDashboard = React.lazy(
   () => import("./pages/admin/AdminDashboard"),
 );
 const ManageUsers = React.lazy(() => import("./pages/admin/ManageUsers"));
+const ManageAdmins = React.lazy(() => import("./pages/admin/ManageAdmins"));
 const ManageCompanies = React.lazy(
   () => import("./pages/admin/ManageCompanies"),
 );
@@ -399,6 +400,14 @@ function App() {
                   element={
                     <ProtectedRoute roles={["admin"]}>
                       <ManageUsers />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/admin/admins"
+                  element={
+                    <ProtectedRoute roles={["admin"]}>
+                      <ManageAdmins />
                     </ProtectedRoute>
                   }
                 />

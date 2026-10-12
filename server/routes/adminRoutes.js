@@ -1205,4 +1205,130 @@ router.post(
   },
 );
 
+// @route   GET /api/admin/admins
+// @desc    List all admin accounts (read-only admins can view them too).
+router.get("/admins", authorize("admin"), async (req, res) => {
+  try {
+    const admins = await User.find({ role: "admin" }).sort({ createdAt: 1 });
+    return res.json({ admins: admins.map((admin) => admin.toSafeObject()) });
+  } catch (err) {
+    return res.status(400).json({ message: "Failed to load admin accounts." });
+  }
+});
+
+// @route   PUT /api/admin/admins/:id
+// @desc    Full admin edits another admin account (details, optional new
+//          password, and admin type). Read-only admin accounts included.
+router.put(
+  "/admins/:id",
+  authorize("admin"),
+  authorizeFullAdmin,
+  [
+    body("fullName").trim().notEmpty().withMessage("Full name is required."),
+    body("email").isEmail().withMessage("A valid email is required."),
+    body("password")
+      .optional({ checkFalsy: true })
+      .isLength({ min: 8 })
+      .withMessage("Password must be at least 8 characters."),
+    body("adminType")
+      .isIn(["full", "read-only"])
+      .withMessage("Admin type must be full or read-only."),
+  ],
+  async (req, res) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty())
+      return res.status(400).json({ message: errors.array()[0].msg });
+    try {
+      if (req.params.id === String(req.user._id)) {
+        return res.status(400).json({
+          message: "Use your profile settings to edit your own account.",
+        });
+      }
+      const target = await User.findOne({ _id: req.params.id, role: "admin" });
+      if (!target)
+        return res.status(404).json({ message: "Admin account not found." });
+
+      const email = req.body.email.toLowerCase();
+      const duplicate = await User.findOne({
+        email,
+        _id: { $ne: target._id },
+      });
+      if (duplicate)
+        return res
+          .status(400)
+          .json({ message: "An account with this email already exists." });
+
+      // Never leave the system without an active full admin.
+      if (target.adminType === "full" && req.body.adminType === "read-only") {
+        const otherFullAdmins = await User.countDocuments({
+          role: "admin",
+          adminType: "full",
+          isActive: true,
+          _id: { $ne: target._id },
+        });
+        if (!otherFullAdmins)
+          return res.status(400).json({
+            message: "At least one active full admin account is required.",
+          });
+      }
+
+      target.fullName = req.body.fullName.trim();
+      target.email = email;
+      target.adminType = req.body.adminType;
+      if (req.body.password) target.password = req.body.password;
+      await target.save();
+      return res.json({ user: target.toSafeObject() });
+    } catch (err) {
+      return res
+        .status(400)
+        .json({ message: "Failed to update admin account." });
+    }
+  },
+);
+
+// @route   PUT /api/admin/admins/:id/archive
+// @desc    Full admin archives or restores an admin account. The last
+//          active full admin (and your own account) cannot be archived.
+router.put(
+  "/admins/:id/archive",
+  authorize("admin"),
+  authorizeFullAdmin,
+  async (req, res) => {
+    try {
+      if (req.params.id === String(req.user._id)) {
+        return res
+          .status(400)
+          .json({ message: "You cannot archive your own account." });
+      }
+      const target = await User.findOne({ _id: req.params.id, role: "admin" });
+      if (!target)
+        return res.status(404).json({ message: "Admin account not found." });
+
+      if (target.isActive && target.adminType === "full") {
+        const otherFullAdmins = await User.countDocuments({
+          role: "admin",
+          adminType: "full",
+          isActive: true,
+          _id: { $ne: target._id },
+        });
+        if (!otherFullAdmins)
+          return res.status(400).json({
+            message: "At least one active full admin account is required.",
+          });
+      }
+
+      target.isActive = !target.isActive;
+      await target.save();
+      return res.json({
+        message: `Admin account ${target.isActive ? "restored" : "archived"}.`,
+        user: target.toSafeObject(),
+      });
+    } catch (err) {
+      return res
+        .status(400)
+        .json({ message: "Failed to update admin account." });
+    }
+  },
+);
+
 module.exports = router;

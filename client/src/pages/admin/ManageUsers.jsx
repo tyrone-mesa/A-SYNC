@@ -217,7 +217,7 @@ const ManageUsers = () => {
                   <p className="break-all text-navy/65 text-sm">
                     {renderNumericEmail(u.email)} · {u.role}
                     {u.role === "admin" && u.adminType === "read-only" && (
-                      <span className="badge bg-gray text-navy">Read-only</span>
+                      <span className="text-sm font-bold text-[#5E7867]">Read-only</span>
                     )}
                   </p>
                 </div>

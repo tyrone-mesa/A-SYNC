@@ -168,7 +168,7 @@ router.get("/users/:id", authorize("admin"), async (req, res) => {
 
 router.put(
   "/users/:id",
-  authorize("admin"),
+  authorize("admin"), authorizeFullAdmin,
   [
     body("fullName").trim().notEmpty().withMessage("Full name is required."),
     body("studentId")
@@ -206,7 +206,7 @@ router.put(
 );
 
 // @route   PUT /api/admin/users/:id/toggle-active
-router.put("/users/:id/toggle-active", authorize("admin"), async (req, res) => {
+router.put("/users/:id/toggle-active", authorize("admin"), authorizeFullAdmin, async (req, res) => {
   const user = await User.findById(req.params.id);
   if (!user) return res.status(404).json({ message: "User not found." });
   user.isActive = !user.isActive;
@@ -217,7 +217,7 @@ router.put("/users/:id/toggle-active", authorize("admin"), async (req, res) => {
 
 // @route   DELETE /api/admin/users/:id/archive
 // @desc    Soft-archive any account while retaining all related database records.
-router.delete("/users/:id/archive", authorize("admin"), async (req, res) => {
+router.delete("/users/:id/archive", authorize("admin"), authorizeFullAdmin, async (req, res) => {
   if (String(req.params.id) === String(req.user._id)) {
     return res
       .status(400)
@@ -253,7 +253,7 @@ router.delete("/users/:id/archive", authorize("admin"), async (req, res) => {
 //          They get read-only access to the student roster — nothing else.
 router.post(
   "/coordinators",
-  authorize("admin"),
+  authorize("admin"), authorizeFullAdmin,
   [
     body("fullName").trim().notEmpty().withMessage("Full name is required."),
     body("email").isEmail().withMessage("A valid email is required."),
@@ -330,7 +330,7 @@ router.get("/coordinators", authorize("admin"), async (req, res) => {
 
 router.post(
   "/coordinators/:id/reset-password",
-  authorize("admin"),
+  authorize("admin"), authorizeFullAdmin,
   async (req, res) => {
     const coordinator = await User.findOne({
       _id: req.params.id,
@@ -347,7 +347,7 @@ router.post(
 
 router.post(
   "/registrars",
-  authorize("admin"),
+  authorize("admin"), authorizeFullAdmin,
   [
     body("fullName").trim().notEmpty().withMessage("Full name is required."),
     body("email").isEmail().withMessage("A valid email is required."),
@@ -404,7 +404,7 @@ router.get("/registrars/:id", authorize("admin"), async (req, res) => {
 
 router.put(
   "/registrars/:id",
-  authorize("admin"),
+  authorize("admin"), authorizeFullAdmin,
   [
     body("fullName").trim().notEmpty().withMessage("Full name is required."),
     body("email").isEmail().withMessage("A valid email is required."),
@@ -438,7 +438,7 @@ router.put(
 
 router.post(
   "/registrars/:id/reset-password",
-  authorize("admin"),
+  authorize("admin"), authorizeFullAdmin,
   async (req, res) => {
     const registrar = await User.findOne({
       _id: req.params.id,
@@ -453,7 +453,7 @@ router.post(
   },
 );
 
-router.delete("/registrars/:id", authorize("admin"), async (req, res) => {
+router.delete("/registrars/:id", authorize("admin"), authorizeFullAdmin, async (req, res) => {
   const registrar = await User.findOne({
     _id: req.params.id,
     role: "registrar",
@@ -473,7 +473,7 @@ router.delete("/registrars/:id", authorize("admin"), async (req, res) => {
 //          the student's login password and their goal (required) OJT hours, e.g. 480.
 router.post(
   "/students",
-  authorize("admin"),
+  authorize("admin"), authorizeFullAdmin,
   upload.uploadStudentAvatar.single("avatar"),
   scanUploadedFileIfProvided,
   [
@@ -642,7 +642,7 @@ router.get("/students", authorize("admin"), async (req, res) => {
 
 // @route   POST /api/admin/students/:id/reset-otp
 // @desc    Generate and send a fresh monthly login OTP for a student.
-router.post("/students/:id/reset-otp", authorize("admin"), async (req, res) => {
+router.post("/students/:id/reset-otp", authorize("admin"), authorizeFullAdmin, async (req, res) => {
   const profile = await StudentProfile.findById(req.params.id).populate(
     "user",
     "fullName email role isActive isArchived +monthlyOtpHash +monthlyOtpMonth",
@@ -756,7 +756,7 @@ router.get("/students/:id/avatar", authorize("admin"), async (req, res) => {
 
 router.post(
   "/students/:id/avatar",
-  authorize("admin"),
+  authorize("admin"), authorizeFullAdmin,
   upload.uploadStudentAvatar.single("avatar"),
   scanUploadedFile,
   async (req, res) => {
@@ -788,7 +788,7 @@ router.post(
   },
 );
 
-router.delete("/students/:id/avatar", authorize("admin"), async (req, res) => {
+router.delete("/students/:id/avatar", authorize("admin"), authorizeFullAdmin, async (req, res) => {
   const profile = await StudentProfile.findById(req.params.id);
   if (!profile) return res.status(404).json({ message: "Student not found." });
   if (!(await removeUploadedFile(profile.avatarUrl))) {
@@ -808,7 +808,7 @@ router.delete("/students/:id/avatar", authorize("admin"), async (req, res) => {
 //          hours, e.g. bumping it to 480.
 router.put(
   "/students/:id",
-  authorize("admin"),
+  authorize("admin"), authorizeFullAdmin,
   [
     body("studentId")
       .optional({ checkFalsy: true })
@@ -913,7 +913,7 @@ router.put(
 // @desc    Admin adds or subtracts manual OJT hours for a student's progress total.
 router.put(
   "/students/:id/hours",
-  authorize("admin"),
+  authorize("admin"), authorizeFullAdmin,
   [
     body("hours")
       .isFloat({ min: -1000, max: 1000 })
@@ -963,7 +963,7 @@ router.put(
 
 // @route   DELETE /api/admin/students/:id
 // @desc    Archive the account while retaining every profile, file, application, and attendance record.
-router.delete("/students/:id", authorize("admin"), async (req, res) => {
+router.delete("/students/:id", authorize("admin"), authorizeFullAdmin, async (req, res) => {
   const profile = await StudentProfile.findById(req.params.id);
   if (!profile) return res.status(404).json({ message: "Student not found." });
 
@@ -1001,7 +1001,7 @@ router.get("/companies", authorize("admin"), async (req, res) => {
 });
 
 // @route   PUT /api/admin/companies/:id/verify
-router.put("/companies/:id/verify", authorize("admin"), async (req, res) => {
+router.put("/companies/:id/verify", authorize("admin"), authorizeFullAdmin, async (req, res) => {
   try {
     const { isVerified, verificationNote } = req.body;
     const company = await CompanyProfile.findByIdAndUpdate(
@@ -1078,7 +1078,7 @@ router.get("/companies/:id", authorize("admin"), async (req, res) => {
 
 // @route   PUT /api/admin/companies/:id
 // @desc    Admin edits company profile information
-router.put("/companies/:id", authorize("admin"), async (req, res) => {
+router.put("/companies/:id", authorize("admin"), authorizeFullAdmin, async (req, res) => {
   try {
     const {
       companyName,
@@ -1123,7 +1123,7 @@ router.put("/companies/:id", authorize("admin"), async (req, res) => {
 
 // @route   DELETE /api/admin/companies/:id
 // @desc    Archive a company account while retaining its associated data
-router.delete("/companies/:id", authorize("admin"), async (req, res) => {
+router.delete("/companies/:id", authorize("admin"), authorizeFullAdmin, async (req, res) => {
   try {
     const company = await CompanyProfile.findById(req.params.id);
     if (!company)
@@ -1166,7 +1166,7 @@ router.get("/jobs", authorize("admin"), async (req, res) => {
 // @desc    Full admin creates another admin account (full or read-only).
 router.post(
   "/admins",
-  authorize("admin"),
+  authorize("admin"), authorizeFullAdmin,
   authorizeFullAdmin,
   [
     body("fullName").trim().notEmpty().withMessage("Full name is required."),
@@ -1228,7 +1228,7 @@ router.get("/admins", authorize("admin"), async (req, res) => {
 //          password, and admin type). Read-only admin accounts included.
 router.put(
   "/admins/:id",
-  authorize("admin"),
+  authorize("admin"), authorizeFullAdmin,
   authorizeFullAdmin,
   [
     body("fullName").trim().notEmpty().withMessage("Full name is required."),
@@ -1311,7 +1311,7 @@ router.put(
 //          active full admin (and your own account) cannot be archived.
 router.put(
   "/admins/:id/archive",
-  authorize("admin"),
+  authorize("admin"), authorizeFullAdmin,
   authorizeFullAdmin,
   async (req, res) => {
     try {

@@ -9,7 +9,18 @@ import { openProtectedFile } from "../../utils/protectedFile";
 import { resolveFileUrl } from "../../utils/fileUrl";
 import SelectDropdown from "../../components/SelectDropdown";
 
-const STATUS_OPTIONS = ["in_review", "approved", "declined"];
+const STATUS_OPTIONS = [
+  "in_review",
+  "interview_scheduled",
+  "approved",
+  "declined",
+];
+const STATUS_LABELS = {
+  in_review: "In Review",
+  interview_scheduled: "Interview Scheduled",
+  approved: "Approved",
+  declined: "Declined",
+};
 
 const ApplicantsList = () => {
   const { jobId } = useParams();
@@ -170,12 +181,7 @@ const ApplicantsList = () => {
                   onChange={(e) => updateStatus(app._id, e.target.value)}
                   options={STATUS_OPTIONS.map((s) => ({
                     value: s,
-                    label:
-                      s === "in_review"
-                        ? "In Review"
-                        : s === "approved"
-                          ? "Approved"
-                          : "Declined",
+                    label: STATUS_LABELS[s],
                   }))}
                   className="input-field py-1.5 text-sm"
                 />

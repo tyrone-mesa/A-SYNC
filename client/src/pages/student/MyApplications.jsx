@@ -60,7 +60,7 @@ const MyApplications = () => {
               </div>
               <div className="flex shrink-0 flex-col items-end gap-1.5">
                 <StatusBadge status={app.status} />
-                {["in_review"].includes(app.status) && (
+                {["in_review", "interview_scheduled"].includes(app.status) && (
                   <button
                     onClick={() => handleWithdraw(app._id)}
                     className="text-xs font-medium text-[#DF2E1B] hover:underline"

@@ -1,5 +1,6 @@
 import React, { useEffect, useState, useCallback } from "react";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
+import { Link } from "react-router-dom";
 import api from "../../api/axios";
 import JobCard from "../../components/JobCard";
 import JobCardSkeleton from "../../components/JobCardSkeleton";
@@ -24,6 +25,95 @@ const browseItem = {
     y: 0,
     transition: { duration: 0.58, ease: [0.22, 1, 0.36, 1] },
   },
+};
+
+
+// 16:9 advertising carousel for jobs with an uploaded poster.
+const JobAdsCarousel = ({ jobs }) => {
+  const ads = jobs.filter((j) => j.posterUrl && j.status === "open");
+  const [index, setIndex] = useState(0);
+  const [paused, setPaused] = useState(false);
+
+  useEffect(() => {
+    if (paused || ads.length <= 1) return undefined;
+    const timer = setInterval(() => setIndex((i) => (i + 1) % ads.length), 6500);
+    return () => clearInterval(timer);
+  }, [paused, ads.length]);
+
+  if (ads.length === 0) return null;
+  const go = (dir) => setIndex((i) => (i + dir + ads.length) % ads.length);
+
+  return (
+    <div
+      className="relative mb-4 overflow-hidden rounded-[24px] border border-[#dfe5df] shadow-sm"
+      onMouseEnter={() => setPaused(true)}
+      onMouseLeave={() => setPaused(false)}
+    >
+      <div
+        className="flex transition-transform duration-700 ease-in-out"
+        style={{ transform: `translateX(-${index * 100}%)` }}
+      >
+        {ads.map((job) => (
+          <Link
+            key={job._id}
+            to={`/jobs/${job._id}`}
+            className="relative block w-full flex-shrink-0"
+          >
+            <div className="aspect-video max-h-[320px] w-full overflow-hidden">
+              <img
+                src={job.posterUrl}
+                alt={job.title}
+                className="h-full w-full object-cover"
+                loading="lazy"
+              />
+            </div>
+            <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-[#0F1E35]/75 via-transparent to-transparent" />
+            <div className="pointer-events-none absolute bottom-0 left-0 p-4 sm:p-5">
+              <p className="text-xs font-semibold uppercase tracking-wide text-[#ABD1B5]">
+                {job.jobType === "full-time" ? "Full-Time Job" : "OJT"}
+              </p>
+              <h3 className="font-display text-lg font-semibold text-white sm:text-xl">
+                {job.title}
+              </h3>
+              <p className="text-sm text-white/80">
+                {job.company?.companyName || ""}
+              </p>
+            </div>
+          </Link>
+        ))}
+      </div>
+      {ads.length > 1 && (
+        <>
+          <button
+            type="button"
+            aria-label="Previous advertisement"
+            onClick={() => go(-1)}
+            className="absolute left-3 top-1/2 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-full bg-white/85 text-lg text-navy shadow transition hover:bg-white"
+          >
+            ‹
+          </button>
+          <button
+            type="button"
+            aria-label="Next advertisement"
+            onClick={() => go(1)}
+            className="absolute right-3 top-1/2 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-full bg-white/85 text-lg text-navy shadow transition hover:bg-white"
+          >
+            ›
+          </button>
+          <div className="absolute bottom-3 right-4 flex gap-1.5">
+            {ads.map((_, i) => (
+              <span
+                key={i}
+                className={`h-1.5 rounded-full transition-all ${
+                  i === index ? "w-4 bg-white" : "w-1.5 bg-white/50"
+                }`}
+              />
+            ))}
+          </div>
+        </>
+      )}
+    </div>
+  );
 };
 
 const BrowseJobs = () => {
@@ -425,6 +515,7 @@ const BrowseJobs = () => {
             </motion.aside>
 
             <motion.section variants={browseItem} className="min-w-0">
+              <JobAdsCarousel jobs={jobs} />
               {loading ? (
                 <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3 xl:auto-rows-fr">
                   {Array.from({ length: 6 }).map((_, i) => (

@@ -1,5 +1,11 @@
 const express = require("express");
 const Job = require("../models/Job");
+const upload = require("../middleware/upload");
+const { scanUploadedFile } = require("../middleware/scanUpload");
+
+// Posters are optional - skip the security scan when no file is attached.
+const scanUploadedFileIfProvided = (req, res, next) =>
+  req.file ? scanUploadedFile(req, res, next) : next();
 const CompanyProfile = require("../models/CompanyProfile");
 const User = require("../models/User");
 const { protect, authorize } = require("../middleware/auth");
@@ -137,7 +143,13 @@ router.get("/:id", async (req, res) => {
 // @route   POST /api/jobs
 // @desc    Create a new job posting (company only). jobType is mandatory: "OJT" for
 //          internship slots, or "Full-Time Job" for regular paid openings.
-router.post("/", protect, authorize("company"), async (req, res) => {
+router.post(
+  "/",
+  protect,
+  authorize("company"),
+  upload.uploadLogo.single("poster"),
+  scanUploadedFileIfProvided,
+  async (req, res) => {
   try {
     if (!["OJT", "Full-Time Job"].includes(req.body.jobType)) {
       return res.status(400).json({
@@ -164,7 +176,11 @@ router.post("/", protect, authorize("company"), async (req, res) => {
       });
     }
 
-    const job = await Job.create({ ...req.body, company: companyProfile._id });
+    const job = await Job.create({
+      ...req.body,
+      company: companyProfile._id,
+      posterUrl: req.file ? req.file.path : "",
+    });
 
     const recipients = await User.find({
       role: { $in: ["student", "coordinator", "admin"] },
@@ -202,7 +218,13 @@ router.post("/", protect, authorize("company"), async (req, res) => {
 
 // @route   PUT /api/jobs/:id
 // @desc    Update a job posting (owning company only)
-router.put("/:id", protect, authorize("company"), async (req, res) => {
+router.put(
+  "/:id",
+  protect,
+  authorize("company"),
+  upload.uploadLogo.single("poster"),
+  scanUploadedFileIfProvided,
+  async (req, res) => {
   try {
     const companyProfile = await CompanyProfile.findOne({ user: req.user._id });
     const job = await Job.findOne({
@@ -216,6 +238,7 @@ router.put("/:id", protect, authorize("company"), async (req, res) => {
         .json({ message: "Job posting not found or not owned by you." });
 
     Object.assign(job, req.body);
+    if (req.file) job.posterUrl = req.file.path;
     await job.save();
 
     emitDashboardUpdate({ roles: ["student", "admin"], scope: "jobs" });

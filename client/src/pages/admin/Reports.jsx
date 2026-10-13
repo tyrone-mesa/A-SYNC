@@ -89,7 +89,7 @@ const MonthlyTrend = ({ data }) => {
 };
 
 // Donut chart — pure SVG, no charting library. Composition data only.
-const DONUT_COLORS = ["#6C8976", "#2F6FE4", "#ABD1B5", "#E74C3C", "#8A97A8"];
+const DONUT_COLORS = ["#6C8976", "#2F6FE4", "#ABD1B5", "#E74C3C", "#f0f0f0"];
 
 const Donut = ({ title, data }) => {
   const total = data.reduce((sum, d) => sum + d.count, 0);

@@ -12,6 +12,7 @@ const navMap = {
     { label: "Applications", to: "/student/applications" },
     { label: "Messages", to: "/messages" },
     { label: "Interview", to: "/student/interview" },
+    { label: "Interviews", to: "/student/interviews" },
   ],
   company: [
     { label: "Dashboard", to: "/company/dashboard" },

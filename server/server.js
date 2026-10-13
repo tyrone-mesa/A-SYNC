@@ -34,6 +34,7 @@ const jobRoutes = require("./routes/jobRoutes");
 const applicationRoutes = require("./routes/applicationRoutes");
 const adminRoutes = require("./routes/adminRoutes");
 const interviewRoutes = require("./routes/interviewRoutes");
+const interviewScheduleRoutes = require("./routes/interviewScheduleRoutes");
 const notificationRoutes = require("./routes/notificationRoutes");
 const messageRoutes = require("./routes/messageRoutes");
 const staffRoutes = require("./routes/staffRoutes");
@@ -675,6 +676,11 @@ app.use(
 app.use(
   "/api/interview",
   interviewRoutes
+);
+
+app.use(
+  "/api/interview-schedules",
+  interviewScheduleRoutes
 );
 
 app.use(

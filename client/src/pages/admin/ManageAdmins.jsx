@@ -121,10 +121,10 @@ const ManageAdmins = () => {
                   </div>
                   <div className="flex items-center gap-3 text-sm shrink-0">
                     <span
-                      className={`badge ${
+                      className={`text-sm font-bold ${
                         admin.adminType === "read-only"
-                          ? "bg-gray text-navy"
-                          : "bg-gold text-navy"
+                          ? "text-[#5E7867]"
+                          : "text-navy"
                       }`}
                     >
                       {admin.adminType === "read-only"
@@ -132,10 +132,10 @@ const ManageAdmins = () => {
                         : "Full admin"}
                     </span>
                     <span
-                      className={`badge ${
+                      className={`text-sm font-bold ${
                         admin.isActive
-                          ? "bg-forest/15 text-[#5E7867]"
-                          : "bg-navy/10 text-navy/60"
+                          ? "text-[#5E7867]"
+                          : "text-navy/50"
                       }`}
                     >
                       {admin.isActive ? "Active" : "Archived"}

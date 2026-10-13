@@ -92,16 +92,12 @@ const DashboardShell = ({
   children,
   compact = false,
 }) => {
-  const { user, logout } = useAuth();
+  const { user } = useAuth();
   const location = useLocation();
   const currentRole = role || user?.role || "student";
   const items = navMap[currentRole] || navMap.student;
   const mobileMenuRef = useRef(null);
 
-  const handleLogout = () => {
-    logout();
-    window.location.replace("/");
-  };
 
   const isItemActive = (item, pathname) => {
     if (item.to === "/messages") {
@@ -142,14 +138,14 @@ const DashboardShell = ({
       transition={{ duration: 0.18 }}
       onAnimationComplete={markShellAnimated}
     >
-      <div className="mx-auto flex min-h-full min-w-0 max-w-[1380px] flex-col gap-4 lg:h-full lg:min-h-0">
+      <div className="mx-auto flex min-h-full min-w-0 max-w-[1380px] flex-col gap-4 lg:h-full lg:min-h-0 lg:flex-row lg:items-stretch">
         <motion.aside
-          className="hidden lg:flex lg:w-full lg:flex-row lg:items-center lg:gap-2 lg:pr-3 rounded-[20px] bg-gradient-to-r from-[rgba(33,76,63,0.82)] to-[rgba(33,76,63,0.68)] border border-[#214c3f]/50 shadow-[0_12px_40px_rgba(23,61,52,0.18)]"
+          className="hidden lg:flex lg:flex-col w-64 rounded-[20px] bg-gradient-to-b from-[rgba(33,76,63,0.82)] to-[rgba(33,76,63,0.68)] border border-[#214c3f]/50 shadow-[0_12px_40px_rgba(23,61,52,0.18)]"
           initial={hasShellAnimated() ? false : { opacity: 0, x: -30 }}
           animate={{ opacity: 1, x: 0 }}
           transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
         >
-          <div className="flex items-center gap-3 px-4 py-2.5">
+          <div className="flex items-center justify-between px-4 py-4 border-b border-white/15">
             <div className="flex items-center gap-3">
               <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-white/20 ring-1 ring-white/30 shadow-sm">
                 <Logo size={24} />
@@ -162,7 +158,7 @@ const DashboardShell = ({
             </div>
           </div>
 
-          <nav className="flex-1 overflow-x-auto scrollbar-hide py-2 pl-2 pr-1 flex items-center gap-1.5">
+          <nav className="flex-1 overflow-y-auto py-4 px-3 space-y-2">
             {items.filter((i) => !i.adminOnly || user?.adminType !== "read-only").map((item, idx) => {
               const active = isItemActive(item, location.pathname);
 
@@ -231,18 +227,6 @@ const DashboardShell = ({
               );
             })}
           </nav>
-
-          <div className="p-2 pl-1">
-            <motion.button
-              type="button"
-              onClick={handleLogout}
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
-              className="flex items-center justify-center gap-2 rounded-lg bg-white/15 hover:bg-white/25 border border-white/20 px-4 py-2 text-sm font-medium text-white backdrop-blur-sm transition-colors"
-            >
-              Log Out
-            </motion.button>
-          </div>
         </motion.aside>
 
         <motion.main

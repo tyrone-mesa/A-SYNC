@@ -170,7 +170,7 @@ const DashboardShell = ({
                   key={item.to}
                   initial={hasShellAnimated() ? false : { opacity: 0, x: -15 }}
                   animate={{ opacity: 1, x: 0 }}
-                  transition={{ duration: 0.25, delay: idx * 0.04 }}
+                  transition={{ duration: 0.2 }}
                 >
                   <NavLink
                     to={item.to}

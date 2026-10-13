@@ -522,7 +522,7 @@ const FloatingMessageCircle = () => {
               initial={{ opacity: 0, y: 12, scale: 0.96, transformOrigin: "bottom right" }}
               animate={{ opacity: 1, y: 0, scale: 1 }}
               exit={{ opacity: 0, y: 8, scale: 0.98 }}
-              transition={{ type: "spring", stiffness: 280, damping: 27 }}
+              transition={{ duration: 0.2, ease: "easeOut" }}
               className="absolute bottom-[calc(100%+0.75rem)] right-0 w-[min(21rem,calc(100vw-2rem))] overflow-hidden rounded-2xl border border-[#dfe6df] bg-white p-2 shadow-[0_16px_48px_rgba(15,30,53,0.2)]"
             >
               <button
@@ -589,7 +589,7 @@ const FloatingMessageCircle = () => {
               }}
               animate={{ opacity: 1, x: 0, y: 0, scale: 1 }}
               exit={{ opacity: 0, x: 14, y: 8, scale: 0.98 }}
-              transition={{ type: "spring", stiffness: 260, damping: 28 }}
+              transition={{ duration: 0.22, ease: "easeOut" }}
               className="absolute bottom-[calc(100%+0.75rem)] right-0 flex h-[min(34rem,calc(100dvh-8rem))] w-[min(24rem,calc(100vw-2rem))] flex-col overflow-hidden rounded-2xl border border-[#dfe6df] bg-[#f8faf6] shadow-[0_20px_60px_rgba(15,30,53,0.24)]"
             >
               <header className="flex shrink-0 items-center justify-between gap-3 bg-[#17633e] px-4 py-3 text-white">
@@ -673,7 +673,7 @@ const FloatingMessageCircle = () => {
                 </p>
               )}
 
-              <AnimatePresence mode="wait" initial={false}>
+              <AnimatePresence initial={false}>
                 {panel === "concerns" ? (
                   <motion.div
                     key={`concerns-${activeConcernId || "list"}`}
@@ -1050,9 +1050,12 @@ const FloatingMessageCircle = () => {
         <motion.button
           type="button"
           onClick={() => {
-            const shouldOpen = !open && !panel;
-            setOpen(shouldOpen);
-            setPanel(null);
+            if (panel) {
+              setPanel(null);
+              setOpen(false);
+              return;
+            }
+            setOpen((value) => !value);
           }}
           whileHover={{ scale: 1.06 }}
           whileTap={{ scale: 0.94 }}
@@ -1077,7 +1080,7 @@ const FloatingMessageCircle = () => {
             initial={{ opacity: 0, x: 24, y: 12, scale: 0.96, transformOrigin: "bottom right" }}
             animate={{ opacity: 1, x: 0, y: 0, scale: 1 }}
             exit={{ opacity: 0, x: 14, y: 8, scale: 0.98 }}
-            transition={{ type: "spring", stiffness: 260, damping: 28 }}
+            transition={{ duration: 0.22, ease: "easeOut" }}
             className="absolute bottom-[calc(100%+0.75rem)] right-0 z-10 w-[min(32rem,calc(100vw-2rem))]"
           >
             <motion.section

@@ -11,12 +11,48 @@ import { openProtectedFile } from "../../utils/protectedFile";
 import AvatarCropper from "../../components/AvatarCropper";
 import { resolveFileUrl } from "../../utils/fileUrl";
 
+const DOC_STATUS_LABELS = {
+  none: "",
+  pending: "Pending review",
+  approved: "Approved",
+  rejected: "Rejected",
+};
+const DOC_STATUS_STYLES = {
+  pending: "text-[#b8860b]",
+  approved: "text-[#5E7867]",
+  rejected: "text-[#DF2E1B]",
+};
+
 const StudentDetail = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const { user } = useAuth();
   const isAdmin = user?.role === "admin";
   const canViewDocuments = isAdmin || user?.role === "coordinator";
+
+  const [docReviewBusy, setDocReviewBusy] = useState(false);
+  const [docRejecting, setDocRejecting] = useState(null);
+  const [docReason, setDocReason] = useState("");
+
+  const reviewDocument = async (type, action) => {
+    if (action === "reject" && !docReason.trim()) return;
+    setDocReviewBusy(true);
+    try {
+      await api.put(
+        `/admin/students/${profile._id}/documents/${type}/review`,
+        { action, reason: docReason.trim() },
+      );
+      setDocRejecting(null);
+      setDocReason("");
+      await load();
+    } catch (err) {
+      setManualHoursError(
+        err.response?.data?.message || "Failed to review the document.",
+      );
+    } finally {
+      setDocReviewBusy(false);
+    }
+  };
 
   const [profile, setProfile] = useState(null);
   const [applications, setApplications] = useState([]);
@@ -653,35 +689,159 @@ const StudentDetail = () => {
               Documents
             </h2>
             <div className="space-y-3 text-sm">
-              <div className="flex items-center justify-between">
-                <span className="text-navy/65">Resume</span>
-                {profile.resumeUrl ? (
-                  <button
-                    onClick={() =>
-                      openProtectedFile(`/students/${profile._id}/resume`)
-                    }
-                    className="text-[#457D53] hover:underline"
-                  >
-                    View
-                  </button>
-                ) : (
-                  <span className="text-navy/65">Not uploaded</span>
-                )}
+              <div>
+                <div className="flex items-center justify-between">
+                  <span className="text-navy/65">Resume</span>
+                  <span className="flex items-center gap-3">
+                    {profile.resumeUrl ? (
+                      <button
+                        onClick={() =>
+                          openProtectedFile(`/students/${profile._id}/resume`)
+                        }
+                        className="text-[#457D53] hover:underline"
+                      >
+                        View
+                      </button>
+                    ) : (
+                      <span className="text-navy/65">Not uploaded</span>
+                    )}
+                    {DOC_STATUS_LABELS[profile.resumeStatus || "none"] && (
+                      <span
+                        className={`text-xs font-bold ${DOC_STATUS_STYLES[profile.resumeStatus]}`}
+                      >
+                        {DOC_STATUS_LABELS[profile.resumeStatus || "none"]}
+                      </span>
+                    )}
+                  </span>
+                </div>
+                {profile.resumeUrl &&
+                  ["pending", "rejected"].includes(profile.resumeStatus) && (
+                    <div className="mt-2 flex flex-wrap items-center gap-2 text-xs">
+                      <button
+                        type="button"
+                        disabled={docReviewBusy}
+                        onClick={() => reviewDocument("resume", "approve")}
+                        className="font-medium text-[#5E7867] hover:underline"
+                      >
+                        Approve
+                      </button>
+                      {docRejecting === "resume" ? (
+                        <>
+                          <input
+                            type="text"
+                            placeholder="Reason for rejection"
+                            value={docReason}
+                            onChange={(e) => setDocReason(e.target.value)}
+                            className="input-field py-1 text-xs"
+                          />
+                          <button
+                            type="button"
+                            disabled={docReviewBusy || !docReason.trim()}
+                            onClick={() => reviewDocument("resume", "reject")}
+                            className="font-medium text-[#DF2E1B] hover:underline"
+                          >
+                            Confirm Rejection
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setDocRejecting(null);
+                              setDocReason("");
+                            }}
+                            className="text-navy/60 hover:underline"
+                          >
+                            Cancel
+                          </button>
+                        </>
+                      ) : (
+                        <button
+                          type="button"
+                          disabled={docReviewBusy}
+                          onClick={() => setDocRejecting("resume")}
+                          className="font-medium text-[#DF2E1B] hover:underline"
+                        >
+                          Reject
+                        </button>
+                      )}
+                    </div>
+                  )}
               </div>
-              <div className="flex items-center justify-between">
-                <span className="text-navy/65">Transcript / COR</span>
-                {profile.transcriptUrl ? (
-                  <a
-                    href={resolveFileUrl(profile.transcriptUrl)}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="text-[#457D53] hover:underline"
-                  >
-                    View
-                  </a>
-                ) : (
-                  <span className="text-navy/65">Not uploaded</span>
-                )}
+              <div>
+                <div className="flex items-center justify-between">
+                  <span className="text-navy/65">Transcript / COR</span>
+                  <span className="flex items-center gap-3">
+                    {profile.transcriptUrl ? (
+                      <button
+                        onClick={() =>
+                          openProtectedFile(`/students/${profile._id}/transcript`)
+                        }
+                        className="text-[#457D53] hover:underline"
+                      >
+                        View
+                      </button>
+                    ) : (
+                      <span className="text-navy/65">Not uploaded</span>
+                    )}
+                    {DOC_STATUS_LABELS[profile.transcriptStatus || "none"] && (
+                      <span
+                        className={`text-xs font-bold ${DOC_STATUS_STYLES[profile.transcriptStatus]}`}
+                      >
+                        {DOC_STATUS_LABELS[profile.transcriptStatus || "none"]}
+                      </span>
+                    )}
+                  </span>
+                </div>
+                {profile.transcriptUrl &&
+                  ["pending", "rejected"].includes(profile.transcriptStatus) && (
+                    <div className="mt-2 flex flex-wrap items-center gap-2 text-xs">
+                      <button
+                        type="button"
+                        disabled={docReviewBusy}
+                        onClick={() => reviewDocument("transcript", "approve")}
+                        className="font-medium text-[#5E7867] hover:underline"
+                      >
+                        Approve
+                      </button>
+                      {docRejecting === "transcript" ? (
+                        <>
+                          <input
+                            type="text"
+                            placeholder="Reason for rejection"
+                            value={docReason}
+                            onChange={(e) => setDocReason(e.target.value)}
+                            className="input-field py-1 text-xs"
+                          />
+                          <button
+                            type="button"
+                            disabled={docReviewBusy || !docReason.trim()}
+                            onClick={() => reviewDocument("transcript", "reject")}
+                            className="font-medium text-[#DF2E1B] hover:underline"
+                          >
+                            Confirm Rejection
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setDocRejecting(null);
+                              setDocReason("");
+                            }}
+                            className="text-navy/60 hover:underline"
+                          >
+                            Cancel
+                          </button>
+                        </>
+                      ) : (
+                        <button
+                          type="button"
+                          disabled={docReviewBusy}
+                          onClick={() => setDocRejecting("transcript")}
+                          className="font-medium text-[#DF2E1B] hover:underline"
+                        >
+                          Reject
+                        </button>
+                      )}
+                    </div>
+                  )}
               </div>
             </div>
           </div>

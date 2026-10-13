@@ -3,6 +3,7 @@ const crypto = require("crypto");
 const { body, validationResult } = require("express-validator");
 const User = require("../models/User");
 const { recordAudit } = require("../utils/securityAudit");
+const { createInAppNotification } = require("../utils/notify");
 const StudentProfile = require("../models/StudentProfile");
 const CompanyProfile = require("../models/CompanyProfile");
 const Job = require("../models/Job");
@@ -1365,6 +1366,80 @@ router.put(
       return res
         .status(400)
         .json({ message: "Failed to update admin account." });
+    }
+  },
+);
+
+// @route   PUT /api/admin/students/:studentId/documents/:type/review
+// @desc    Full admin / coordinator approves or rejects a student's resume or
+//          transcript. Rejections carry a reason back to the student.
+router.put(
+  "/students/:studentId/documents/:type/review",
+  authorize("admin", "coordinator"),
+  authorizeFullAdmin,
+  [
+    body("action")
+      .isIn(["approve", "reject"])
+      .withMessage("Action must be approve or reject."),
+    body("reason").optional({ checkFalsy: true }).trim(),
+  ],
+  async (req, res) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty())
+      return res.status(400).json({ message: errors.array()[0].msg });
+    try {
+      const { type } = req.params;
+      if (!["resume", "transcript"].includes(type)) {
+        return res.status(404).json({ message: "Unknown document type." });
+      }
+      const profile = await StudentProfile.findById(
+        req.params.studentId,
+      ).populate("user", "fullName email");
+      if (!profile)
+        return res.status(404).json({ message: "Student not found." });
+      if (type === "resume" && !profile.resumeUrl) {
+        return res
+          .status(400)
+          .json({ message: "This student has not uploaded a resume." });
+      }
+      if (type === "transcript" && !profile.transcriptUrl) {
+        return res
+          .status(400)
+          .json({ message: "This student has not uploaded a transcript." });
+      }
+
+      const status = req.body.action === "approve" ? "approved" : "rejected";
+      profile[`${type}Status`] = status;
+      profile[`${type}RejectionReason`] =
+        req.body.action === "reject"
+          ? req.body.reason || "No reason provided."
+          : "";
+      await profile.save();
+
+      const label = type === "resume" ? "Resume" : "Transcript / COR";
+      if (profile.user?._id) {
+        createInAppNotification({
+          recipientUserId: profile.user._id,
+          type: "document",
+          title: `${label} ${status}`,
+          body:
+            status === "approved"
+              ? `Your ${label.toLowerCase()} was approved.`
+              : `Your ${label.toLowerCase()} was rejected: ${profile[`${type}RejectionReason`]}`,
+          link: "/student/profile",
+        });
+      }
+      recordAudit(req, {
+        action: "document.review",
+        outcome: "success",
+        user: profile.user,
+        details: `${label} ${req.body.action}d for student`,
+      });
+      return res.json({ profile });
+    } catch (err) {
+      return res
+        .status(400)
+        .json({ message: "Failed to review the document." });
     }
   },
 );

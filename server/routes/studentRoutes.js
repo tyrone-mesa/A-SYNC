@@ -136,6 +136,8 @@ router.post(
       {
         resumeUrl,
         resumeOriginalName: req.file.originalname,
+        resumeStatus: "pending",
+        resumeRejectionReason: "",
       },
       { new: true },
     );
@@ -160,7 +162,12 @@ router.delete("/me/resume", protect, authorize("student"), async (req, res) => {
 
   const updatedProfile = await StudentProfile.findOneAndUpdate(
     { user: req.user._id },
-    { resumeUrl: "", resumeOriginalName: "" },
+    {
+      resumeUrl: "",
+      resumeOriginalName: "",
+      resumeStatus: "none",
+      resumeRejectionReason: "",
+    },
     { new: true },
   );
 
@@ -231,6 +238,8 @@ router.post(
       {
         transcriptUrl,
         transcriptOriginalName: req.file.originalname,
+        transcriptStatus: "pending",
+        transcriptRejectionReason: "",
       },
       { new: true },
     );
@@ -259,7 +268,12 @@ router.delete(
 
     const updatedProfile = await StudentProfile.findOneAndUpdate(
       { user: req.user._id },
-      { transcriptUrl: "", transcriptOriginalName: "" },
+      {
+        transcriptUrl: "",
+        transcriptOriginalName: "",
+        transcriptStatus: "none",
+        transcriptRejectionReason: "",
+      },
       { new: true },
     );
 

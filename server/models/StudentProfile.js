@@ -22,6 +22,18 @@ const StudentProfileSchema = new mongoose.Schema(
     resumeOriginalName: { type: String, default: "" },
     transcriptUrl: { type: String, default: "" }, // path to uploaded transcript/COR file
     transcriptOriginalName: { type: String, default: "" },
+    resumeStatus: {
+      type: String,
+      enum: ["none", "pending", "approved", "rejected"],
+      default: "none",
+    },
+    resumeRejectionReason: { type: String, default: "" },
+    transcriptStatus: {
+      type: String,
+      enum: ["none", "pending", "approved", "rejected"],
+      default: "none",
+    },
+    transcriptRejectionReason: { type: String, default: "" },
     avatarUrl: { type: String, default: "" },
     avatarOriginalName: { type: String, default: "" },
     avatarMimeType: { type: String, default: "" },

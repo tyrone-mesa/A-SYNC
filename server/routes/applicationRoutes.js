@@ -154,12 +154,31 @@ router.delete("/:id", protect, authorize("student"), async (req, res) => {
   if (!application)
     return res.status(404).json({ message: "Application not found." });
 
-  application.status = "declined";
+  // Batch 1: withdrawal is only possible before a decision is made.
+  if (!["in_review", "interview_scheduled"].includes(application.status)) {
+    return res.status(400).json({
+      message: "This application can no longer be withdrawn.",
+    });
+  }
+
+  application.status = "withdrawn";
   application.statusHistory.push({
-    status: "declined",
+    status: "withdrawn",
     note: "Withdrawn by student.",
   });
   await application.save();
+
+  const companyProfile = await CompanyProfile.findById(application.company);
+  if (companyProfile?.user) {
+    createInAppNotification({
+      recipientUserId: companyProfile.user,
+      type: "application_withdrawn",
+      title: "Application withdrawn",
+      body: "A student withdrew an application to one of your postings.",
+      link: "/company/jobs",
+    });
+  }
+
   res.json({ message: "Application withdrawn.", application });
 });
 
@@ -197,10 +216,24 @@ router.get(
 router.put("/:id/status", protect, authorize("company"), async (req, res) => {
   try {
     const { status, note } = req.body;
-    const validStatuses = ["in_review", "approved", "declined"];
+    const validStatuses = [
+      "in_review",
+      "interview_scheduled",
+      "approved",
+      "declined",
+    ];
     if (!validStatuses.includes(status)) {
       return res.status(400).json({ message: "Invalid status value." });
     }
+
+    // Batch 1: legal lifecycle transitions are enforced server-side.
+    const VALID_TRANSITIONS = {
+      in_review: ["interview_scheduled", "approved", "declined"],
+      interview_scheduled: ["approved", "declined"],
+      approved: ["declined"],
+      declined: [],
+      withdrawn: [],
+    };
 
     const companyProfile = await CompanyProfile.findOne({ user: req.user._id });
     const application = await Application.findOne({
@@ -214,6 +247,15 @@ router.put("/:id/status", protect, authorize("company"), async (req, res) => {
       });
     if (!application)
       return res.status(404).json({ message: "Application not found." });
+
+    if (
+      !VALID_TRANSITIONS[application.status] ||
+      !VALID_TRANSITIONS[application.status].includes(status)
+    ) {
+      return res.status(400).json({
+        message: `Cannot move an application from "${application.status.replace(/_/g, " ")}" to "${status.replace(/_/g, " ")}".`,
+      });
+    }
 
     const wasApproved = application.status === "approved";
     application.status = status;

@@ -520,3 +520,19 @@
 .scrollbar-hide::-webkit-scrollbar {
   display: none;
 }
+
+
+/* Filter pills slide animation (Users section) */
+@keyframes filter-slide {
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+  50% {
+    transform: translateX(-14px);
+  }
+}
+
+.animate-filter-slide {
+  animation: filter-slide 4s ease-in-out infinite;
+}

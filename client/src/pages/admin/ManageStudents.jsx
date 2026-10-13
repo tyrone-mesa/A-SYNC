@@ -417,11 +417,11 @@ const ManageStudents = () => {
                       Reset &amp; Resend OTP
                     </button>
                   )}
-                  <span className="badge bg-gray text-navy">
+                  <span className="text-sm font-bold text-navy/70">
                     {s.completedOJTHours || 0}/{s.requiredOJTHours || 0} hrs
                   </span>
                   <span
-                    className={s.isProfileComplete ? "text-sm font-bold text-[#5E7867]" : "badge bg-navy/10 text-navy/65"}
+                    className={s.isProfileComplete ? "text-sm font-bold text-[#5E7867]" : "text-sm font-bold text-navy/50"}
                   >
                     {s.isProfileComplete ? "Profile Complete" : "Incomplete"}
                   </span>

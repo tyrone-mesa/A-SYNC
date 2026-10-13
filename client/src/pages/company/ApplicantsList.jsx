@@ -28,6 +28,24 @@ const ApplicantsList = () => {
   const [job, setJob] = useState(null);
   const [applications, setApplications] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [schedules, setSchedules] = useState([]);
+  const [schedulingId, setSchedulingId] = useState(null);
+  const [scheduleForm, setScheduleForm] = useState({
+    proposedDateTime: "",
+    mode: "online",
+    locationOrLink: "",
+    notes: "",
+  });
+  const [rebookingId, setRebookingId] = useState(null);
+  const [rebookForm, setRebookForm] = useState({ newDateTime: "", note: "" });
+  const [scheduleBusy, setScheduleBusy] = useState(false);
+  const [scheduleNotice, setScheduleNotice] = useState("");
+
+  const loadSchedules = () =>
+    api
+      .get("/interview-schedules/company")
+      .then(({ data }) => setSchedules(data.schedules || []))
+      .catch(() => {});
   const [messagingId, setMessagingId] = useState(null);
 
   const loadApplicants = () => {
@@ -66,6 +84,106 @@ const ApplicantsList = () => {
     } finally {
       setMessagingId(null);
     }
+  };
+
+  useEffect(() => {
+    loadSchedules();
+  }, []);
+
+  const activeScheduleFor = (appId) =>
+    schedules.find(
+      (s) =>
+        (s.application === appId || s.application?._id === appId) &&
+        ["proposed", "confirmed", "reschedule_requested"].includes(s.status),
+    );
+
+  const formatWhen = (value) =>
+    value ? new Date(value).toLocaleString() : "—";
+
+  const handleScheduleChange = (e) =>
+    setScheduleForm({ ...scheduleForm, [e.target.name]: e.target.value });
+
+  const proposeSchedule = async (appId) => {
+    setScheduleBusy(true);
+    setScheduleNotice("");
+    try {
+      await api.post("/interview-schedules", {
+        applicationId: appId,
+        ...scheduleForm,
+      });
+      setScheduleNotice("Interview proposed. The student has been notified.");
+      setSchedulingId(null);
+      setScheduleForm({
+        proposedDateTime: "",
+        mode: "online",
+        locationOrLink: "",
+        notes: "",
+      });
+      await loadSchedules();
+      window.location.reload();
+    } catch (err) {
+      setScheduleNotice(
+        err.response?.data?.message || "Failed to propose interview.",
+      );
+    } finally {
+      setScheduleBusy(false);
+    }
+  };
+
+  const completeSchedule = async (scheduleId) => {
+    setScheduleBusy(true);
+    try {
+      await api.put(`/interview-schedules/${scheduleId}/complete`);
+      setScheduleNotice("Interview marked as completed.");
+      await loadSchedules();
+    } catch (err) {
+      setScheduleNotice(
+        err.response?.data?.message || "Failed to complete interview.",
+      );
+    } finally {
+      setScheduleBusy(false);
+    }
+  };
+
+  const cancelSchedule = async (scheduleId) => {
+    setScheduleBusy(true);
+    try {
+      await api.put(`/interview-schedules/${scheduleId}/cancel`);
+      setScheduleNotice("Interview cancelled.");
+      await loadSchedules();
+      window.location.reload();
+    } catch (err) {
+      setScheduleNotice(
+        err.response?.data?.message || "Failed to cancel interview.",
+      );
+    } finally {
+      setScheduleBusy(false);
+    }
+  };
+
+  const rebookSchedule = async (scheduleId) => {
+    setScheduleBusy(true);
+    try {
+      await api.put(`/interview-schedules/${scheduleId}/rebook`, rebookForm);
+      setScheduleNotice("New time proposed to the student.");
+      setRebookingId(null);
+      setRebookForm({ newDateTime: "", note: "" });
+      await loadSchedules();
+    } catch (err) {
+      setScheduleNotice(
+        err.response?.data?.message || "Failed to propose a new time.",
+      );
+    } finally {
+      setScheduleBusy(false);
+    }
+  };
+
+  const SCHEDULE_STATUS_LABELS = {
+    proposed: "Awaiting student confirmation",
+    confirmed: "Confirmed",
+    reschedule_requested: "Student requested a new time",
+    completed: "Completed",
+    cancelled: "Cancelled",
   };
 
   if (loading) return <DashboardLoading role="company" />;
@@ -187,6 +305,221 @@ const ApplicantsList = () => {
                 />
               </div>
             </div>
+
+            {(() => {
+              const schedule = activeScheduleFor(app._id);
+              if (schedule) {
+                return (
+                  <div className="mt-3 rounded-2xl border border-black/5 bg-[#f8fbfa] p-3 text-sm">
+                    <div className="flex flex-wrap items-center justify-between gap-2">
+                      <p className="font-semibold text-navy">
+                        Interview:{" "}
+                        <span
+                          className={
+                            schedule.status === "confirmed"
+                              ? "text-[#5E7867]"
+                              : schedule.status === "reschedule_requested"
+                                ? "text-[#b8860b]"
+                                : "text-[#2F6FE4]"
+                          }
+                        >
+                          {SCHEDULE_STATUS_LABELS[schedule.status]}
+                        </span>
+                      </p>
+                      <div className="flex items-center gap-3 text-xs">
+                        {schedule.status === "confirmed" && (
+                          <button
+                            type="button"
+                            onClick={() => completeSchedule(schedule._id)}
+                            disabled={scheduleBusy}
+                            className="font-medium text-[#5E7867] hover:underline"
+                          >
+                            Mark Completed
+                          </button>
+                        )}
+                        <button
+                          type="button"
+                          onClick={() => cancelSchedule(schedule._id)}
+                          disabled={scheduleBusy}
+                          className="font-medium text-[#DF2E1B] hover:underline"
+                        >
+                          Cancel Interview
+                        </button>
+                      </div>
+                    </div>
+                    <p className="mt-1 text-navy/70">
+                      {formatWhen(schedule.proposedDateTime)} ·{" "}
+                      {schedule.mode === "online" ? "Online" : "On-site"}
+                      {schedule.locationOrLink
+                        ? ` · ${schedule.locationOrLink}`
+                        : ""}
+                    </p>
+                    {schedule.notes && (
+                      <p className="mt-1 text-xs italic text-navy/60">
+                        {schedule.notes}
+                      </p>
+                    )}
+                    {schedule.status === "reschedule_requested" && (
+                      <div className="mt-2 space-y-2">
+                        <p className="text-xs text-[#b8860b]">
+                          Student prefers:{" "}
+                          {formatWhen(schedule.rescheduleDateTime)}
+                          {schedule.rescheduleNote
+                            ? ` — “${schedule.rescheduleNote}”`
+                            : ""}
+                        </p>
+                        {rebookingId === schedule._id ? (
+                          <div className="flex flex-wrap items-center gap-2">
+                            <input
+                              type="datetime-local"
+                              value={rebookForm.newDateTime}
+                              onChange={(e) =>
+                                setRebookForm({
+                                  ...rebookForm,
+                                  newDateTime: e.target.value,
+                                })
+                              }
+                              className="input-field py-1.5 text-xs"
+                            />
+                            <input
+                              type="text"
+                              placeholder="Note (optional)"
+                              value={rebookForm.note}
+                              onChange={(e) =>
+                                setRebookForm({
+                                  ...rebookForm,
+                                  note: e.target.value,
+                                })
+                              }
+                              className="input-field py-1.5 text-xs"
+                            />
+                            <button
+                              type="button"
+                              className="btn-primary h-8 px-3 text-xs"
+                              disabled={
+                                scheduleBusy || !rebookForm.newDateTime
+                              }
+                              onClick={() => rebookSchedule(schedule._id)}
+                            >
+                              Propose New Time
+                            </button>
+                            <button
+                              type="button"
+                              className="text-xs text-navy/60 hover:underline"
+                              onClick={() => setRebookingId(null)}
+                            >
+                              Close
+                            </button>
+                          </div>
+                        ) : (
+                          <button
+                            type="button"
+                            className="text-xs font-medium text-[#2F6FE4] hover:underline"
+                            onClick={() => setRebookingId(schedule._id)}
+                          >
+                            Propose a new time
+                          </button>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                );
+              }
+              if (app.status !== "in_review") return null;
+              return (
+                <div className="mt-3">
+                  {schedulingId === app._id ? (
+                    <div className="rounded-2xl border border-black/5 bg-[#f8fbfa] p-3">
+                      <div className="grid gap-2 sm:grid-cols-2">
+                        <div>
+                          <label className="mb-1 block text-xs text-navy/65">
+                            Date & time
+                          </label>
+                          <input
+                            type="datetime-local"
+                            name="proposedDateTime"
+                            value={scheduleForm.proposedDateTime}
+                            onChange={handleScheduleChange}
+                            className="input-field py-1.5 text-sm"
+                          />
+                        </div>
+                        <div>
+                          <label className="mb-1 block text-xs text-navy/65">
+                            Mode
+                          </label>
+                          <SelectDropdown
+                            name="mode"
+                            value={scheduleForm.mode}
+                            onChange={handleScheduleChange}
+                            options={[
+                              { value: "online", label: "Online" },
+                              { value: "onsite", label: "On-site" },
+                            ]}
+                            className="input-field py-1.5 text-sm"
+                          />
+                        </div>
+                        <div className="sm:col-span-2">
+                          <label className="mb-1 block text-xs text-navy/65">
+                            Meeting link / location
+                          </label>
+                          <input
+                            type="text"
+                            name="locationOrLink"
+                            placeholder={
+                              scheduleForm.mode === "online"
+                                ? "e.g., https://meet.google.com/..."
+                                : "e.g., 3F Main Building, Ortigas"
+                            }
+                            value={scheduleForm.locationOrLink}
+                            onChange={handleScheduleChange}
+                            className="input-field py-1.5 text-sm"
+                          />
+                        </div>
+                        <div className="sm:col-span-2">
+                          <label className="mb-1 block text-xs text-navy/65">
+                            Notes (optional)
+                          </label>
+                          <input
+                            type="text"
+                            name="notes"
+                            value={scheduleForm.notes}
+                            onChange={handleScheduleChange}
+                            className="input-field py-1.5 text-sm"
+                          />
+                        </div>
+                      </div>
+                      <div className="mt-3 flex items-center gap-3">
+                        <button
+                          type="button"
+                          className="btn-primary h-8 px-3 text-xs"
+                          disabled={
+                            scheduleBusy || !scheduleForm.proposedDateTime
+                          }
+                          onClick={() => proposeSchedule(app._id)}
+                        >
+                          Propose Interview
+                        </button>
+                        <button
+                          type="button"
+                          className="text-xs text-navy/60 hover:underline"
+                          onClick={() => setSchedulingId(null)}
+                        >
+                          Cancel
+                        </button>
+                      </div>
+                    </div>
+                  ) : (
+                    <button
+                      type="button"
+                      className="text-xs font-medium text-[#2F6FE4] hover:underline"
+                      onClick={() => setSchedulingId(app._id)}
+                    >
+                      Schedule Interview
+                    </button>
+                  )}
+                </div>
+              );
+            })()}
           </div>
         ))}
       </div>

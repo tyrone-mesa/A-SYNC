@@ -51,7 +51,6 @@ const PostJob = () => {
     setForm({ ...form, [e.target.name]: e.target.value });
 
   const [companyProfile, setCompanyProfile] = useState(null);
-  const [posterFile, setPosterFile] = useState(null);
 
   useEffect(() => {
     api
@@ -99,15 +98,9 @@ const PostJob = () => {
           .map((s) => s.trim())
           .filter(Boolean),
       };
-      const body = new FormData();
-      Object.entries(payload).forEach(([key, value]) => {
-        if (Array.isArray(value)) value.forEach((v) => body.append(key, v));
-        else body.append(key, value);
-      });
-      if (posterFile) body.append("poster", posterFile);
       const { data } = editing
-        ? await api.put(`/jobs/${jobId}`, body)
-        : await api.post("/jobs", body);
+        ? await api.put(`/jobs/${jobId}`, payload)
+        : await api.post("/jobs", payload);
       navigate(
         editing ? "/company/jobs" : `/company/jobs/${data.job._id}/applicants`,
       );
@@ -369,44 +362,6 @@ const PostJob = () => {
             value={form.applicationDeadline}
             onChange={handleChange}
           />
-        </div>
-
-        <div className="sm:col-span-2">
-
-          <label className="label">Advertising poster (optional)</label>
-
-          <input
-
-            type="file"
-
-            accept="image/*"
-
-            onChange={(e) => setPosterFile(e.target.files?.[0] || null)}
-
-            className="input-field py-2 text-sm"
-
-          />
-
-          <p className="mt-1 text-xs text-navy/60">
-
-            16:9 ratio recommended (720p to 4K). Featured in the Opportunities ad carousel.
-
-          </p>
-
-          {posterFile && (
-
-            <img
-
-              src={URL.createObjectURL(posterFile)}
-
-              alt="Poster preview"
-
-              className="mt-2 aspect-video w-full max-w-sm rounded-xl object-cover"
-
-            />
-
-          )}
-
         </div>
 
         <button type="submit" disabled={saving} className="btn-primary">

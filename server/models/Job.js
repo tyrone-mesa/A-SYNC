@@ -34,8 +34,6 @@ const JobSchema = new mongoose.Schema(
     // Job postings it doubles as the salary range (e.g. "₱28,000 – ₱35,000 / mo").
     stipend: { type: String, trim: true, default: "Unpaid" },
     applicationDeadline: { type: Date },
-    // Optional 16:9 advertising poster shown in the Opportunities carousel.
-    posterUrl: { type: String, default: "" },
     status: {
       type: String,
       enum: ["open", "closed", "archived"],

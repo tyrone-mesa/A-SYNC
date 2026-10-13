@@ -28,6 +28,7 @@ if (!fs.existsSync(uploadDir)) {
 const uploadFolders = {
   avatar: "student-profile-photos",
   logo: "company-logos",
+  poster: "job-posters",
 };
 
 const storage = multer.diskStorage({
@@ -255,6 +256,20 @@ const logoFileFilter = (req, file, cb) => {
 // NOW USES CLOUDINARY
 // ============================================================
 
+// Job advertising posters: local disk, JPG/PNG/WebP only, max 5MB.
+// (NOT the Cloudinary logo engine - posters must work without Cloudinary.)
+const posterTypes = [".jpg", ".jpeg", ".png", ".webp"];
+const posterFileFilter = (req, file, cb) => {
+  const ext = path.extname(file.originalname).toLowerCase();
+  if (posterTypes.includes(ext)) cb(null, true);
+  else cb(new Error("Posters must be a JPG, PNG, or WebP image."));
+};
+const uploadPoster = multer({
+  storage,
+  fileFilter: posterFileFilter,
+  limits: { fileSize: 5 * 1024 * 1024 },
+});
+
 const uploadLogo = multer({
   storage: cloudinaryStorage,
 
@@ -306,6 +321,8 @@ module.exports = upload;
 module.exports.uploadResume = uploadResume;
 
 module.exports.uploadLogo = uploadLogo;
+
+module.exports.uploadPoster = uploadPoster;
 
 module.exports.uploadStudentAvatar =
   uploadStudentAvatar;

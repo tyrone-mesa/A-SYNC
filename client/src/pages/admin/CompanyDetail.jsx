@@ -87,12 +87,12 @@ const CompanyDetail = () => {
       <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
         <div className="flex items-center gap-2 flex-wrap">
           <span
-            className={company.isVerified ? "text-sm font-bold text-[#5E7867]" : "badge bg-navy/10 text-navy/65"}
+            className={company.isVerified ? "text-sm font-bold text-[#5E7867]" : "text-sm font-bold text-navy/50"}
           >
             {company.isVerified ? "Verified" : "Pending"}
           </span>
           <span
-            className={company.user?.isActive ? "text-sm font-bold text-[#5E7867]" : "badge bg-coral/15 text-[#DF2E1B]"}
+            className={company.user?.isActive ? "text-sm font-bold text-[#5E7867]" : "text-sm font-bold text-[#DF2E1B]"}
           >
             {company.user?.isActive ? "Active" : "Disabled"}
           </span>
@@ -166,11 +166,11 @@ const CompanyDetail = () => {
                 </div>
                 <div className="flex items-center gap-3 shrink-0">
                   <span
-                    className={`badge ${job.status === "open" ? "bg-gold text-navy" : "bg-navy/10 text-navy/65"}`}
+                    className={`text-sm font-bold ${job.status === "open" ? "text-[#5E7867]" : "text-navy/50"}`}
                   >
                     {job.status}
                   </span>
-                  <span className="badge bg-gray text-navy">
+                  <span className="text-sm font-bold text-navy/70">
                     {job.slotsFilled}/{job.slotsAvailable} filled
                   </span>
                   {job.applicantCount > 0 && (

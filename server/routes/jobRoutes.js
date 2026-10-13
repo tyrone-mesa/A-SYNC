@@ -1,24 +1,6 @@
 const express = require("express");
 const Job = require("../models/Job");
 const upload = require("../middleware/upload");
-const { scanUploadedFile } = require("../middleware/scanUpload");
-
-// Posters are optional - skip the security scan when no file is attached.
-const scanUploadedFileIfProvided = (req, res, next) =>
-  req.file ? scanUploadedFile(req, res, next) : next();
-
-// Multer poster errors (size/type) become clear 400s, not the generic 500.
-const posterUploadError = (err, req, res, next) => {
-  if (!err) return next();
-  if (err.code === "LIMIT_FILE_SIZE") {
-    return res
-      .status(400)
-      .json({ message: "Poster is too large. Maximum size is 5MB." });
-  }
-  return res
-    .status(400)
-    .json({ message: err.message || "Invalid poster file." });
-};
 const CompanyProfile = require("../models/CompanyProfile");
 const User = require("../models/User");
 const { protect, authorize } = require("../middleware/auth");
@@ -160,9 +142,6 @@ router.post(
   "/",
   protect,
   authorize("company"),
-  upload.uploadPoster.single("poster"),
-  posterUploadError,
-  scanUploadedFileIfProvided,
   async (req, res) => {
   try {
     if (!["OJT", "Full-Time Job"].includes(req.body.jobType)) {
@@ -193,7 +172,6 @@ router.post(
     const job = await Job.create({
       ...req.body,
       company: companyProfile._id,
-      posterUrl: req.file ? req.file.path : "",
     });
 
     const recipients = await User.find({
@@ -236,9 +214,6 @@ router.put(
   "/:id",
   protect,
   authorize("company"),
-  upload.uploadPoster.single("poster"),
-  posterUploadError,
-  scanUploadedFileIfProvided,
   async (req, res) => {
   try {
     const companyProfile = await CompanyProfile.findOne({ user: req.user._id });
@@ -253,7 +228,6 @@ router.put(
         .json({ message: "Job posting not found or not owned by you." });
 
     Object.assign(job, req.body);
-    if (req.file) job.posterUrl = req.file.path;
     await job.save();
 
     emitDashboardUpdate({ roles: ["student", "admin"], scope: "jobs" });

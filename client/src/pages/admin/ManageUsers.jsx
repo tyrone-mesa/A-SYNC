@@ -3,6 +3,7 @@ import api from "../../api/axios";
 import DashboardShell from "../../components/DashboardShell";
 import ListRowSkeleton from "../../components/ListRowSkeleton";
 import { useAuth } from "../../context/AuthContext";
+import { motion } from "framer-motion";
 
 const renderNumericEmail = (email) =>
   email.split(/(\d+)/).map((part, index) =>
@@ -176,19 +177,28 @@ const ManageUsers = () => {
             aria-label="Search users"
           />
         </div>
-        <div className="animate-filter-slide mb-6 flex flex-wrap gap-2">
+        <div className="mb-6 flex flex-wrap gap-2">
           {["", "student", "company", "coordinator", "registrar", "admin"].map(
             (r) => (
               <button
                 key={r || "all"}
                 onClick={() => setRoleFilter(r)}
-                className={`px-4 py-2 rounded-lg text-sm font-medium transition border ${
+                className={`relative px-4 py-2 rounded-lg text-sm font-medium transition-colors border ${
                   roleFilter === r
-                    ? "bg-[#dfeecf] text-[#5E7867] border-forest/20"
+                    ? "text-[#5E7867] border-transparent"
                     : "bg-navy/5 text-navy/70 border-transparent hover:bg-navy/10"
                 }`}
               >
-                {r ? r.charAt(0).toUpperCase() + r.slice(1) + "s" : "All"}
+                {roleFilter === r && (
+                  <motion.span
+                    layoutId="user-filter-pill"
+                    className="absolute inset-0 rounded-lg bg-[#dfeecf] border border-forest/20"
+                    transition={{ type: "spring", stiffness: 500, damping: 40 }}
+                  />
+                )}
+                <span className="relative z-10">
+                  {r ? r.charAt(0).toUpperCase() + r.slice(1) + "s" : "All"}
+                </span>
               </button>
             ),
           )}

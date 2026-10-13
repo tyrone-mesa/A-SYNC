@@ -175,7 +175,7 @@ const Login = ({ modal = false, onClose, onCompanyRegister, onForgotPassword, in
             className="input-field h-11 w-full"
             placeholder={
               portal === "student"
-                ? "name@asiatech.edu.ph"
+                ? "1-23000@asiatech.edu.ph"
                 : "Enter your Email"
             }
           />

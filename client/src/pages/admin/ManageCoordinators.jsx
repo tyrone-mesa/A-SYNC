@@ -234,7 +234,7 @@ const ManageCoordinators = () => {
                   </div>
                   <div className="flex shrink-0 flex-wrap items-center gap-3">
                     <span
-                      className={`badge ${c.isActive ? "bg-gold/15 text-[#457D53]" : "bg-coral/15 text-[#DF2E1B]"}`}
+                      className={`text-sm font-bold ${c.isActive ? "text-[#5E7867]" : "text-[#DF2E1B]"}`}
                     >
                       {c.isActive ? "Active" : "Disabled"}
                     </span>

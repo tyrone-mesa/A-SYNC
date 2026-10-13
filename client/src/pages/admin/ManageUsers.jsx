@@ -176,7 +176,7 @@ const ManageUsers = () => {
             aria-label="Search users"
           />
         </div>
-        <div className="mb-6 flex flex-wrap gap-2">
+        <div className="animate-filter-slide mb-6 flex flex-wrap gap-2">
           {["", "student", "company", "coordinator", "registrar", "admin"].map(
             (r) => (
               <button
@@ -223,7 +223,7 @@ const ManageUsers = () => {
                 </div>
                 <div className="flex shrink-0 flex-wrap items-center gap-3">
                   <span
-                    className={u.isActive ? "text-sm font-bold text-[#5E7867]" : "badge bg-coral/15 text-[#DF2E1B]"}
+                    className={u.isActive ? "text-sm font-bold text-[#5E7867]" : "text-sm font-bold text-[#DF2E1B]"}
                   >
                     {u.isActive ? "Active" : "Disabled"}
                   </span>

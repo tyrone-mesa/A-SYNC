@@ -186,7 +186,7 @@ const ManageRegistrars = () => {
                   <div className="mt-3 flex flex-wrap gap-2">
                     <button
                       type="button"
-                      className="btn-secondary px-3 py-1 text-xs"
+                      className="text-xs font-medium text-navy/70 hover:underline"
                       onClick={() =>
                         setSelected(
                           selected?._id === registrar._id ? null : registrar,
@@ -197,7 +197,7 @@ const ManageRegistrars = () => {
                     </button>
                     <button
                       type="button"
-                      className="btn-secondary px-3 py-1 text-xs"
+                      className="text-xs font-medium text-navy/70 hover:underline"
                       onClick={() =>
                         setEditing({
                           _id: registrar._id,
@@ -211,14 +211,14 @@ const ManageRegistrars = () => {
                     </button>
                     <button
                       type="button"
-                      className="btn-secondary px-3 py-1 text-xs"
+                      className="text-xs font-medium text-navy/70 hover:underline"
                       onClick={() => resetPassword(registrar._id)}
                     >
                       Reset password
                     </button>
                     <button
                       type="button"
-                      className="btn-danger px-3 py-1 text-xs"
+                      className="text-xs font-medium text-[#DF2E1B] hover:underline"
                       onClick={() => archive(registrar)}
                     >
                       Delete

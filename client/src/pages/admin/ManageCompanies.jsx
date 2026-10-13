@@ -221,7 +221,7 @@ const ManageCompanies = () => {
                   </div>
                   <div className="flex flex-wrap items-center gap-2 sm:gap-3 sm:shrink-0">
                     <span
-                      className={c.isVerified ? "text-sm font-bold text-[#5E7867]" : "badge bg-navy/10 text-navy/65"}
+                      className={c.isVerified ? "text-sm font-bold text-[#5E7867]" : "text-sm font-bold text-navy/50"}
                     >
                       {c.isVerified ? "Verified" : "Pending"}
                     </span>

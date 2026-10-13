@@ -88,6 +88,104 @@ const MonthlyTrend = ({ data }) => {
   );
 };
 
+// Donut chart — pure SVG, no charting library. Composition data only.
+const DONUT_COLORS = ["#6C8976", "#2F6FE4", "#ABD1B5", "#E74C3C", "#8A97A8"];
+
+const Donut = ({ title, data }) => {
+  const total = data.reduce((sum, d) => sum + d.count, 0);
+  const radius = 54;
+  const circumference = 2 * Math.PI * radius;
+  let offset = 0;
+
+  return (
+    <div className="rounded-[20px] border border-[#0b5d3d]/10 bg-[#f8fbfa] p-5 shadow-sm">
+      <h3 className="font-display text-lg font-semibold text-[#0b5d3d]">
+        {title}
+      </h3>
+      {total === 0 ? (
+        <p className="mt-4 text-sm text-navy/60">No data yet.</p>
+      ) : (
+        <div className="mt-4 flex items-center gap-6">
+          <svg viewBox="0 0 140 140" className="h-36 w-36 flex-shrink-0">
+            <circle
+              cx="70"
+              cy="70"
+              r={radius}
+              fill="none"
+              stroke="#0F1E35"
+              strokeOpacity="0.08"
+              strokeWidth="18"
+            />
+            {data.map((d, idx) => {
+              const fraction = d.count / total;
+              const length = fraction * circumference;
+              const segment = (
+                <circle
+                  key={d.label}
+                  cx="70"
+                  cy="70"
+                  r={radius}
+                  fill="none"
+                  stroke={DONUT_COLORS[idx % DONUT_COLORS.length]}
+                  strokeWidth="18"
+                  strokeDasharray={`${Math.max(length - 1.5, 0)} ${circumference}`}
+                  strokeDashoffset={-offset}
+                />
+              );
+              offset += length;
+              return segment;
+            })}
+            <text
+              x="70"
+              y="66"
+              textAnchor="middle"
+              className="numeric-value"
+              fontSize="22"
+              fontWeight="700"
+              fill="#0b5d3d"
+            >
+              {total}
+            </text>
+            <text
+              x="70"
+              y="84"
+              textAnchor="middle"
+              fontSize="9"
+              fill="#0F1E35"
+              opacity="0.55"
+            >
+              TOTAL
+            </text>
+          </svg>
+          <ul className="min-w-0 flex-1 space-y-2">
+            {data.map((d, idx) => (
+              <li
+                key={d.label}
+                className="flex items-center justify-between gap-2 text-sm"
+              >
+                <span className="flex min-w-0 items-center gap-2 text-navy/70">
+                  <span
+                    className="h-2.5 w-2.5 flex-shrink-0 rounded-full"
+                    style={{
+                      backgroundColor: DONUT_COLORS[idx % DONUT_COLORS.length],
+                    }}
+                  />
+                  <span className="capitalize">
+                    {String(d.label).replace(/_/g, " ")}
+                  </span>
+                </span>
+                <span className="numeric-value font-medium text-navy">
+                  {d.count} · {Math.round((d.count / total) * 100)}%
+                </span>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+    </div>
+  );
+};
+
 const Reports = () => {
   const [report, setReport] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -136,10 +234,7 @@ const Reports = () => {
             data={report.jobsByDepartment}
             colorClass="bg-forest"
           />
-          <BarList
-            title="Applications by Status"
-            data={report.applicationsByStatus}
-          />
+          <Donut title="Applications by Status" data={report.applicationsByStatus} />
           <BarList
             title="OJT vs Full-Time Postings"
             data={report.jobsByType}

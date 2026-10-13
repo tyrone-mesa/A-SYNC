@@ -5,6 +5,7 @@ import { motion, MotionConfig } from "framer-motion";
 import Navbar from "./components/Navbar";
 import ProtectedRoute from "./components/ProtectedRoute";
 import FloatingMessageCircle from "./components/FloatingMessageCircle";
+import Loader from "./components/Loader";
 import {
   hasHomeIntroPlayedThisSession,
   markHomeIntroPlayedThisSession,
@@ -169,14 +170,7 @@ function App() {
               transition={{ duration: 0.3, ease: "easeOut" }}
             >
               <React.Suspense
-                fallback={
-                  <div
-                    className="flex min-h-[40vh] items-center justify-center px-4 text-sm text-[#0F1E35]/70"
-                    role="status"
-                  >
-                    Loading page…
-                  </div>
-                }
+                fallback={<Loader fullScreen label="Loading page…" />}
               >
                 <Routes location={location}>
                 {/* Public */}

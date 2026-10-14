@@ -436,7 +436,19 @@ const getArchivedUserData = async (id) => {
     attendance,
     jobs,
     conversations,
-    messages,
+    // Shape each message with an explicit, readable time + date so archive
+    // exports always show WHEN every specific message was sent.
+    messages: messages.map((message) => ({
+      sentAt: new Date(message.createdAt).toLocaleString("en-PH", {
+        dateStyle: "medium",
+        timeStyle: "short",
+      }),
+      from:
+        message.sender?.fullName ||
+        message.sender?.email ||
+        "Unknown sender",
+      message: message.body,
+    })),
   };
 };
 

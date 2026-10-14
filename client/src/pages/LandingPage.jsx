@@ -152,10 +152,11 @@ const ABOUT_SLIDES = [
     desktopClass: "md:translate-x-[250px] md:translate-y-[50px] md:scale-[1.7]",
   },
   {
-    image: "/system-logo/3member.png",
-    alt: "",
-    name: "",
-    desktopClass: "md:translate-y-[55px] md:scale-[1.4]",
+    image: "/system-logo/Jullie.png",
+    alt: "Jullie Anne Concepcion",
+    name: "Jullie Anne Concepcion",
+    role: "Documention and System Enchantment"
+    desktopClass: "md:translate-y-[55px] md:scale-[1.7]",
   },
 ];
 

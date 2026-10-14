@@ -509,7 +509,7 @@ const FloatingMessageCircle = () => {
     <>
       <div
         ref={containerRef}
-        className="fixed bottom-[max(1.25rem,env(safe-area-inset-bottom))] right-4 z-50 sm:right-6"
+        className="fixed bottom-[max(6.75rem,env(safe-area-inset-bottom))] right-4 z-50 sm:bottom-[max(1.25rem,env(safe-area-inset-bottom))] sm:right-6"
         style={{
           bottom: location.pathname.startsWith("/messages")
             ? "calc(env(safe-area-inset-bottom) + 5.5rem)"

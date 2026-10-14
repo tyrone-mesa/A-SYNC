@@ -418,7 +418,7 @@ const LandingPage = ({ intro = false, onIntroComplete }) => {
 
               <motion.h1
                 variants={heroItem}
-                className="mb-5 font-bespoke text-[clamp(2rem,5vw,4rem)] font-bold italic leading-[0.96] tracking-[-0.04em] text-white [text-shadow:0_2px_20px_rgba(15,61,46,0.45)]"
+                className="mb-5 font-bespoke text-[clamp(2.25rem,5vw,4rem)] font-bold italic leading-[0.96] tracking-[-0.04em] text-white [text-shadow:0_2px_20px_rgba(15,61,46,0.45)]"
               >
                 Your Future Starts With the Right Opportunity.
               </motion.h1>
@@ -430,17 +430,17 @@ const LandingPage = ({ intro = false, onIntroComplete }) => {
                 AsiatechSync connects Asia Technological School of Science and Arts students with OJT, internship, and career opportunities from industry partners.
               </motion.p>
 
-              <motion.div variants={heroItem} className="flex flex-row flex-wrap items-center gap-3">
+              <motion.div variants={heroItem} className="flex w-full flex-col items-stretch gap-3 sm:w-auto sm:flex-row sm:flex-wrap sm:items-center">
                 <a
                   href="/jobs"
-                  className="inline-flex items-center justify-center rounded-full bg-[#E8C165] px-5 py-3 text-center text-xs font-bold text-[#0F3D2E] shadow-[0_14px_30px_rgba(232,193,101,0.38)] transition duration-200 hover:-translate-y-1 hover:scale-[1.02] hover:bg-[#DEB24E] sm:px-7 sm:py-3.5 sm:text-sm"
+                  className="inline-flex w-full items-center justify-center rounded-full bg-[#E8C165] px-5 py-3 text-center text-xs font-bold text-[#0F3D2E] shadow-[0_14px_30px_rgba(232,193,101,0.38)] transition duration-200 hover:-translate-y-1 hover:scale-[1.02] hover:bg-[#DEB24E] sm:w-auto sm:px-7 sm:py-3.5 sm:text-sm"
                 >
                   Find Opportunities
                 </a>
                 <button
                   type="button"
                   onClick={openPartnerSignup}
-                  className="inline-flex items-center justify-center rounded-full border border-[#1E5D46]/30 bg-[#F0EDE6]/70 px-5 py-3 text-center text-xs font-bold text-[#0F3D2E] backdrop-blur-sm transition duration-200 hover:-translate-y-1 hover:bg-[#E6EFE6] sm:px-7 sm:py-3.5 sm:text-sm"
+                  className="inline-flex w-full items-center justify-center rounded-full border border-[#1E5D46]/30 bg-[#F0EDE6]/70 px-5 py-3 text-center text-xs font-bold text-[#0F3D2E] backdrop-blur-sm transition duration-200 hover:-translate-y-1 hover:bg-[#E6EFE6] sm:w-auto sm:px-7 sm:py-3.5 sm:text-sm"
                 >
                   Partner With Us
                 </button>

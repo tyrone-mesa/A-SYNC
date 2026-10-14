@@ -178,7 +178,7 @@ const Navbar = ({ variant = "static" }) => {
       className={`${headerPositionClass} ${headerAnimationClass} relative z-[100] px-3 py-3 sm:px-6`}
     >
       <nav className="relative z-50 w-full">
-        <div className="glass-panel relative z-50 mx-auto flex min-h-[60px] w-full max-w-7xl items-center justify-between rounded-[28px] px-3 shadow-[0_12px_30px_rgba(15,30,53,0.14)] sm:px-5">
+        <div className="glass-panel navbar-glass relative z-50 mx-auto flex min-h-[52px] w-full max-w-7xl items-center justify-between rounded-[28px] px-3 shadow-[0_12px_30px_rgba(15,30,53,0.14)] sm:min-h-[60px] sm:px-5">
           <a
             href="/"
             aria-label="Go to ASIATECH SYNC home page"

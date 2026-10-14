@@ -25,6 +25,18 @@ const AdminDashboard = () => {
   // Refetch instantly when the server reports a dashboard-relevant mutation.
   useRealtimeDashboard(fetchStats);
 
+  const [aboutFile, setAboutFile] = useState(null);
+  const [aboutImage, setAboutImage] = useState("");
+  const [aboutBusy, setAboutBusy] = useState(false);
+  const [aboutMsg, setAboutMsg] = useState("");
+
+  useEffect(() => {
+    api
+      .get("/site-settings")
+      .then(({ data }) => setAboutImage(data.aboutImage || ""))
+      .catch(() => setAboutImage(""));
+  }, []);
+
   if (loading) return <DashboardLoading role="admin" />;
 
   const safeStats = stats || {};
@@ -56,18 +68,6 @@ const AdminDashboard = () => {
       to: "/admin/reports",
     },
   ];
-
-  const [aboutFile, setAboutFile] = useState(null);
-  const [aboutImage, setAboutImage] = useState("");
-  const [aboutBusy, setAboutBusy] = useState(false);
-  const [aboutMsg, setAboutMsg] = useState("");
-
-  useEffect(() => {
-    api
-      .get("/site-settings")
-      .then(({ data }) => setAboutImage(data.aboutImage || ""))
-      .catch(() => setAboutImage(""));
-  }, []);
 
   const handleAboutUpload = async () => {
     setAboutBusy(true);

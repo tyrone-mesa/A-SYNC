@@ -57,6 +57,7 @@ const StudentDetail = () => {
   const [profile, setProfile] = useState(null);
   const [applications, setApplications] = useState([]);
   const [attendanceLogs, setAttendanceLogs] = useState([]);
+  const [journalEntries, setJournalEntries] = useState(null);
   const [openLog, setOpenLog] = useState(null);
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState(false);
@@ -92,6 +93,12 @@ const StudentDetail = () => {
         setProfile(data.profile);
         setApplications(data.applications || []);
         setAttendanceLogs(data.attendanceLogs || []);
+        if (canViewDocuments) {
+          api
+            .get(`/journals/of-student/${params.studentId}`)
+            .then(({ data }) => setJournalEntries(data.entries || []))
+            .catch(() => setJournalEntries([]));
+        }
         setOpenLog(data.openLog || null);
       })
       .finally(() => setLoading(false));
@@ -682,6 +689,57 @@ const StudentDetail = () => {
             ))}
           </dl>
         </div>
+
+        {canViewDocuments && (
+          <div className="rounded-[24px] border border-black/5 bg-[#f8faf8] p-6 shadow-sm">
+            <h2 className="mb-4 font-display text-xl font-semibold text-navy">
+              OJT Journal
+            </h2>
+            {journalEntries === null ? (
+              <p className="text-sm text-navy/60">Loading entries…</p>
+            ) : journalEntries.length === 0 ? (
+              <p className="text-sm text-navy/60">
+                No journal entries yet.
+              </p>
+            ) : (
+              <div className="max-h-80 space-y-4 overflow-y-auto pr-1">
+                {journalEntries.map((entry) => (
+                  <div
+                    key={entry._id}
+                    className="rounded-2xl border border-black/5 bg-white/70 p-4"
+                  >
+                    <div className="flex flex-wrap items-center justify-between gap-2">
+                      <p className="font-medium text-navy">
+                        {new Date(entry.entryDate).toLocaleDateString([], {
+                          year: "numeric",
+                          month: "short",
+                          day: "numeric",
+                        })}
+                      </p>
+                      <span
+                        className={`text-sm font-bold ${
+                          entry.status === "submitted"
+                            ? "text-[#5E7867]"
+                            : "text-navy/50"
+                        }`}
+                      >
+                        {entry.status === "submitted" ? "Submitted" : "Draft"}
+                      </span>
+                    </div>
+                    <p className="mt-1 whitespace-pre-line text-sm text-navy/80">
+                      {entry.activities}
+                    </p>
+                    {entry.learnings && (
+                      <p className="mt-1 text-sm italic text-navy/60">
+                        {entry.learnings}
+                      </p>
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
 
         {canViewDocuments && (
           <div className="rounded-[24px] border border-black/5 bg-[#f8faf8] p-6 shadow-sm">

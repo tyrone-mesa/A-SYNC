@@ -1,4 +1,4 @@
-import React, { useCallback, useRef, useState } from "react";
+aimport React, { useCallback, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { motion, useReducedMotion } from "framer-motion";
 import Navbar from "../components/Navbar";
@@ -156,7 +156,7 @@ const ABOUT_SLIDES = [
     alt: "Jullie Anne Concepcion",
     name: "Jullie Anne Concepcion",
     role: "Documention and System Enchantment",
-    desktopClass: "md:translate-y-[235px] md:scale-[2.5]",
+    desktopClass: "md:translate-y-[55px] md:translate-x-[235px] md:scale-[2.5]",
   },
 ];
 

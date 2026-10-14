@@ -366,7 +366,7 @@ const DashboardShell = ({
             )}
           </header>
 
-          <div className="min-w-0 flex-1 px-3 py-4 sm:px-6 sm:py-6 lg:min-h-0 lg:overflow-y-auto">
+          <div className="min-w-0 flex-1 px-3 py-4 pb-28 sm:px-6 sm:py-6 sm:pb-28 lg:pb-6 lg:min-h-0 lg:overflow-y-auto">
             <AnimatePresence mode="popLayout" initial={false}>
               <motion.div
                 key={location.pathname}
@@ -432,6 +432,41 @@ const DashboardShell = ({
           }
         }
       `}</style>
+
+      {/* Mobile app tab bar - native-app navigation on small screens. */}
+      <nav
+        aria-label="Mobile navigation"
+        className="fixed inset-x-3 bottom-3 z-50 rounded-2xl border border-white/60 bg-white/85 px-2 pt-2 shadow-[0_10px_30px_rgba(15,30,53,0.18)] backdrop-blur-xl scrollbar-hide lg:hidden"
+        style={{ paddingBottom: "max(0.5rem, env(safe-area-inset-bottom))" }}
+      >
+        <div className="flex items-stretch gap-1 overflow-x-auto scrollbar-hide">
+          {items
+            .filter(
+              (item) => !item.adminOnly || user?.adminType !== "read-only",
+            )
+            .map((item) => {
+              const active = location.pathname.startsWith(item.to);
+              return (
+                <NavLink
+                  key={item.to}
+                  to={item.to}
+                  className={`flex min-w-[64px] flex-1 flex-col items-center gap-1 rounded-xl px-2 py-1.5 text-[10px] font-semibold leading-none transition-colors ${
+                    active
+                      ? "bg-[#E7F0E9] text-[#17633e]"
+                      : "text-[#0F1E35]/55"
+                  }`}
+                >
+                  {item.label}
+                  <span
+                    className={`h-1 w-1 rounded-full ${
+                      active ? "bg-[#17633e]" : "bg-transparent"
+                    }`}
+                  />
+                </NavLink>
+              );
+            })}
+        </div>
+      </nav>
     </motion.div>
   );
 };

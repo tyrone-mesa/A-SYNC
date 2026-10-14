@@ -355,12 +355,6 @@ const Navbar = ({ variant = "static" }) => {
                       icon: "grid",
                       active: location.pathname.startsWith(roleHome[user.role]),
                     },
-                    {
-                      to: "/messages",
-                      label: "Messages",
-                      icon: "chat",
-                      active: location.pathname.startsWith("/messages"),
-                    },
                   ]
                 : []),
             ];

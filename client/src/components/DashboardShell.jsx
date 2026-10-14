@@ -313,7 +313,13 @@ const DashboardShell = ({
                   className="flex min-w-0 flex-1 gap-2 overflow-x-auto scrollbar-hide pb-1 snap-x snap-mandatory"
                   style={{ WebkitOverflowScrolling: "touch" }}
                 >
-                  {items.filter((i) => !i.adminOnly || user?.adminType !== "read-only").map((item) => {
+                  {items
+              .filter(
+                (i) =>
+                  (!i.adminOnly || user?.adminType !== "read-only") &&
+                  i.label !== "Messages",
+              )
+              .map((item) => {
                     const isActive = isItemActive(item, location.pathname);
 
                     return (

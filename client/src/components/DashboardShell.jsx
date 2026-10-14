@@ -87,6 +87,73 @@ const markShellAnimated = () => {
   }
 };
 
+
+// Mobile tab-bar icons (inline 24px stroke set - no icon dependency).
+const TAB_ICONS = {
+  dashboard:
+    "M3.5 11.5 12 4l8.5 7.5 M5.5 9.8V20h4.6v-5h3.8v5h4.6V9.8",
+  messages: "M4.5 5h15v9.5H9.8L4.5 19z",
+  students:
+    "M12 11.2a3.2 3.2 0 1 0 0-6.4 3.2 3.2 0 0 0 0 6.4z M5 19.5c.6-3.2 3-4.8 7-4.8s6.4 1.6 7 4.8",
+  companies:
+    "M5 20.5V5.5l7-1.8v16.8 M12 20.5h7V9.5h-7 M8 8.5h1.6 M8 12h1.6 M8 15.5h1.6 M15 13h1.4 M15 16.5h1.4",
+  coordinators:
+    "M8.5 10.6a2.8 2.8 0 1 0 0-5.6 2.8 2.8 0 0 0 0 5.6z M3 19.5c.5-2.8 2.5-4.2 5.5-4.2s5 1.4 5.5 4.2 M16 10.4a2.4 2.4 0 1 0-1.4-4.3 M15.6 15.4c2.5.2 4.2 1.4 4.9 4.1",
+  registrars:
+    "M8.5 10.6a2.8 2.8 0 1 0 0-5.6 2.8 2.8 0 0 0 0 5.6z M3 19.5c.5-2.8 2.5-4.2 5.5-4.2s5 1.4 5.5 4.2 M16 10.4a2.4 2.4 0 1 0-1.4-4.3 M15.6 15.4c2.5.2 4.2 1.4 4.9 4.1",
+  users:
+    "M8.5 10.6a2.8 2.8 0 1 0 0-5.6 2.8 2.8 0 0 0 0 5.6z M3 19.5c.5-2.8 2.5-4.2 5.5-4.2s5 1.4 5.5 4.2 M16 10.4a2.4 2.4 0 1 0-1.4-4.3 M15.6 15.4c2.5.2 4.2 1.4 4.9 4.1",
+  admins:
+    "M12 11.2a3.2 3.2 0 1 0 0-6.4 3.2 3.2 0 0 0 0 6.4z M5 19.5c.6-3.2 3-4.8 7-4.8s6.4 1.6 7 4.8",
+  archive:
+    "M4.5 4.5h15v4.5h-15z M5.5 9v10.5h13V9 M10 13h4",
+  security:
+    "M12 3.5l7 2.8v5.2c0 4.4-2.9 7.3-7 8.9-4.1-1.6-7-4.5-7-8.9V6.3z M9.2 11.6l2 2 3.8-3.8",
+  reports: "M4.5 19.5h15 M7 19.5v-5.5 M12 19.5V5.5 M17 19.5v-8.5",
+  manual:
+    "M5 5.2c2-1 4.4-1 7 .4 2.6-1.4 5-1.4 7-.4V18.6c-2-1-4.4-1-7 .5-2.6-1.5-5-1.5-7-.5z M12 5.6v13.4",
+  profile:
+    "M12 20a8 8 0 1 0 0-16 8 8 0 0 0 0 16z M12 12.2a2.9 2.9 0 1 0 0-5.8 2.9 2.9 0 0 0 0 5.8z M6.3 18.6c1-2.7 3.1-4 5.7-4s4.7 1.3 5.7 4",
+  applications:
+    "M6.5 3.5h7.5l3.5 3.5v13.5h-11z M14 3.5V7h3.5 M9.3 12h5.4 M9.3 15.5h5.4",
+  interview: "M4.5 6h15 M4.5 6v13h15V6 M8.5 3.5V7 M15.5 3.5V7 M9.3 13.4l2 2 3.6-3.6",
+  interviews: "M4.5 6h15 M4.5 6v13h15V6 M8.5 3.5V7 M15.5 3.5V7 M9.3 13.4l2 2 3.6-3.6",
+  simulator: "M12 4.2l1.7 4.3 4.6 1.4-4.6 1.4L12 15.6l-1.7-4.3-4.6-1.4 4.6-1.4z",
+  journal:
+    "M12 6.2c-2-1.4-4.5-1.8-7-1.5V18.4c2.5-.3 5 .1 7 1.5 2-1.4 4.5-1.8 7-1.5V4.7c-2.5-.3-5 .1-7 1.5z M12 6.2v13.6",
+  evaluation: "M7 4.5h10a1.5 1.5 0 0 1 1.5 1.5v13A1.5 1.5 0 0 1 17 20.5H7A1.5 1.5 0 0 1 5.5 19V6A1.5 1.5 0 0 1 7 4.5z M9 4.5V8h6V4.5 M9.2 13.4l2 2 3.6-3.6",
+  jobs: "M4 8.5h16v10H4z M9 8.5V6.6A1.1 1.1 0 0 1 10.1 5.5h3.8A1.1 1.1 0 0 1 15 6.6v1.9 M4 12.8h16",
+  attendance: "M12 20a8 8 0 1 0 0-16 8 8 0 0 0 0 16z M12 7.5V12l3.2 2.1",
+  applicants:
+    "M8.5 10.6a2.8 2.8 0 1 0 0-5.6 2.8 2.8 0 0 0 0 5.6z M3 19.5c.5-2.8 2.5-4.2 5.5-4.2s5 1.4 5.5 4.2 M16 10.4a2.4 2.4 0 1 0-1.4-4.3 M15.6 15.4c2.5.2 4.2 1.4 4.9 4.1",
+  ojtmanual:
+    "M5 5.2c2-1 4.4-1 7 .4 2.6-1.4 5-1.4 7-.4V18.6c-2-1-4.4-1-7 .5-2.6-1.5-5-1.5-7-.5z M12 5.6v13.4",
+};
+
+const iconFor = (label) => {
+  const key = label.toLowerCase();
+  for (const name of Object.keys(TAB_ICONS)) {
+    if (key.includes(name)) return TAB_ICONS[name];
+  }
+  return TAB_ICONS.dashboard;
+};
+
+const TabIcon = ({ label, active }) => (
+  <svg
+    viewBox="0 0 24 24"
+    width="22"
+    height="22"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="1.8"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    aria-hidden="true"
+  >
+    <path d={iconFor(label)} />
+  </svg>
+);
+
 const DashboardShell = ({
   role,
   title,
@@ -436,10 +503,10 @@ const DashboardShell = ({
       {/* Mobile app tab bar - native-app navigation on small screens. */}
       <nav
         aria-label="Mobile navigation"
-        className="fixed inset-x-3 bottom-3 z-50 rounded-2xl border border-white/60 bg-white/85 px-2 pt-2 shadow-[0_10px_30px_rgba(15,30,53,0.18)] backdrop-blur-xl scrollbar-hide lg:hidden"
+        className="fixed inset-x-3 bottom-3 z-50 rounded-2xl border border-white/60 bg-white/90 px-1.5 pt-2 shadow-[0_10px_30px_rgba(15,30,53,0.18)] backdrop-blur-xl scrollbar-hide lg:hidden"
         style={{ paddingBottom: "max(0.5rem, env(safe-area-inset-bottom))" }}
       >
-        <div className="flex items-stretch gap-1 overflow-x-auto scrollbar-hide">
+        <div className="flex items-stretch gap-0.5 overflow-x-auto scrollbar-hide">
           {items
             .filter(
               (item) => !item.adminOnly || user?.adminType !== "read-only",
@@ -450,13 +517,14 @@ const DashboardShell = ({
                 <NavLink
                   key={item.to}
                   to={item.to}
-                  className={`flex min-w-[64px] flex-1 flex-col items-center gap-1 rounded-xl px-2 py-1.5 text-[10px] font-semibold leading-none transition-colors ${
+                  className={`flex min-w-[64px] flex-1 flex-col items-center justify-center gap-1 rounded-xl px-1.5 py-1.5 text-[9.5px] font-semibold leading-none transition-colors ${
                     active
                       ? "bg-[#E7F0E9] text-[#17633e]"
                       : "text-[#0F1E35]/55"
                   }`}
                 >
-                  {item.label}
+                  <TabIcon label={item.label} active={active} />
+                  <span className="max-w-[64px] truncate">{item.label}</span>
                   <span
                     className={`h-1 w-1 rounded-full ${
                       active ? "bg-[#17633e]" : "bg-transparent"

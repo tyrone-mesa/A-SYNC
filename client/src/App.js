@@ -42,6 +42,10 @@ const InterviewRequests = React.lazy(
   () => import("./pages/student/InterviewRequests"),
 );
 const Journal = React.lazy(() => import("./pages/student/Journal"));
+const MyEvaluation = React.lazy(() => import("./pages/student/MyEvaluation"));
+const StudentEvaluations = React.lazy(
+  () => import("./pages/company/StudentEvaluations"),
+);
 const OjtManual = React.lazy(() => import("./pages/student/OjtManual"));
 
 const CompanyDashboard = React.lazy(
@@ -291,6 +295,14 @@ function App() {
                     </ProtectedRoute>
                   }
                 />
+                <Route
+                  path="/student/evaluation"
+                  element={
+                    <ProtectedRoute roles={["student"]}>
+                      <MyEvaluation />
+                    </ProtectedRoute>
+                  }
+                />
 
                 {/* Company */}
                 <Route
@@ -346,6 +358,14 @@ function App() {
                   element={
                     <ProtectedRoute roles={["company"]}>
                       <ManageStudentAttendance />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/company/evaluations"
+                  element={
+                    <ProtectedRoute roles={["company"]}>
+                      <StudentEvaluations />
                     </ProtectedRoute>
                   }
                 />

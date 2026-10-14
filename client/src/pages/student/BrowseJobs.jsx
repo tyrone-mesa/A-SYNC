@@ -28,8 +28,55 @@ const browseItem = {
 
 
 
+
+// Batch 7: rule-based smart matching (no external service).
+const scoreMatch = (profile, job) => {
+  if (!profile) return null;
+  const reasons = [];
+  let score = 0;
+
+  const course = (profile.course || "").toLowerCase();
+  const dept = (job.department || "").toLowerCase();
+  if (
+    course &&
+    dept &&
+    (dept.includes(course) ||
+      course.includes(dept) ||
+      dept.split(/\s+/).some((w) => w.length > 3 && course.includes(w)))
+  ) {
+    score += 40;
+    reasons.push("Matches your program");
+  }
+
+  const mySkills = (profile.skills || []).map((s) => s.toLowerCase());
+  const jobSkills = job.skillsRequired || [];
+  const matched = jobSkills.filter((s) =>
+    mySkills.some(
+      (m) => m && s && (m.includes(s.toLowerCase()) || s.toLowerCase().includes(m)),
+    ),
+  );
+  if (jobSkills.length) {
+    score += Math.round((matched.length / jobSkills.length) * 40);
+    if (matched.length) {
+      reasons.push(`${matched.length}/${jobSkills.length} skills you have`);
+    }
+  }
+
+  const city = (job.location || "").split(",")[0]?.trim().toLowerCase();
+  if (city && city.length > 2 && (profile.address || "").toLowerCase().includes(city)) {
+    score += 10;
+    reasons.push("In your area");
+  }
+  if (job.jobType === "ojt") {
+    score += 10;
+  }
+
+  return { score: Math.min(score, 100), reasons: reasons.slice(0, 3) };
+};
+
 const BrowseJobs = () => {
   const [jobs, setJobs] = useState([]);
+  const [myProfile, setMyProfile] = useState(null);
   const [departments, setDepartments] = useState([]);
   const [selectedJob, setSelectedJob] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -65,6 +112,13 @@ const BrowseJobs = () => {
         );
       })
       .finally(() => setLoading(false));
+  }, []);
+
+  useEffect(() => {
+    api
+      .get("/students/me")
+      .then(({ data }) => setMyProfile(data.profile || data))
+      .catch(() => setMyProfile(null));
   }, []);
 
   useEffect(() => {
@@ -469,7 +523,11 @@ const BrowseJobs = () => {
                       transition={{ duration: 0.24, ease: "easeOut" }}
                       className="flex h-full min-w-0"
                     >
-                      <JobCard job={job} onSelect={setSelectedJob} />
+                      <JobCard
+                        job={job}
+                        onSelect={setSelectedJob}
+                        match={myProfile ? scoreMatch(myProfile, job) : null}
+                      />
                     </motion.div>
                   ))}
                 </motion.div>

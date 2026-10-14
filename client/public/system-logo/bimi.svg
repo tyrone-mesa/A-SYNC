@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" version="1.2" baseProfile="tiny-ps" viewBox="0 0 1024 1024">
+  <!-- Asiatech Sync BIMI mark. Shapes only (no text/scripts/images per BIMI spec).
+       Replace with the official vector seal when available from the designer. -->
+  <rect width="1024" height="1024" fill="#FFFFFF"/>
+  <circle cx="512" cy="512" r="472" fill="none" stroke="#1F3D33" stroke-width="40"/>
+  <circle cx="512" cy="512" r="408" fill="none" stroke="#6C8976" stroke-width="10"/>
+  <circle cx="512" cy="512" r="330" fill="#1F3D33"/>
+  <polygon points="512.0,312.0 567.2,456.8 712.0,512.0 567.2,567.2 512.0,712.0 456.8,567.2 312.0,512.0 456.8,456.8" fill="#FFFFFF"/>
+</svg>

@@ -744,7 +744,35 @@ if (
   )
 ) {
   app.use(
-    express.static(clientBuildPath)
+    express.static(
+      clientBuildPath,
+      {
+        setHeaders(
+          res,
+          filePath,
+        ) {
+          if (
+            filePath.endsWith(
+              "index.html",
+            )
+          ) {
+            // Never cache the entry page - it must
+            // always fetch the latest hashed assets.
+            res.setHeader(
+              "Cache-Control",
+              "no-cache, no-store, must-revalidate",
+            );
+          } else {
+            // CRA assets are content-hashed - safe
+            // to cache forever.
+            res.setHeader(
+              "Cache-Control",
+              "public, max-age=31536000, immutable",
+            );
+          }
+        },
+      },
+    ),
   );
 
   app.get("*", (req, res, next) => {
@@ -760,6 +788,10 @@ if (
       return next();
     }
 
+    res.setHeader(
+      "Cache-Control",
+      "no-cache, no-store, must-revalidate",
+    );
     return res.sendFile(
       path.join(
         clientBuildPath,

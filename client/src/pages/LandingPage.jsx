@@ -156,7 +156,7 @@ const ABOUT_SLIDES = [
     alt: "Jullie Anne Concepcion",
     name: "Jullie Anne Concepcion",
     role: "Documention and System Enchantment",
-    desktopClass: "md:translate-y-[55px] md:translate-x-[235px] md:scale-[2.5]",
+    desktopClass: "md:translate-y-2 md:translate-x-[235px] md:scale-[2.5]",
   },
 ];
 

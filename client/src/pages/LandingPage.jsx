@@ -155,7 +155,7 @@ const ABOUT_SLIDES = [
     image: "/system-logo/Jullie.png",
     alt: "Jullie Anne Concepcion",
     name: "Jullie Anne Concepcion",
-    role: "Documention and System Enchantment"
+    role: "Documention and System Enchantment",
     desktopClass: "md:translate-y-[55px] md:scale-[1.7]",
   },
 ];

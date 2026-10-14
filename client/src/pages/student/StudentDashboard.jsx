@@ -175,7 +175,7 @@ const StudentDashboard = () => {
       </div>
 
       {completion && (
-        <div className="rounded-[20px] border border-[#0b5d3d]/10 bg-[#f8fbfa] p-4 shadow-sm">
+        <div className="mb-4 rounded-[20px] border border-[#0b5d3d]/10 bg-[#f8fbfa] p-4 shadow-sm">
           <div className="mb-2 flex flex-wrap items-baseline justify-between gap-2">
             <h2 className="font-display text-xl font-semibold text-[#0b5d3d]">
               OJT Completion

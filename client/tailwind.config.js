@@ -18,8 +18,9 @@ module.exports = {
         mintCream: "#E6EFE6",
       },
       fontFamily: {
-        display: ['"Bespoke Serif"', "Georgia", "serif"],
-        body: ['"Bespoke Serif"', "Georgia", "serif"],
+        display: ['"Inter"', "system-ui", "sans-serif"],
+        body: ['"Inter"', "system-ui", "sans-serif"],
+        numeric: ['"Josefin Sans"', '"Inter"', "sans-serif"],
         bespoke: ['"Bespoke Serif"', "Georgia", "serif"],
       },
       fontSize: {

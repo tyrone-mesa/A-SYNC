@@ -1,4 +1,4 @@
-@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Source+Sans+3:wght@400;500;600;700;800&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Josefin+Sans:wght@400;500;600;700&family=Source+Sans+3:wght@400;500;600;700;800&display=swap");
 @import url("https://api.fontshare.com/v2/css?f[]=bespoke-serif@400,400i,500,500i,600,600i,700,700i&display=swap");
 
 @font-face {
@@ -32,7 +32,7 @@
       #e6efe6 100%
     );
     color: #0f1e35;
-    font-family: "Bespoke Serif", Georgia, serif;
+    font-family: "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     font-size: 15px;
@@ -41,6 +41,13 @@
     overflow-x: hidden;
     position: relative;
     z-index: 0;
+  }
+
+  /* The hero keeps its original typeface even though the system font moved
+     to Inter - pinned explicitly so this section is untouched. */
+  .landing-hero,
+  .landing-hero * {
+    font-family: "Bespoke Serif", Georgia, serif;
   }
 
   #root {
@@ -182,7 +189,7 @@
       flex items-center justify-center text-center;
   }
   .numeric-value {
-    font-family: "Times New Roman", Times, serif;
+    font-family: "Josefin Sans", "Inter", sans-serif;
     font-variant-numeric: tabular-nums;
     letter-spacing: 0;
   }
@@ -196,7 +203,7 @@
   input[type="number"],
   input[inputmode="numeric"],
   input[name="studentId"] {
-    font-family: "Times New Roman", Times, serif;
+    font-family: "Josefin Sans", "Inter", sans-serif;
     font-variant-numeric: tabular-nums;
     letter-spacing: 0;
   }

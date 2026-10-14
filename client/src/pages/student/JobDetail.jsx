@@ -112,7 +112,7 @@ const JobDetail = ({ job: modalJob, onClose, modal = false }) => {
         }
         animate={{ opacity: 1, scale: 1, filter: "blur(0px)" }}
         transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
-        className={`${modal ? "rounded-[28px] border border-[#dfe7df] bg-[#FBF8F3] p-5 shadow-[0_24px_60px_rgba(15,30,53,0.15)] sm:p-6" : "card p-8"}`}
+        className={`${modal ? "rounded-[28px] border border-[#dfe7df] bg-[#FBF8F3] p-5 shadow-[0_24px_60px_rgba(15,30,53,0.15)] sm:p-6" : "overflow-hidden rounded-[24px] border border-[#f0f0f0] bg-white shadow-[0_10px_30px_rgba(15,30,53,0.08)]"}`}
       >
         {modal && (
           <div className="mb-4 flex items-center justify-between gap-3 border-b border-[#e3eae3] pb-3">
@@ -130,18 +130,19 @@ const JobDetail = ({ job: modalJob, onClose, modal = false }) => {
           </div>
         )}
 
-        <div className="flex items-start justify-between gap-4 mb-4">
+        <div className="bg-gradient-to-br from-[#EEF7EE] to-[#DDEFD9] px-6 pt-5 pb-4 sm:px-8">
+        <div className="flex items-start justify-between gap-4">
           <div>
             <span
               className={`mb-2 inline-flex items-center justify-center rounded-full border px-2.5 py-1 text-[9px] font-bold uppercase tracking-[0.08em] ${isFullTime ? "border-[#d6e7c3] bg-[#a8d38d] text-[#0b5d3d]" : "border-[#dfeecf] bg-[#edf7df] text-[#0b5d3d]"}`}
             >
               {job.jobType || "OJT"}
             </span>
-            <h1 className="font-display font-bold text-[2rem] leading-tight text-[#0F1E35]">
+            <h1 className="font-display text-2xl font-bold leading-tight text-[#0F1E35] sm:text-3xl">
               {job.title}
             </h1>
             <div className="mt-2 flex flex-wrap items-center gap-3">
-              <p className="text-[12px] font-medium text-[#0F1E35]/65">
+              <p className="text-sm font-medium text-[#0F1E35]/65">
                 {job.company?.companyName} · {job.department}
               </p>
               {user?.role === "student" && (
@@ -162,7 +163,7 @@ const JobDetail = ({ job: modalJob, onClose, modal = false }) => {
           </span>
         </div>
 
-        <div className="mb-6 flex flex-wrap items-center gap-2 text-[12px] text-[#0F1E35]/65">
+        <div className="mb-6 flex flex-wrap items-center gap-2 border-b border-[#f0f0f0] pb-4 text-sm text-[#0F1E35]/65">
           <span>{job.location}</span>
           <span>·</span>
           <span>{job.workSetup}</span>
@@ -171,8 +172,10 @@ const JobDetail = ({ job: modalJob, onClose, modal = false }) => {
           <span>·</span>
           <span>{job.stipend}</span>
         </div>
+        </div>
 
-        <h2 className="mb-2 font-display text-[1.6rem] font-bold text-[#0F1E35]">
+<div className="px-6 pb-6 sm:px-8">
+        <h2 className="mb-2 font-display text-lg font-semibold text-[#0b5d3d]">
           About this role
         </h2>
         <p className="mb-6 whitespace-pre-line text-[14px] leading-relaxed text-[#0F1E35]/70">
@@ -181,7 +184,7 @@ const JobDetail = ({ job: modalJob, onClose, modal = false }) => {
 
         {job.responsibilities?.length > 0 && (
           <>
-            <h2 className="mb-2 font-display text-[1.3rem] font-bold text-[#0F1E35]">
+            <h2 className="mb-2 font-display text-lg font-semibold text-[#0b5d3d]">
               Responsibilities
             </h2>
             <ul className="mb-6 list-disc space-y-1 pl-5 text-[14px] text-[#0F1E35]/70">
@@ -192,7 +195,7 @@ const JobDetail = ({ job: modalJob, onClose, modal = false }) => {
           </>
         )}
 
-        <h2 className="mb-2 font-display text-[1.3rem] font-bold text-[#0F1E35]">
+        <h2 className="mb-2 font-display text-lg font-semibold text-[#0b5d3d]">
           Skills Required
         </h2>
         <div className="mb-8 flex flex-wrap gap-2">
@@ -261,7 +264,7 @@ const JobDetail = ({ job: modalJob, onClose, modal = false }) => {
             <button
               onClick={handleApply}
               disabled={applying || !isAcceptingApplications || !isEligible}
-              className="inline-flex items-center justify-center rounded-full bg-[#a8d38d] px-4 py-2.5 text-[11px] font-bold text-[#0b5d3d] shadow-sm transition hover:brightness-95 disabled:cursor-not-allowed disabled:bg-[#e9ece8] disabled:text-[#0F1E35]/50"
+              className="btn-primary inline-flex w-full items-center justify-center sm:w-auto"
             >
               {applying
                 ? "Submitting…"
@@ -273,6 +276,7 @@ const JobDetail = ({ job: modalJob, onClose, modal = false }) => {
             </button>
           </div>
         )}
+        </div>
       </motion.div>
     </motion.div>
   );

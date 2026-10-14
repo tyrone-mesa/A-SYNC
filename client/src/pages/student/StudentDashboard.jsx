@@ -10,6 +10,7 @@ import { useRealtimeDashboard } from "../../hooks/useRealtimeDashboard";
 const StudentDashboard = () => {
   const navigate = useNavigate();
   const [profile, setProfile] = useState(null);
+  const [completion, setCompletion] = useState(null);
   const [applications, setApplications] = useState([]);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState("");
@@ -31,6 +32,13 @@ const StudentDashboard = () => {
           "Unable to load your dashboard. Please refresh and try again.",
       );
     }
+  }, []);
+
+  useEffect(() => {
+    api
+      .get("/completion/mine")
+      .then(({ data }) => setCompletion(data))
+      .catch(() => setCompletion(null));
   }, []);
 
   useEffect(() => {
@@ -165,6 +173,57 @@ const StudentDashboard = () => {
           </div>
         ))}
       </div>
+
+      {completion && (
+        <div className="rounded-[20px] border border-[#0b5d3d]/10 bg-[#f8fbfa] p-4 shadow-sm">
+          <div className="mb-2 flex flex-wrap items-baseline justify-between gap-2">
+            <h2 className="font-display text-xl font-semibold text-[#0b5d3d]">
+              OJT Completion
+            </h2>
+            <span
+              className={`text-sm font-bold ${
+                completion.state === "completed"
+                  ? "text-[#5E7867]"
+                  : completion.state === "ready_for_review"
+                    ? "text-[#2F6FE4]"
+                    : "text-navy/50"
+              }`}
+            >
+              {completion.state === "completed"
+                ? "Completed"
+                : completion.state === "ready_for_review"
+                  ? "Ready for admin verification"
+                  : "In progress"}{" "}
+              · {completion.percentage}%
+            </span>
+          </div>
+          <div className="mb-3 h-2.5 overflow-hidden rounded-full bg-navy/10">
+            <div
+              className="h-full rounded-full bg-forest transition-all"
+              style={{ width: `${completion.percentage}%` }}
+            />
+          </div>
+          <ul className="grid gap-x-6 gap-y-1.5 text-sm sm:grid-cols-2">
+            {completion.requirements.map((requirement) => (
+              <li
+                key={requirement.key}
+                className="flex items-center gap-2 text-navy/75"
+              >
+                <span
+                  className={`font-bold ${
+                    requirement.met ? "text-[#5E7867]" : "text-navy/35"
+                  }`}
+                >
+                  {requirement.met ? "✓" : "○"}
+                </span>
+                <span className={requirement.met ? "" : "text-navy/50"}>
+                  {requirement.label}
+                </span>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
 
       <div className="rounded-[20px] border border-[#0b5d3d]/10 bg-[#f8fbfa] p-4 shadow-sm">
         <div className="mb-4 flex items-center justify-between">

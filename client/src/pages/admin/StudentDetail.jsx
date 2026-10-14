@@ -30,6 +30,20 @@ const StudentDetail = () => {
   const isAdmin = user?.role === "admin";
   const canViewDocuments = isAdmin || user?.role === "coordinator";
 
+  const verifyCompletion = async () => {
+    setVerifyBusy(true);
+    try {
+      await api.put(`/completion/verify/${params.studentId}`);
+      await load();
+    } catch (err) {
+      setManualHoursError(
+        err.response?.data?.message || "Failed to verify completion.",
+      );
+    } finally {
+      setVerifyBusy(false);
+    }
+  };
+
   const [docReviewBusy, setDocReviewBusy] = useState(false);
   const [docRejecting, setDocRejecting] = useState(null);
   const [docReason, setDocReason] = useState("");
@@ -737,6 +751,81 @@ const StudentDetail = () => {
                   </div>
                 ))}
               </div>
+            )}
+          </div>
+        )}
+
+        {canViewDocuments && (
+          <div className="rounded-[24px] border border-black/5 bg-[#f8faf8] p-6 shadow-sm">
+            <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
+              <h2 className="font-display text-xl font-semibold text-navy">
+                OJT Completion
+              </h2>
+              {completion && (
+                <span
+                  className={`text-sm font-bold ${
+                    completion.state === "completed"
+                      ? "text-[#5E7867]"
+                      : completion.state === "ready_for_review"
+                        ? "text-[#2F6FE4]"
+                        : "text-navy/50"
+                  }`}
+                >
+                  {completion.state === "completed"
+                    ? "Completed"
+                    : completion.state === "ready_for_review"
+                      ? "Ready for verification"
+                      : "In progress"}{" "}
+                  · {completion.percentage}%
+                </span>
+              )}
+            </div>
+            {completion ? (
+              <>
+                <div className="mb-3 h-2.5 overflow-hidden rounded-full bg-navy/10">
+                  <div
+                    className="h-full rounded-full bg-forest"
+                    style={{ width: `${completion.percentage}%` }}
+                  />
+                </div>
+                <ul className="grid gap-x-6 gap-y-1.5 text-sm sm:grid-cols-2">
+                  {completion.requirements.map((requirement) => (
+                    <li
+                      key={requirement.key}
+                      className="flex items-center gap-2 text-navy/75"
+                    >
+                      <span
+                        className={`font-bold ${
+                          requirement.met ? "text-[#5E7867]" : "text-navy/35"
+                        }`}
+                      >
+                        {requirement.met ? "✓" : "○"}
+                      </span>
+                      <span className={requirement.met ? "" : "text-navy/50"}>
+                        {requirement.label}
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+                {isAdmin && completion.state === "ready_for_review" && (
+                  <button
+                    type="button"
+                    disabled={verifyBusy}
+                    onClick={verifyCompletion}
+                    className="btn-primary mt-4 h-9 px-4 text-sm"
+                  >
+                    {verifyBusy ? "Verifying…" : "Mark OJT Completed"}
+                  </button>
+                )}
+                {completion.state === "completed" && completion.verifiedAt && (
+                  <p className="mt-3 text-xs text-navy/55">
+                    Verified on{" "}
+                    {new Date(completion.verifiedAt).toLocaleDateString()}
+                  </p>
+                )}
+              </>
+            ) : (
+              <p className="text-sm text-navy/60">Loading completion…</p>
             )}
           </div>
         )}

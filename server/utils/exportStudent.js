@@ -1,5 +1,14 @@
 const PDFDocument = require("pdfkit");
 const ExcelJS = require("exceljs");
+const fs = require("fs");
+const path = require("path");
+
+const LOGO_PATH = path.join(
+  __dirname,
+  "../../client/public/system-logo/A-Sync-Logo.png",
+);
+
+
 
 function buildResumePdf({ profile, user }) {
   return new Promise((resolve, reject) => {
@@ -100,11 +109,14 @@ function buildResumePdf({ profile, user }) {
       "#DCEFE3",
       0.8,
     );
+    if (fs.existsSync(LOGO_PATH)) {
+      doc.image(LOGO_PATH, left, 14, { width: 42 });
+    }
     doc
       .font("Helvetica-Bold")
       .fontSize(12)
       .fillColor("#FFFFFF")
-      .text("ASIATECH SYNC", left, 35, {
+      .text("ASIATECH SYNC", left + 52, 35, {
         characterSpacing: 1.2,
       });
     doc

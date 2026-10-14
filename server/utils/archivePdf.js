@@ -1,4 +1,13 @@
 const PDFDocument = require("pdfkit");
+const fs = require("fs");
+const path = require("path");
+
+const LOGO_PATH = path.join(
+  __dirname,
+  "../../client/public/system-logo/A-Sync-Logo.png",
+);
+
+
 
 const SECTIONS = [
   ["Student profile", "studentProfile"],
@@ -250,10 +259,13 @@ const addPageChrome = (document, accountName) => {
       .font("Helvetica-Bold")
       .fontSize(12)
       .fillColor("#FFFFFF")
-      .text("ASIATECH SYNC", PAGE.left, 19, {
+      .text("ASIATECH SYNC", PAGE.left + 50, 19, {
         width: PAGE.right - PAGE.left,
         characterSpacing: 1.1,
       });
+    if (fs.existsSync(LOGO_PATH)) {
+      document.image(LOGO_PATH, PAGE.left, 12, { width: 40 });
+    }
     document
       .font("Helvetica-Bold")
       .fontSize(8)

@@ -154,18 +154,6 @@ const Navbar = ({ variant = "static" }) => {
         : "border-transparent bg-white/10 text-white/80 hover:bg-white/[0.18]"
     }`;
 
-  useEffect(() => {
-    const mq = window.matchMedia("(max-width: 1023px)");
-    const apply = () =>
-      document.body.classList.toggle("has-mobile-tabbar", mq.matches);
-    apply();
-    mq.addEventListener("change", apply);
-    return () => {
-      mq.removeEventListener("change", apply);
-      document.body.classList.remove("has-mobile-tabbar");
-    };
-  }, []);
-
   const tabLink = (tab) => (
     <Link
       key={tab.to}
@@ -378,16 +366,16 @@ const Navbar = ({ variant = "static" }) => {
                 <Link
                   to={user ? roleHome[user.role] : "/"}
                   aria-label="A-Sync home"
-                  className="relative flex min-w-[64px] flex-1 flex-col items-center justify-end self-stretch px-1 pb-1"
+                  className="flex min-w-[72px] flex-1 flex-col items-center justify-center gap-1 rounded-xl px-1.5 py-1.5"
                 >
-                  <span className="absolute -top-7 flex h-12 w-12 items-center justify-center rounded-full bg-white p-1 shadow-[0_8px_20px_rgba(15,30,53,0.28)] ring-4 ring-[#E7F0E9]">
+                  <span className="flex h-9 w-9 items-center justify-center rounded-full bg-white p-0.5 shadow-[0_4px_14px_rgba(15,30,53,0.22)] ring-2 ring-[#ABD1B5]">
                     <img
                       src="/system-logo/A-Sync-Logo.png"
                       alt=""
                       className="h-full w-full object-contain"
                     />
                   </span>
-                  <span className="mt-6 text-[8px] font-bold tracking-[0.2em] text-[#17633e]">
+                  <span className="text-[8px] font-bold leading-none tracking-[0.2em] text-[#17633e]">
                     A-SYNC
                   </span>
                   <span className="h-1 w-1 rounded-full bg-transparent" />

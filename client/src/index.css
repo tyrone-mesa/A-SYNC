@@ -529,9 +529,11 @@
 }
 
 
-/* Room for the mobile bottom tab bar (public pages only - class set by Navbar). */
-body.has-mobile-tabbar {
-  padding-bottom: 96px;
+/* Room for the mobile bottom tab bar on every page (public + dashboard). */
+@media (max-width: 1023px) {
+  body {
+    padding-bottom: 96px;
+  }
 }
 
 /* Landing navbar tinted to match the hero's sage-green media. */

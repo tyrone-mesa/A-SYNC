@@ -41,6 +41,7 @@ const InterviewSimulator = React.lazy(
 const InterviewRequests = React.lazy(
   () => import("./pages/student/InterviewRequests"),
 );
+const Journal = React.lazy(() => import("./pages/student/Journal"));
 const OjtManual = React.lazy(() => import("./pages/student/OjtManual"));
 
 const CompanyDashboard = React.lazy(
@@ -279,6 +280,14 @@ function App() {
                   element={
                     <ProtectedRoute roles={["student"]}>
                       <InterviewRequests />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/student/journal"
+                  element={
+                    <ProtectedRoute roles={["student"]}>
+                      <Journal />
                     </ProtectedRoute>
                   }
                 />

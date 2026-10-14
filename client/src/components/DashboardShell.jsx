@@ -13,6 +13,7 @@ const navMap = {
     { label: "Messages", to: "/messages" },
     { label: "Interview", to: "/student/interview" },
     { label: "Interviews", to: "/student/interviews" },
+    { label: "Journal", to: "/student/journal" },
   ],
   company: [
     { label: "Dashboard", to: "/company/dashboard" },

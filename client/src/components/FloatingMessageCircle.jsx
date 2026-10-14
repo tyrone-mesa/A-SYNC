@@ -905,10 +905,11 @@ const FloatingMessageCircle = () => {
                       <>
                         <button
                           type="button"
+                          aria-label="Back to inbox"
                           onClick={() => setActiveConversationId(null)}
-                          className="shrink-0 px-4 py-2 text-left text-xs font-semibold text-[#17633e] hover:bg-white"
+                          className="mx-2 mb-1 mt-2 flex h-7 w-7 shrink-0 items-center justify-center self-start rounded-full border border-black/10 text-sm leading-none text-[#17633e] transition hover:bg-[#17633e] hover:text-white"
                         >
-                          ← Back to inbox
+                          ←
                         </button>
                         <div className="flex min-h-0 flex-1 flex-col gap-2 overflow-y-auto px-3 py-2">
                           {loadingThread ? (

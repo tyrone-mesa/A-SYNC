@@ -39,6 +39,22 @@ const StudentDetail = () => {
   const isAdmin = user?.role === "admin";
   const canViewDocuments = isAdmin || user?.role === "coordinator";
 
+  const assignCoordinator = async () => {
+    setAssignBusy(true);
+    try {
+      await api.put(`/admin/students/${params.studentId}/assign-coordinator`, {
+        coordinatorId: selectedCoordinator || null,
+      });
+      await load();
+    } catch (err) {
+      setManualHoursError(
+        err.response?.data?.message || "Failed to assign the coordinator.",
+      );
+    } finally {
+      setAssignBusy(false);
+    }
+  };
+
   const verifyCompletion = async () => {
     setVerifyBusy(true);
     try {
@@ -116,11 +132,19 @@ const StudentDetail = () => {
         setProfile(data.profile);
         setApplications(data.applications || []);
         setAttendanceLogs(data.attendanceLogs || []);
+        setSelectedCoordinator(data.coordinator ? String(data.coordinator) : "");
         if (canViewDocuments) {
           api
             .get(`/journals/of-student/${params.studentId}`)
             .then(({ data }) => setJournalEntries(data.entries || []))
             .catch(() => setJournalEntries([]));
+          api
+            .get("/admin/users", { params: { role: "coordinator" } })
+            .then(({ data }) => {
+              const active = (data.users || []).filter((u) => u.isActive);
+              setCoordinators(active);
+            })
+            .catch(() => setCoordinators([]));
           api
             .get(`/evaluations/of-student/${params.studentId}`)
             .then(({ data }) => setEvaluations(data.evaluations || []))
@@ -835,6 +859,30 @@ const StudentDetail = () => {
                     Verified on{" "}
                     {new Date(completion.verifiedAt).toLocaleDateString()}
                   </p>
+                )}
+                {isAdmin && (
+                  <div className="mt-4 flex flex-wrap items-center gap-2 border-t border-black/5 pt-3 text-xs">
+                    <span className="text-navy/60">Coordinator:</span>
+                    <SelectDropdown
+                      value={selectedCoordinator}
+                      onChange={(e) => setSelectedCoordinator(e.target.value)}
+                      options={coordinators.map((c) => ({
+                        value: c._id,
+                        label: c.fullName,
+                      }))}
+                      placeholder="Unassigned"
+                      allowEmpty
+                      className="input-field max-w-[220px] py-1.5 text-xs"
+                    />
+                    <button
+                      type="button"
+                      disabled={assignBusy || !coordinators.length}
+                      onClick={assignCoordinator}
+                      className="btn-primary h-8 px-3 text-xs"
+                    >
+                      {assignBusy ? "Assigning…" : "Assign"}
+                    </button>
+                  </div>
                 )}
               </>
             ) : (

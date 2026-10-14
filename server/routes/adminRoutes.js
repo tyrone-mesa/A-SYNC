@@ -141,6 +141,71 @@ router.get("/reports", authorize("admin"), async (req, res) => {
   });
 });
 
+// Batch 10 additions - kept separate so the core report shape stays stable.
+router.get("/reports/ojt", authorize("admin"), async (req, res) => {
+  try {
+    const [verified, notVerified, resumePending, resumeRejected, transcriptPending, transcriptRejected] =
+      await Promise.all([
+        StudentProfile.countDocuments({ ojtCompletionVerified: true }),
+        StudentProfile.countDocuments({ ojtCompletionVerified: false }),
+        StudentProfile.countDocuments({ resumeStatus: "pending" }),
+        StudentProfile.countDocuments({ resumeStatus: "rejected" }),
+        StudentProfile.countDocuments({ transcriptStatus: "pending" }),
+        StudentProfile.countDocuments({ transcriptStatus: "rejected" }),
+      ]);
+    return res.json({
+      ojtCompletion: [
+        { label: "Verified complete", count: verified },
+        { label: "Not yet verified", count: notVerified },
+      ],
+      documentReview: [
+        { label: "Resume pending", count: resumePending },
+        { label: "Transcript pending", count: transcriptPending },
+        { label: "Resume rejected", count: resumeRejected },
+        { label: "Transcript rejected", count: transcriptRejected },
+      ],
+    });
+  } catch (err) {
+    return res.status(400).json({ message: "Failed to load OJT report." });
+  }
+});
+
+// @route   PUT /api/admin/students/:id/assign-coordinator
+// @desc    Assign (or unassign) a coordinator to a student.
+router.put(
+  "/students/:id/assign-coordinator",
+  authorize("admin"),
+  authorizeFullAdmin,
+  async (req, res) => {
+    try {
+      const profile = await StudentProfile.findById(req.params.id);
+      if (!profile)
+        return res.status(404).json({ message: "Student not found." });
+      const { coordinatorId } = req.body;
+      if (coordinatorId) {
+        const coordinator = await User.findOne({
+          _id: coordinatorId,
+          role: "coordinator",
+          isActive: true,
+        });
+        if (!coordinator)
+          return res
+            .status(400)
+            .json({ message: "Coordinator not found or inactive." });
+        profile.coordinator = coordinator._id;
+      } else {
+        profile.coordinator = null;
+      }
+      await profile.save();
+      return res.json({ profile });
+    } catch (err) {
+      return res
+        .status(400)
+        .json({ message: "Failed to assign the coordinator." });
+    }
+  },
+);
+
 // @route   GET /api/admin/users
 router.get("/users", authorize("admin"), async (req, res) => {
   const { role, archived } = req.query;

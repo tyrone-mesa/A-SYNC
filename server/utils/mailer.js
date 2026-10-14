@@ -122,6 +122,24 @@ const sendMail = async ({
   }
 
   // ----------------------------------------------------------
+  // Brand every outgoing email with the A-Sync logo header
+  // (Resend has no profile-logo setting; this is how the brand
+  // reaches the inbox). Logo is a public asset on the client.
+  // ----------------------------------------------------------
+
+  targetHtml = `
+    <div style="text-align:center; padding:26px 0 6px;">
+      <img
+        src="https://a-sync.online/system-logo/A-Sync-Logo.png"
+        alt="Asiatech Sync"
+        width="96"
+        style="border-radius:14px;"
+      />
+    </div>
+    ${targetHtml}
+  `;
+
+  // ----------------------------------------------------------
   // Get Resend client
   // ----------------------------------------------------------
 

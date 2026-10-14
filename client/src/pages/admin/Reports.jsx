@@ -188,6 +188,7 @@ const Donut = ({ title, data }) => {
 
 const Reports = () => {
   const [report, setReport] = useState(null);
+  const [ojtReport, setOjtReport] = useState(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -195,6 +196,10 @@ const Reports = () => {
       .get("/admin/reports")
       .then(({ data }) => setReport(data))
       .finally(() => setLoading(false));
+    api
+      .get("/admin/reports/ojt")
+      .then(({ data }) => setOjtReport(data))
+      .catch(() => setOjtReport(null));
   }, []);
 
   if (loading || !report) return <DashboardLoading role="admin" />;
@@ -245,6 +250,16 @@ const Reports = () => {
             data={report.companyVerification}
             colorClass="bg-forest"
           />
+          {ojtReport && (
+            <BarList title="OJT Completion" data={ojtReport.ojtCompletion} />
+          )}
+          {ojtReport && (
+            <BarList
+              title="Document Review Queue"
+              data={ojtReport.documentReview}
+              colorClass="bg-forest"
+            />
+          )}
         </div>
       </div>
     </DashboardShell>

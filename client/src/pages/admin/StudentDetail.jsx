@@ -23,12 +23,51 @@ const DOC_STATUS_STYLES = {
   rejected: "text-[#DF2E1B]",
 };
 
+const EVAL_CRITERIA = [
+  ["workQuality", "Quality of Work"],
+  ["productivity", "Productivity"],
+  ["communication", "Communication"],
+  ["punctuality", "Punctuality & Attendance"],
+  ["teamwork", "Teamwork"],
+  ["initiative", "Initiative"],
+];
+
 const StudentDetail = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const { user } = useAuth();
   const isAdmin = user?.role === "admin";
   const canViewDocuments = isAdmin || user?.role === "coordinator";
+
+  const assignCoordinator = async () => {
+    setAssignBusy(true);
+    try {
+      await api.put(`/admin/students/${params.studentId}/assign-coordinator`, {
+        coordinatorId: selectedCoordinator || null,
+      });
+      await load();
+    } catch (err) {
+      setManualHoursError(
+        err.response?.data?.message || "Failed to assign the coordinator.",
+      );
+    } finally {
+      setAssignBusy(false);
+    }
+  };
+
+  const verifyCompletion = async () => {
+    setVerifyBusy(true);
+    try {
+      await api.put(`/completion/verify/${params.studentId}`);
+      await load();
+    } catch (err) {
+      setManualHoursError(
+        err.response?.data?.message || "Failed to verify completion.",
+      );
+    } finally {
+      setVerifyBusy(false);
+    }
+  };
 
   const [docReviewBusy, setDocReviewBusy] = useState(false);
   const [docRejecting, setDocRejecting] = useState(null);
@@ -93,11 +132,23 @@ const StudentDetail = () => {
         setProfile(data.profile);
         setApplications(data.applications || []);
         setAttendanceLogs(data.attendanceLogs || []);
+        setSelectedCoordinator(data.coordinator ? String(data.coordinator) : "");
         if (canViewDocuments) {
           api
             .get(`/journals/of-student/${params.studentId}`)
             .then(({ data }) => setJournalEntries(data.entries || []))
             .catch(() => setJournalEntries([]));
+          api
+            .get("/admin/users", { params: { role: "coordinator" } })
+            .then(({ data }) => {
+              const active = (data.users || []).filter((u) => u.isActive);
+              setCoordinators(active);
+            })
+            .catch(() => setCoordinators([]));
+          api
+            .get(`/evaluations/of-student/${params.studentId}`)
+            .then(({ data }) => setEvaluations(data.evaluations || []))
+            .catch(() => setEvaluations([]));
         }
         setOpenLog(data.openLog || null);
       })
@@ -732,6 +783,173 @@ const StudentDetail = () => {
                     {entry.learnings && (
                       <p className="mt-1 text-sm italic text-navy/60">
                         {entry.learnings}
+                      </p>
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+
+        {canViewDocuments && (
+          <div className="rounded-[24px] border border-black/5 bg-[#f8faf8] p-6 shadow-sm">
+            <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
+              <h2 className="font-display text-xl font-semibold text-navy">
+                OJT Completion
+              </h2>
+              {completion && (
+                <span
+                  className={`text-sm font-bold ${
+                    completion.state === "completed"
+                      ? "text-[#5E7867]"
+                      : completion.state === "ready_for_review"
+                        ? "text-[#2F6FE4]"
+                        : "text-navy/50"
+                  }`}
+                >
+                  {completion.state === "completed"
+                    ? "Completed"
+                    : completion.state === "ready_for_review"
+                      ? "Ready for verification"
+                      : "In progress"}{" "}
+                  · {completion.percentage}%
+                </span>
+              )}
+            </div>
+            {completion ? (
+              <>
+                <div className="mb-3 h-2.5 overflow-hidden rounded-full bg-navy/10">
+                  <div
+                    className="h-full rounded-full bg-forest"
+                    style={{ width: `${completion.percentage}%` }}
+                  />
+                </div>
+                <ul className="grid gap-x-6 gap-y-1.5 text-sm sm:grid-cols-2">
+                  {completion.requirements.map((requirement) => (
+                    <li
+                      key={requirement.key}
+                      className="flex items-center gap-2 text-navy/75"
+                    >
+                      <span
+                        className={`font-bold ${
+                          requirement.met ? "text-[#5E7867]" : "text-navy/35"
+                        }`}
+                      >
+                        {requirement.met ? "✓" : "○"}
+                      </span>
+                      <span className={requirement.met ? "" : "text-navy/50"}>
+                        {requirement.label}
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+                {isAdmin && completion.state === "ready_for_review" && (
+                  <button
+                    type="button"
+                    disabled={verifyBusy}
+                    onClick={verifyCompletion}
+                    className="btn-primary mt-4 h-9 px-4 text-sm"
+                  >
+                    {verifyBusy ? "Verifying…" : "Mark OJT Completed"}
+                  </button>
+                )}
+                {completion.state === "completed" && completion.verifiedAt && (
+                  <p className="mt-3 text-xs text-navy/55">
+                    Verified on{" "}
+                    {new Date(completion.verifiedAt).toLocaleDateString()}
+                  </p>
+                )}
+                {isAdmin && (
+                  <div className="mt-4 flex flex-wrap items-center gap-2 border-t border-black/5 pt-3 text-xs">
+                    <span className="text-navy/60">Coordinator:</span>
+                    <SelectDropdown
+                      value={selectedCoordinator}
+                      onChange={(e) => setSelectedCoordinator(e.target.value)}
+                      options={coordinators.map((c) => ({
+                        value: c._id,
+                        label: c.fullName,
+                      }))}
+                      placeholder="Unassigned"
+                      allowEmpty
+                      className="input-field max-w-[220px] py-1.5 text-xs"
+                    />
+                    <button
+                      type="button"
+                      disabled={assignBusy || !coordinators.length}
+                      onClick={assignCoordinator}
+                      className="btn-primary h-8 px-3 text-xs"
+                    >
+                      {assignBusy ? "Assigning…" : "Assign"}
+                    </button>
+                  </div>
+                )}
+              </>
+            ) : (
+              <p className="text-sm text-navy/60">Loading completion…</p>
+            )}
+          </div>
+        )}
+
+        {canViewDocuments && (
+          <div className="rounded-[24px] border border-black/5 bg-[#f8faf8] p-6 shadow-sm">
+            <h2 className="mb-4 font-display text-xl font-semibold text-navy">
+              Company Evaluation
+            </h2>
+            {evaluations === null ? (
+              <p className="text-sm text-navy/60">Loading evaluations…</p>
+            ) : evaluations.length === 0 ? (
+              <p className="text-sm text-navy/60">
+                No company evaluation submitted yet.
+              </p>
+            ) : (
+              <div className="space-y-5">
+                {evaluations.map((evaluation) => (
+                  <div
+                    key={evaluation._id}
+                    className="rounded-2xl border border-black/5 bg-white/70 p-4"
+                  >
+                    <div className="flex flex-wrap items-baseline justify-between gap-2">
+                      <p className="font-medium text-navy">
+                        {evaluation.company?.companyName || "Company"}
+                      </p>
+                      <span
+                        className={`text-sm font-bold ${
+                          evaluation.status === "final"
+                            ? "text-[#5E7867]"
+                            : "text-navy/50"
+                        }`}
+                      >
+                        {evaluation.status === "final" ? "Final" : "Draft"}
+                        {evaluation.submittedAt
+                          ? ` · ${new Date(evaluation.submittedAt).toLocaleDateString()}`
+                          : ""}
+                      </span>
+                    </div>
+                    <div className="mt-3 space-y-2">
+                      {EVAL_CRITERIA.map(([key, label]) => {
+                        const score = Number(evaluation.ratings?.[key] || 0);
+                        return (
+                          <div key={key}>
+                            <div className="mb-1 flex justify-between text-sm">
+                              <span className="text-navy/70">{label}</span>
+                              <span className="numeric-value font-bold text-[#0b5d3d]">
+                                {score}/5
+                              </span>
+                            </div>
+                            <div className="h-2 overflow-hidden rounded-full bg-navy/10">
+                              <div
+                                className="h-full rounded-full bg-forest"
+                                style={{ width: `${(score / 5) * 100}%` }}
+                              />
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                    {evaluation.overallComments && (
+                      <p className="mt-3 text-sm italic text-navy/60">
+                        {evaluation.overallComments}
                       </p>
                     )}
                   </div>

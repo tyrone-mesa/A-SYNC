@@ -34,6 +34,15 @@ const StudentProfileSchema = new mongoose.Schema(
       default: "none",
     },
     transcriptRejectionReason: { type: String, default: "" },
+    // Batch 6: OJT completion verification by the admin office.
+    ojtCompletionVerified: { type: Boolean, default: false },
+    ojtCompletionVerifiedAt: { type: Date },
+    // Batch 9: coordinating staff member assigned to this student.
+    coordinator: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      default: null,
+    },
     avatarUrl: { type: String, default: "" },
     avatarOriginalName: { type: String, default: "" },
     avatarMimeType: { type: String, default: "" },

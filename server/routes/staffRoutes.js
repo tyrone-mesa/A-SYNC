@@ -107,8 +107,12 @@ router.get(
   "/coordinator/students",
   authorize("coordinator"),
   async (req, res) => {
+    // Batch 9: coordinators are scoped to their assigned students only.
     const students = (await studentQuery()).filter(
-      (profile) => profile.user && !profile.user.isArchived,
+      (profile) =>
+        profile.user &&
+        !profile.user.isArchived &&
+        String(profile.coordinator || "") === String(req.user._id),
     );
     res.json({ students });
   },

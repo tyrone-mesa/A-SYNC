@@ -14,6 +14,7 @@ const navMap = {
     { label: "Interview", to: "/student/interview" },
     { label: "Interviews", to: "/student/interviews" },
     { label: "Journal", to: "/student/journal" },
+    { label: "Evaluation", to: "/student/evaluation" },
   ],
   company: [
     { label: "Dashboard", to: "/company/dashboard" },
@@ -21,6 +22,7 @@ const navMap = {
     { label: "Job Postings", to: "/company/jobs" },
     { label: "Post Job", to: "/company/jobs/new" },
     { label: "Student Attendance", to: "/company/attendance" },
+    { label: "Evaluations", to: "/company/evaluations" },
     { label: "Messages", to: "/messages" },
   ],
   admin: [

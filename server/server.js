@@ -38,6 +38,7 @@ const interviewScheduleRoutes = require("./routes/interviewScheduleRoutes");
 const journalRoutes = require("./routes/journalRoutes");
 const evaluationRoutes = require("./routes/evaluationRoutes");
 const completionRoutes = require("./routes/completionRoutes");
+const siteSettingsRoutes = require("./routes/siteSettingsRoutes");
 const notificationRoutes = require("./routes/notificationRoutes");
 const messageRoutes = require("./routes/messageRoutes");
 const staffRoutes = require("./routes/staffRoutes");
@@ -689,6 +690,11 @@ app.use(
 app.use(
   "/api/journals",
   journalRoutes
+);
+
+app.use(
+  "/api/site-settings",
+  siteSettingsRoutes
 );
 
 app.use(

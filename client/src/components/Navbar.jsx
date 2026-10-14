@@ -154,6 +154,37 @@ const Navbar = ({ variant = "static" }) => {
         : "border-transparent bg-white/10 text-white/80 hover:bg-white/[0.18]"
     }`;
 
+  useEffect(() => {
+    const mq = window.matchMedia("(max-width: 1023px)");
+    const apply = () =>
+      document.body.classList.toggle("has-mobile-tabbar", mq.matches);
+    apply();
+    mq.addEventListener("change", apply);
+    return () => {
+      mq.removeEventListener("change", apply);
+      document.body.classList.remove("has-mobile-tabbar");
+    };
+  }, []);
+
+  const tabLink = (tab) => (
+    <Link
+      key={tab.to}
+      to={tab.to}
+      aria-current={tab.active ? "page" : undefined}
+      className={`flex min-w-[64px] flex-1 flex-col items-center justify-center gap-1 rounded-xl px-1.5 py-1.5 text-[9.5px] font-semibold leading-none transition-colors ${
+        tab.active ? "bg-[#E7F0E9] text-[#17633e]" : "text-[#0F1E35]/55"
+      }`}
+    >
+      <MobileBarIcon name={tab.icon} />
+      <span className="max-w-[64px] truncate">{tab.label}</span>
+      <span
+        className={`h-1 w-1 rounded-full ${
+          tab.active ? "bg-[#17633e]" : "bg-transparent"
+        }`}
+      />
+    </Link>
+  );
+
   return (
     <header
       className={`${headerPositionClass} ${headerAnimationClass} relative z-[100] px-3 py-3 sm:px-6`}
@@ -302,81 +333,90 @@ const Navbar = ({ variant = "static" }) => {
         document.body,
       )}
 
-      {/* Mobile app tab bar - icons at the bottom, native-app navigation. */}
+      {/* Mobile app tab bar - icons at the bottom, center A-Sync logo. */}
       <nav
         aria-label="Mobile navigation"
         className="fixed inset-x-3 bottom-3 z-40 rounded-2xl border border-white/60 bg-white/90 px-1.5 pt-2 shadow-[0_10px_30px_rgba(15,30,53,0.2)] backdrop-blur-xl scrollbar-hide lg:hidden"
         style={{ paddingBottom: "max(0.5rem, env(safe-area-inset-bottom))" }}
       >
         <div className="flex items-stretch gap-0.5 overflow-x-auto scrollbar-hide">
-          {[
-            {
-              to: "/",
-              label: "Home",
-              icon: "home",
-              active: location.pathname === "/" && !location.hash,
-            },
-            {
-              to: "/jobs",
-              label: "Opportunities",
-              icon: "briefcase",
-              active: location.pathname === "/jobs",
-            },
-            ...(user
-              ? [
-                  {
-                    to: roleHome[user.role],
-                    label: "Dashboard",
-                    icon: "grid",
-                    active: location.pathname.startsWith(roleHome[user.role]),
-                  },
-                  {
-                    to: "/messages",
-                    label: "Messages",
-                    icon: "chat",
-                    active: location.pathname.startsWith("/messages"),
-                  },
-                ]
-              : []),
-          ].map((tab) => (
-            <Link
-              key={tab.to}
-              to={tab.to}
-              aria-current={tab.active ? "page" : undefined}
-              className={`flex min-w-[64px] flex-1 flex-col items-center justify-center gap-1 rounded-xl px-1.5 py-1.5 text-[9.5px] font-semibold leading-none transition-colors ${
-                tab.active ? "bg-[#E7F0E9] text-[#17633e]" : "text-[#0F1E35]/55"
-              }`}
-            >
-              <MobileBarIcon name={tab.icon} />
-              <span className="max-w-[64px] truncate">{tab.label}</span>
-              <span
-                className={`h-1 w-1 rounded-full ${
-                  tab.active ? "bg-[#17633e]" : "bg-transparent"
-                }`}
-              />
-            </Link>
-          ))}
-          {user ? (
-            <button
-              type="button"
-              onClick={handleLogout}
-              className="flex min-w-[64px] flex-1 flex-col items-center justify-center gap-1 rounded-xl px-1.5 py-1.5 text-[9.5px] font-semibold leading-none text-[#0F1E35]/55 transition-colors"
-            >
-              <MobileBarIcon name="power" />
-              <span>Logout</span>
-              <span className="h-1 w-1 rounded-full bg-transparent" />
-            </button>
-          ) : (
-            <button
-              type="button"
-              onClick={openLogin}
-              className="flex min-w-[64px] flex-1 flex-col items-center justify-center gap-1 rounded-xl px-1.5 py-1.5 text-[9.5px] font-semibold leading-none text-[#0F1E35]/55 transition-colors"
-            >
-              <MobileBarIcon name="user" />
-              <span>Login</span>
-              <span className="h-1 w-1 rounded-full bg-transparent" />
-            </button>
-          )}
+          {(() => {
+            const tabs = [
+              {
+                to: "/",
+                label: "Home",
+                icon: "home",
+                active: location.pathname === "/" && !location.hash,
+              },
+              {
+                to: "/jobs",
+                label: "Opportunities",
+                icon: "briefcase",
+                active: location.pathname === "/jobs",
+              },
+              ...(user
+                ? [
+                    {
+                      to: roleHome[user.role],
+                      label: "Dashboard",
+                      icon: "grid",
+                      active: location.pathname.startsWith(roleHome[user.role]),
+                    },
+                    {
+                      to: "/messages",
+                      label: "Messages",
+                      icon: "chat",
+                      active: location.pathname.startsWith("/messages"),
+                    },
+                  ]
+                : []),
+            ];
+            const mid = Math.ceil(tabs.length / 2);
+            return (
+              <>
+                {tabs.slice(0, mid).map(tabLink)}
+                <Link
+                  to={user ? roleHome[user.role] : "/"}
+                  aria-label="A-Sync home"
+                  className="relative flex min-w-[64px] flex-1 flex-col items-center justify-end self-stretch px-1 pb-1"
+                >
+                  <span className="absolute -top-7 flex h-12 w-12 items-center justify-center rounded-full bg-white p-1 shadow-[0_8px_20px_rgba(15,30,53,0.28)] ring-4 ring-[#E7F0E9]">
+                    <img
+                      src="/system-logo/A-Sync-Logo.png"
+                      alt=""
+                      className="h-full w-full object-contain"
+                    />
+                  </span>
+                  <span className="mt-6 text-[8px] font-bold tracking-[0.2em] text-[#17633e]">
+                    A-SYNC
+                  </span>
+                  <span className="h-1 w-1 rounded-full bg-transparent" />
+                </Link>
+                {tabs.slice(mid).map(tabLink)}
+                {user ? (
+                  <button
+                    type="button"
+                    onClick={handleLogout}
+                    className="flex min-w-[64px] flex-1 flex-col items-center justify-center gap-1 rounded-xl px-1.5 py-1.5 text-[9.5px] font-semibold leading-none text-[#0F1E35]/55 transition-colors"
+                  >
+                    <MobileBarIcon name="power" />
+                    <span>Logout</span>
+                    <span className="h-1 w-1 rounded-full bg-transparent" />
+                  </button>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={openLogin}
+                    className="flex min-w-[64px] flex-1 flex-col items-center justify-center gap-1 rounded-xl px-1.5 py-1.5 text-[9.5px] font-semibold leading-none text-[#0F1E35]/55 transition-colors"
+                  >
+                    <MobileBarIcon name="user" />
+                    <span>Login</span>
+                    <span className="h-1 w-1 rounded-full bg-transparent" />
+                  </button>
+                )}
+              </>
+            );
+          })()}
         </div>
       </nav>
     </header>

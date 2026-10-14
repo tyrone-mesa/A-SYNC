@@ -1,4 +1,4 @@
-import React, { useCallback, useRef, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { motion, useReducedMotion } from "framer-motion";
 import Navbar from "../components/Navbar";
@@ -322,6 +322,15 @@ const LandingPage = ({ intro = false, onIntroComplete }) => {
     );
   };
 
+    // Admin-customizable About-section image (also rendered on web).
+  const [aboutImage, setAboutImage] = useState("");
+  useEffect(() => {
+    api
+      .get("/site-settings")
+      .then(({ data }) => setAboutImage(data.aboutImage || ""))
+      .catch(() => setAboutImage(""));
+  }, []);
+
   return (
     <div className="min-h-screen bg-[#FBF8F3]">
       <section className="relative isolate overflow-hidden bg-white text-[#1D2939]">
@@ -460,6 +469,15 @@ const LandingPage = ({ intro = false, onIntroComplete }) => {
         id="about"
         className="relative z-0 scroll-mt-24 overflow-hidden px-4 py-14 sm:px-8 sm:py-20 md:px-16 lg:px-20"
       >
+        {aboutImage && (
+          <div className="mx-auto mb-10 max-w-6xl">
+            <img
+              src={aboutImage.startsWith("/") ? aboutImage : `/${aboutImage}`}
+              alt="About Asiatech Sync"
+              className="max-h-[420px] w-full rounded-[28px] object-cover shadow-[0_18px_50px_rgba(15,30,53,0.18)]"
+            />
+          </div>
+        )}
         {/* Mobile: fixed "About ASIATECHSYNC" label on top-left; name -> image -> text scrolls left/right */}
         <div className="mx-auto max-w-6xl md:hidden">
           <p className="mb-4 text-left text-xs font-bold uppercase tracking-[0.2em] text-[#1E5D46]">

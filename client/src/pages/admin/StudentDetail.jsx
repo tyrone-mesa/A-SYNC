@@ -10,6 +10,7 @@ import DashboardLoading from "../../components/DashboardLoading";
 import { openProtectedFile } from "../../utils/protectedFile";
 import AvatarCropper from "../../components/AvatarCropper";
 import { resolveFileUrl } from "../../utils/fileUrl";
+import SelectDropdown from "../../components/SelectDropdown";
 
 const DOC_STATUS_LABELS = {
   none: "",
@@ -42,7 +43,7 @@ const StudentDetail = () => {
   const assignCoordinator = async () => {
     setAssignBusy(true);
     try {
-      await api.put(`/admin/students/${params.studentId}/assign-coordinator`, {
+      await api.put(`/admin/students/${id}/assign-coordinator`, {
         coordinatorId: selectedCoordinator || null,
       });
       await load();
@@ -58,7 +59,7 @@ const StudentDetail = () => {
   const verifyCompletion = async () => {
     setVerifyBusy(true);
     try {
-      await api.put(`/completion/verify/${params.studentId}`);
+      await api.put(`/completion/verify/${id}`);
       await load();
     } catch (err) {
       setManualHoursError(
@@ -72,6 +73,12 @@ const StudentDetail = () => {
   const [docReviewBusy, setDocReviewBusy] = useState(false);
   const [docRejecting, setDocRejecting] = useState(null);
   const [docReason, setDocReason] = useState("");
+  const [evaluations, setEvaluations] = useState(null);
+  const [completion, setCompletion] = useState(null);
+  const [verifyBusy, setVerifyBusy] = useState(false);
+  const [coordinators, setCoordinators] = useState([]);
+  const [selectedCoordinator, setSelectedCoordinator] = useState("");
+  const [assignBusy, setAssignBusy] = useState(false);
 
   const reviewDocument = async (type, action) => {
     if (action === "reject" && !docReason.trim()) return;
@@ -135,7 +142,11 @@ const StudentDetail = () => {
         setSelectedCoordinator(data.coordinator ? String(data.coordinator) : "");
         if (canViewDocuments) {
           api
-            .get(`/journals/of-student/${params.studentId}`)
+            .get(`/completion/of-student/${id}`)
+            .then(({ data }) => setCompletion(data))
+            .catch(() => setCompletion(null));
+          api
+            .get(`/journals/of-student/${id}`)
             .then(({ data }) => setJournalEntries(data.entries || []))
             .catch(() => setJournalEntries([]));
           api
@@ -146,7 +157,7 @@ const StudentDetail = () => {
             })
             .catch(() => setCoordinators([]));
           api
-            .get(`/evaluations/of-student/${params.studentId}`)
+            .get(`/evaluations/of-student/${id}`)
             .then(({ data }) => setEvaluations(data.evaluations || []))
             .catch(() => setEvaluations([]));
         }

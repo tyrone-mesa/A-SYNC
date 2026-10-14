@@ -23,6 +23,15 @@ const DOC_STATUS_STYLES = {
   rejected: "text-[#DF2E1B]",
 };
 
+const EVAL_CRITERIA = [
+  ["workQuality", "Quality of Work"],
+  ["productivity", "Productivity"],
+  ["communication", "Communication"],
+  ["punctuality", "Punctuality & Attendance"],
+  ["teamwork", "Teamwork"],
+  ["initiative", "Initiative"],
+];
+
 const StudentDetail = () => {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -57,6 +66,8 @@ const StudentDetail = () => {
   const [profile, setProfile] = useState(null);
   const [applications, setApplications] = useState([]);
   const [attendanceLogs, setAttendanceLogs] = useState([]);
+  const [journalEntries, setJournalEntries] = useState(null);
+  const [evaluations, setEvaluations] = useState(null);
   const [openLog, setOpenLog] = useState(null);
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState(false);
@@ -92,6 +103,16 @@ const StudentDetail = () => {
         setProfile(data.profile);
         setApplications(data.applications || []);
         setAttendanceLogs(data.attendanceLogs || []);
+        if (canViewDocuments) {
+          api
+            .get(`/journals/of-student/${params.studentId}`)
+            .then(({ data }) => setJournalEntries(data.entries || []))
+            .catch(() => setJournalEntries([]));
+          api
+            .get(`/evaluations/of-student/${params.studentId}`)
+            .then(({ data }) => setEvaluations(data.evaluations || []))
+            .catch(() => setEvaluations([]));
+        }
         setOpenLog(data.openLog || null);
       })
       .finally(() => setLoading(false));
@@ -682,6 +703,125 @@ const StudentDetail = () => {
             ))}
           </dl>
         </div>
+
+        {canViewDocuments && (
+          <div className="rounded-[24px] border border-black/5 bg-[#f8faf8] p-6 shadow-sm">
+            <h2 className="mb-4 font-display text-xl font-semibold text-navy">
+              OJT Journal
+            </h2>
+            {journalEntries === null ? (
+              <p className="text-sm text-navy/60">Loading entries…</p>
+            ) : journalEntries.length === 0 ? (
+              <p className="text-sm text-navy/60">
+                No journal entries yet.
+              </p>
+            ) : (
+              <div className="max-h-80 space-y-4 overflow-y-auto pr-1">
+                {journalEntries.map((entry) => (
+                  <div
+                    key={entry._id}
+                    className="rounded-2xl border border-black/5 bg-white/70 p-4"
+                  >
+                    <div className="flex flex-wrap items-center justify-between gap-2">
+                      <p className="font-medium text-navy">
+                        {new Date(entry.entryDate).toLocaleDateString([], {
+                          year: "numeric",
+                          month: "short",
+                          day: "numeric",
+                        })}
+                      </p>
+                      <span
+                        className={`text-sm font-bold ${
+                          entry.status === "submitted"
+                            ? "text-[#5E7867]"
+                            : "text-navy/50"
+                        }`}
+                      >
+                        {entry.status === "submitted" ? "Submitted" : "Draft"}
+                      </span>
+                    </div>
+                    <p className="mt-1 whitespace-pre-line text-sm text-navy/80">
+                      {entry.activities}
+                    </p>
+                    {entry.learnings && (
+                      <p className="mt-1 text-sm italic text-navy/60">
+                        {entry.learnings}
+                      </p>
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+
+        {canViewDocuments && (
+          <div className="rounded-[24px] border border-black/5 bg-[#f8faf8] p-6 shadow-sm">
+            <h2 className="mb-4 font-display text-xl font-semibold text-navy">
+              Company Evaluation
+            </h2>
+            {evaluations === null ? (
+              <p className="text-sm text-navy/60">Loading evaluations…</p>
+            ) : evaluations.length === 0 ? (
+              <p className="text-sm text-navy/60">
+                No company evaluation submitted yet.
+              </p>
+            ) : (
+              <div className="space-y-5">
+                {evaluations.map((evaluation) => (
+                  <div
+                    key={evaluation._id}
+                    className="rounded-2xl border border-black/5 bg-white/70 p-4"
+                  >
+                    <div className="flex flex-wrap items-baseline justify-between gap-2">
+                      <p className="font-medium text-navy">
+                        {evaluation.company?.companyName || "Company"}
+                      </p>
+                      <span
+                        className={`text-sm font-bold ${
+                          evaluation.status === "final"
+                            ? "text-[#5E7867]"
+                            : "text-navy/50"
+                        }`}
+                      >
+                        {evaluation.status === "final" ? "Final" : "Draft"}
+                        {evaluation.submittedAt
+                          ? ` · ${new Date(evaluation.submittedAt).toLocaleDateString()}`
+                          : ""}
+                      </span>
+                    </div>
+                    <div className="mt-3 space-y-2">
+                      {EVAL_CRITERIA.map(([key, label]) => {
+                        const score = Number(evaluation.ratings?.[key] || 0);
+                        return (
+                          <div key={key}>
+                            <div className="mb-1 flex justify-between text-sm">
+                              <span className="text-navy/70">{label}</span>
+                              <span className="numeric-value font-bold text-[#0b5d3d]">
+                                {score}/5
+                              </span>
+                            </div>
+                            <div className="h-2 overflow-hidden rounded-full bg-navy/10">
+                              <div
+                                className="h-full rounded-full bg-forest"
+                                style={{ width: `${(score / 5) * 100}%` }}
+                              />
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                    {evaluation.overallComments && (
+                      <p className="mt-3 text-sm italic text-navy/60">
+                        {evaluation.overallComments}
+                      </p>
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
 
         {canViewDocuments && (
           <div className="rounded-[24px] border border-black/5 bg-[#f8faf8] p-6 shadow-sm">

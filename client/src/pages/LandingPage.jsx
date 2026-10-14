@@ -397,27 +397,26 @@ const LandingPage = ({ intro = false, onIntroComplete }) => {
                 : undefined
             }
             variants={heroContent}
-            className="flex min-h-[560px] items-end justify-start sm:min-h-[560px] sm:items-center"
+            className="flex min-h-[480px] items-center justify-start sm:min-h-[560px]"
           >
-            <div className="w-full rounded-t-[2rem] bg-[#F8FBF8]/95 px-5 pt-4 pb-8 text-left shadow-[0_-14px_44px_rgba(15,30,53,0.18)] backdrop-blur-xl sm:max-w-3xl sm:bg-transparent sm:px-0 sm:pt-0 sm:pb-0 sm:shadow-none sm:backdrop-blur-0">
-              <div className="mx-auto mb-4 h-1.5 w-10 rounded-full bg-[#0F1E35]/15 sm:hidden" />
+            <div className="max-w-2xl text-left sm:max-w-3xl">
               <motion.p
                 variants={heroItem}
-                className="mb-4 text-[10px] font-bold uppercase tracking-[0.18em] text-[#1E5D46] sm:mb-5 sm:text-[11px] sm:tracking-[0.32em] sm:text-white sm:[text-shadow:0_1px_14px_rgba(15,61,46,0.45)]"
+                className="mb-4 text-[10px] font-bold uppercase tracking-[0.18em] text-white [text-shadow:0_1px_14px_rgba(15,61,46,0.45)] sm:mb-5 sm:text-[11px] sm:tracking-[0.32em]"
               >
                 Connecting Students. Empowering Opportunities.
               </motion.p>
 
               <motion.h1
                 variants={heroItem}
-                className="mb-5 font-bespoke text-[clamp(2rem,5vw,4rem)] font-bold italic leading-[0.96] tracking-[-0.04em] text-[#0F1E35] sm:text-white sm:[text-shadow:0_2px_20px_rgba(15,61,46,0.45)]"
+                className="mb-5 font-bespoke text-[clamp(2rem,5vw,4rem)] font-bold italic leading-[0.96] tracking-[-0.04em] text-white [text-shadow:0_2px_20px_rgba(15,61,46,0.45)]"
               >
                 Your Future Starts With the Right Opportunity.
               </motion.h1>
 
               <motion.p
                 variants={heroItem}
-                className="mb-8 max-w-2xl text-base leading-relaxed text-[#0F1E35]/70 sm:text-lg sm:text-white/85 sm:[text-shadow:0_1px_14px_rgba(15,61,46,0.4)]"
+                className="mb-8 max-w-2xl text-base leading-relaxed text-white/85 [text-shadow:0_1px_14px_rgba(15,61,46,0.4)] sm:text-lg"
               >
                 AsiatechSync connects Asia Technological School of Science and Arts students with OJT, internship, and career opportunities from industry partners.
               </motion.p>
@@ -440,7 +439,7 @@ const LandingPage = ({ intro = false, onIntroComplete }) => {
 
               <motion.div
                 variants={heroItem}
-                className="mt-6 flex flex-wrap items-center gap-x-4 gap-y-2 text-xs text-[#0F1E35]/70 sm:mt-8 sm:gap-4 sm:text-sm sm:text-white sm:[text-shadow:0_1px_12px_rgba(15,61,46,0.4)]"
+                className="mt-6 flex flex-wrap items-center gap-x-4 gap-y-2 text-xs text-white [text-shadow:0_1px_12px_rgba(15,61,46,0.4)] sm:mt-8 sm:gap-4 sm:text-sm"
               >
                 <div className="flex items-center gap-2">
                   <span className="flex h-2.5 w-2.5 rounded-full bg-[#1E5D46]" />

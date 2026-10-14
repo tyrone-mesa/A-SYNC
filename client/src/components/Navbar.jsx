@@ -49,6 +49,34 @@ const NavbarLink = ({ to, href, active, children, className = "" }) => {
   );
 };
 
+
+// Mobile bottom-bar icons (24px stroke set, no icon dependency).
+const MOBILE_ICONS = {
+  home: "M3.5 11.5 12 4l8.5 7.5 M5.5 9.8V20h4.6v-5h3.8v5h4.6V9.8",
+  briefcase:
+    "M4 8.5h16v10H4z M9 8.5V6.6A1.1 1.1 0 0 1 10.1 5.5h3.8A1.1 1.1 0 0 1 15 6.6v1.9 M4 12.8h16",
+  grid: "M4 4h6.5v6.5H4z M13.5 4H20v6.5h-6.5z M4 13.5h6.5V20H4z M13.5 13.5H20V20h-6.5z",
+  chat: "M4.5 5h15v9.5H9.8L4.5 19z",
+  power: "M12 4v7 M6.6 7.2a7 7 0 1 0 10.8 0",
+  user: "M12 12.2a2.9 2.9 0 1 0 0-5.8 2.9 2.9 0 0 0 0 5.8z M5 19.5c.8-3.3 3.4-5 7-5s6.2 1.7 7 5",
+};
+
+const MobileBarIcon = ({ name }) => (
+  <svg
+    viewBox="0 0 24 24"
+    width="21"
+    height="21"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="1.8"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    aria-hidden="true"
+  >
+    <path d={MOBILE_ICONS[name] || MOBILE_ICONS.home} />
+  </svg>
+);
+
 const Navbar = ({ variant = "static" }) => {
   const { user, logout } = useAuth();
   const location = useLocation();
@@ -210,69 +238,7 @@ const Navbar = ({ variant = "static" }) => {
           </div>
         </div>
 
-        <div className="lg:hidden">
-          <div
-            ref={mobileNavRef}
-            className="mt-3 flex snap-x snap-mandatory justify-center overflow-x-auto pb-1 scrollbar-hide"
-            style={{ WebkitOverflowScrolling: "touch" }}
-          >
-            <div className="flex items-center gap-2 whitespace-nowrap">
-              <Link
-                to="/"
-                aria-current={
-                  location.pathname === "/" && !location.hash
-                    ? "page"
-                    : undefined
-                }
-                className={mobileNavLinkClass(location.pathname === "/" && !location.hash)}
-              >
-                Home
-              </Link>
 
-              <Link
-                to="/jobs"
-                aria-current={location.pathname === "/jobs" ? "page" : undefined}
-                className={mobileNavLinkClass(location.pathname === "/jobs")}
-              >
-                Opportunities
-              </Link>
-
-              {user && (
-                <Link
-                  to={roleHome[user.role]}
-                  aria-current={
-                    location.pathname.startsWith(roleHome[user.role])
-                      ? "page"
-                      : undefined
-                  }
-                  className={mobileNavLinkClass(
-                    location.pathname.startsWith(roleHome[user.role]),
-                  )}
-                >
-                  Dashboard
-                </Link>
-              )}
-
-              {user ? (
-                <button
-                  type="button"
-                  onClick={handleLogout}
-                  className={mobileNavLinkClass(false)}
-                >
-                  Logout
-                </button>
-              ) : (
-                <button
-                  type="button"
-                  onClick={openLogin}
-                  className={mobileNavLinkClass(false)}
-                >
-                  Login
-                </button>
-              )}
-            </div>
-          </div>
-        </div>
       </nav>
 
       {/* The auth modals render inside a portal on document.body. On the home
@@ -335,6 +301,84 @@ const Navbar = ({ variant = "static" }) => {
         </>,
         document.body,
       )}
+
+      {/* Mobile app tab bar - icons at the bottom, native-app navigation. */}
+      <nav
+        aria-label="Mobile navigation"
+        className="fixed inset-x-3 bottom-3 z-40 rounded-2xl border border-white/60 bg-white/90 px-1.5 pt-2 shadow-[0_10px_30px_rgba(15,30,53,0.2)] backdrop-blur-xl scrollbar-hide lg:hidden"
+        style={{ paddingBottom: "max(0.5rem, env(safe-area-inset-bottom))" }}
+      >
+        <div className="flex items-stretch gap-0.5 overflow-x-auto scrollbar-hide">
+          {[
+            {
+              to: "/",
+              label: "Home",
+              icon: "home",
+              active: location.pathname === "/" && !location.hash,
+            },
+            {
+              to: "/jobs",
+              label: "Opportunities",
+              icon: "briefcase",
+              active: location.pathname === "/jobs",
+            },
+            ...(user
+              ? [
+                  {
+                    to: roleHome[user.role],
+                    label: "Dashboard",
+                    icon: "grid",
+                    active: location.pathname.startsWith(roleHome[user.role]),
+                  },
+                  {
+                    to: "/messages",
+                    label: "Messages",
+                    icon: "chat",
+                    active: location.pathname.startsWith("/messages"),
+                  },
+                ]
+              : []),
+          ].map((tab) => (
+            <Link
+              key={tab.to}
+              to={tab.to}
+              aria-current={tab.active ? "page" : undefined}
+              className={`flex min-w-[64px] flex-1 flex-col items-center justify-center gap-1 rounded-xl px-1.5 py-1.5 text-[9.5px] font-semibold leading-none transition-colors ${
+                tab.active ? "bg-[#E7F0E9] text-[#17633e]" : "text-[#0F1E35]/55"
+              }`}
+            >
+              <MobileBarIcon name={tab.icon} />
+              <span className="max-w-[64px] truncate">{tab.label}</span>
+              <span
+                className={`h-1 w-1 rounded-full ${
+                  tab.active ? "bg-[#17633e]" : "bg-transparent"
+                }`}
+              />
+            </Link>
+          ))}
+          {user ? (
+            <button
+              type="button"
+              onClick={handleLogout}
+              className="flex min-w-[64px] flex-1 flex-col items-center justify-center gap-1 rounded-xl px-1.5 py-1.5 text-[9.5px] font-semibold leading-none text-[#0F1E35]/55 transition-colors"
+            >
+              <MobileBarIcon name="power" />
+              <span>Logout</span>
+              <span className="h-1 w-1 rounded-full bg-transparent" />
+            </button>
+          ) : (
+            <button
+              type="button"
+              onClick={openLogin}
+              className="flex min-w-[64px] flex-1 flex-col items-center justify-center gap-1 rounded-xl px-1.5 py-1.5 text-[9.5px] font-semibold leading-none text-[#0F1E35]/55 transition-colors"
+            >
+              <MobileBarIcon name="user" />
+              <span>Login</span>
+              <span className="h-1 w-1 rounded-full bg-transparent" />
+            </button>
+          )}
+        </div>
+      </nav>
     </header>
   );
 };

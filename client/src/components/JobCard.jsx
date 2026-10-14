@@ -39,7 +39,7 @@ const formatTimeAgo = (date) => {
   return `${Math.floor(daysAgo / 365)}y ago`;
 };
 
-const JobCard = ({ job, onSelect }) => {
+const JobCard = ({ job, onSelect, match = null }) => {
   const navigate = useNavigate();
   const { user } = useAuth();
   const [studentHours, setStudentHours] = useState(null);
@@ -149,6 +149,25 @@ const JobCard = ({ job, onSelect }) => {
             <h3 className="min-h-[56px] font-display text-[1.13rem] font-black leading-[1.15] text-[#0F1E35] tracking-[-0.03em] transition-colors duration-200 group-hover:text-[#0b5d3d]">
               {job.title}
             </h3>
+
+            {match && match.score >= 40 && (
+              <p className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-0.5">
+                <span
+                  className="text-sm font-bold text-[#5E7867]"
+                  title={match.reasons.join(" · ")}
+                >
+                  {match.score}% match
+                </span>
+                {match.reasons.slice(0, 2).map((reason) => (
+                  <span
+                    key={reason}
+                    className="text-[10px] font-medium text-[#0F1E35]/55"
+                  >
+                    · {reason}
+                  </span>
+                ))}
+              </p>
+            )}
 
             <div className="flex items-center gap-2">
               <CompanyLogo company={job.company} className="h-8 w-8" />

@@ -9,8 +9,14 @@ const router = express.Router();
 // @desc    Public: current customizable site content.
 router.get("/", async (req, res) => {
   try {
-    const doc = await SiteSetting.findOne({ key: "aboutImage" });
-    return res.json({ aboutImage: doc?.value || "" });
+    const [imageDoc, sizeDoc] = await Promise.all([
+      SiteSetting.findOne({ key: "aboutImage" }),
+      SiteSetting.findOne({ key: "aboutImageSize" }),
+    ]);
+    return res.json({
+      aboutImage: imageDoc?.value || "",
+      aboutImageSize: sizeDoc?.value || "md",
+    });
   } catch (err) {
     return res.status(400).json({ message: "Failed to load site settings." });
   }
@@ -51,7 +57,15 @@ router.put(
         { value },
         { upsert: true, new: true },
       );
-      return res.json({ aboutImage: value });
+      const size = ["sm", "md", "lg"].includes(req.body.aboutImageSize)
+        ? req.body.aboutImageSize
+        : "md";
+      await SiteSetting.findOneAndUpdate(
+        { key: "aboutImageSize" },
+        { value: size },
+        { upsert: true, new: true },
+      );
+      return res.json({ aboutImage: value, aboutImageSize: size });
     } catch (err) {
       return res
         .status(400)

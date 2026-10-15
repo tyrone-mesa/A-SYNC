@@ -324,10 +324,14 @@ const LandingPage = ({ intro = false, onIntroComplete }) => {
 
     // Admin-customizable About-section image (also rendered on web).
   const [aboutImage, setAboutImage] = useState("");
+  const [aboutImageSize, setAboutImageSize] = useState("md");
   useEffect(() => {
     api
       .get("/site-settings")
-      .then(({ data }) => setAboutImage(data.aboutImage || ""))
+      .then(({ data }) => {
+        setAboutImage(data.aboutImage || "");
+        setAboutImageSize(data.aboutImageSize || "md");
+      })
       .catch(() => setAboutImage(""));
   }, []);
 
@@ -474,7 +478,13 @@ const LandingPage = ({ intro = false, onIntroComplete }) => {
             <img
               src={aboutImage.startsWith("/") ? aboutImage : `/${aboutImage}`}
               alt="About Asiatech Sync"
-              className="max-h-[420px] w-full rounded-[28px] object-cover shadow-[0_18px_50px_rgba(15,30,53,0.18)]"
+              className={`${
+                aboutImageSize === "sm"
+                  ? "max-h-[260px]"
+                  : aboutImageSize === "lg"
+                    ? "max-h-[560px]"
+                    : "max-h-[420px]"
+              } w-full rounded-[28px] object-cover shadow-[0_18px_50px_rgba(15,30,53,0.18)]`}
             />
           </div>
         )}

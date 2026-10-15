@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import api from "../../api/axios";
 import DashboardShell from "../../components/DashboardShell";
+import SelectDropdown from "../../components/SelectDropdown";
 import DashboardLoading from "../../components/DashboardLoading";
 import { useRealtimeDashboard } from "../../hooks/useRealtimeDashboard";
 
@@ -27,13 +28,17 @@ const AdminDashboard = () => {
 
   const [aboutFile, setAboutFile] = useState(null);
   const [aboutImage, setAboutImage] = useState("");
+  const [aboutImageSize, setAboutImageSize] = useState("md");
   const [aboutBusy, setAboutBusy] = useState(false);
   const [aboutMsg, setAboutMsg] = useState("");
 
   useEffect(() => {
     api
       .get("/site-settings")
-      .then(({ data }) => setAboutImage(data.aboutImage || ""))
+      .then(({ data }) => {
+        setAboutImage(data.aboutImage || "");
+        setAboutImageSize(data.aboutImageSize || "md");
+      })
       .catch(() => setAboutImage(""));
   }, []);
 
@@ -76,7 +81,10 @@ const AdminDashboard = () => {
       const body = new FormData();
       body.append("image", aboutFile);
       const { data } = await api.post("/site-settings/admin/upload", body);
-      await api.put("/site-settings/admin", { aboutImage: data.url });
+      await api.put("/site-settings/admin", {
+        aboutImage: data.url,
+        aboutImageSize,
+      });
       setAboutImage(data.url);
       setAboutFile(null);
       setAboutMsg("About image updated.");
@@ -151,6 +159,16 @@ const AdminDashboard = () => {
             accept="image/*"
             onChange={(e) => setAboutFile(e.target.files?.[0] || null)}
             className="input-field max-w-xs py-1.5 text-sm"
+          />
+          <SelectDropdown
+            value={aboutImageSize}
+            onChange={(e) => setAboutImageSize(e.target.value)}
+            options={[
+              { value: "sm", label: "Small" },
+              { value: "md", label: "Medium" },
+              { value: "lg", label: "Large" },
+            ]}
+            className="input-field max-w-[140px] py-1.5 text-sm"
           />
           <button
             type="button"

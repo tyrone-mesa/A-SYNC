@@ -1,8 +1,12 @@
 import React, { useState } from "react";
 import AttachmentViewer from "./AttachmentViewer";
 
-const resolveUrl = (path) =>
-  !path ? "" : path.startsWith("/") ? path : `/${path}`;
+const resolveUrl = (path) => {
+  if (!path) return "";
+  const marker = path.indexOf("uploads/");
+  if (marker !== -1) return `/${path.slice(marker)}`;
+  return path.startsWith("/") ? path : `/${path}`;
+};
 
 const formatSize = (bytes) => {
   if (!bytes) return "";

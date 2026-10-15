@@ -1,7 +1,11 @@
 import React, { useEffect } from "react";
 
-const resolveUrl = (path) =>
-  !path ? "" : path.startsWith("/") ? path : `/${path}`;
+const resolveUrl = (path) => {
+  if (!path) return "";
+  const marker = path.indexOf("uploads/");
+  if (marker !== -1) return `/${path.slice(marker)}`;
+  return path.startsWith("/") ? path : `/${path}`;
+};
 
 const formatSize = (bytes) => {
   if (!bytes) return "";
@@ -63,10 +67,23 @@ const AttachmentViewer = ({ attachment, onClose }) => {
         <a
           href={url}
           download={attachment.name || true}
-          className="btn-primary h-8 shrink-0 px-3 text-xs"
+          className="btn-primary flex h-8 shrink-0 items-center gap-1.5 px-3 text-xs"
           onClick={(e) => e.stopPropagation()}
         >
-          ⬇ Download
+          <svg
+            viewBox="0 0 24 24"
+            width="14"
+            height="14"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2.2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            aria-hidden="true"
+          >
+            <path d="M12 4v11 M7 11l5 5 5-5 M5 20h14" />
+          </svg>
+          Download
         </a>
       </div>
 
@@ -102,9 +119,22 @@ const AttachmentViewer = ({ attachment, onClose }) => {
             <a
               href={url}
               download={attachment.name || true}
-              className="btn-primary h-9 px-5 text-sm"
+              className="btn-primary flex h-9 items-center gap-2 px-5 text-sm"
             >
-              ⬇ Download
+              <svg
+                viewBox="0 0 24 24"
+                width="16"
+                height="16"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2.2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                aria-hidden="true"
+              >
+                <path d="M12 4v11 M7 11l5 5 5-5 M5 20h14" />
+              </svg>
+              Download
             </a>
           </div>
         )}

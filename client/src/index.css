@@ -532,7 +532,7 @@
 /* Room for the mobile bottom tab bar on every page (public + dashboard). */
 @media (max-width: 1023px) {
   body {
-    padding-bottom: 96px;
+    padding-bottom: 112px;
   }
 }
 

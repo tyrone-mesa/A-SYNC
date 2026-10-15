@@ -509,7 +509,7 @@ const DashboardShell = ({
       {/* Mobile app tab bar - native-app navigation on small screens. */}
       <nav
         aria-label="Mobile navigation"
-        className="fixed inset-x-3 bottom-3 z-50 rounded-2xl border border-white/60 bg-white/90 px-1.5 pt-2 shadow-[0_10px_30px_rgba(15,30,53,0.18)] backdrop-blur-xl scrollbar-hide lg:hidden"
+        className="fixed inset-x-3 bottom-3 z-50 rounded-2xl border border-white/60 bg-white px-1.5 pt-2 shadow-[0_10px_30px_rgba(15,30,53,0.28)] scrollbar-hide lg:hidden"
         style={{ paddingBottom: "max(0.5rem, env(safe-area-inset-bottom))" }}
       >
         <div className="flex items-stretch gap-0.5 overflow-x-auto scrollbar-hide">

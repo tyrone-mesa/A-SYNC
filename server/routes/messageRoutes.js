@@ -1,6 +1,7 @@
 const express = require("express");
 const mongoose = require("mongoose");
 const Conversation = require("../models/Conversation");
+const upload = require("../middleware/upload");
 const Message = require("../models/Message");
 const User = require("../models/User");
 const PublicConcern = require("../models/PublicConcern");
@@ -485,12 +486,31 @@ router.delete("/conversations/:id", protect, async (req, res) => {
 
 // @route   POST /api/messages/conversations/:id/messages
 // @desc    Send a message. Notifies the other participant both in-app (bell) and by email.
-router.post("/conversations/:id/messages", protect, async (req, res) => {
+// Multer error handling for oversized/invalid attachments (max 50MB).
+const attachmentUploadError = (err, req, res, next) => {
+  if (!err) return next();
+  if (err.code === "LIMIT_FILE_SIZE") {
+    return res
+      .status(400)
+      .json({ message: "File is too large. Maximum size is 50MB." });
+  }
+  return res
+    .status(400)
+    .json({ message: err.message || "The attachment could not be uploaded." });
+};
+
+router.post(
+  "/conversations/:id/messages",
+  protect,
+  upload.uploadMessageAttachment.single("file"),
+  attachmentUploadError,
+  async (req, res) => {
   try {
-    const { body } = req.body;
-    if (typeof body !== "string" || !body.trim()) {
+    const text = typeof req.body.body === "string" ? req.body.body.trim() : "";
+    if (!req.file && !text) {
       return res.status(400).json({ message: "Message cannot be empty." });
     }
+    const body = text || req.file.originalname;
     if (body.trim().length > 3000)
       return res
         .status(400)
@@ -509,6 +529,14 @@ router.post("/conversations/:id/messages", protect, async (req, res) => {
       conversation: conversation._id,
       sender: req.user._id,
       body: body.trim(),
+      attachment: req.file
+        ? {
+            url: req.file.path,
+            name: req.file.originalname,
+            mimeType: req.file.mimetype,
+            size: req.file.size,
+          }
+        : undefined,
     });
 
     try {
@@ -553,6 +581,7 @@ router.post("/conversations/:id/messages", protect, async (req, res) => {
       ...(process.env.DEBUG_ERRORS === "true" && { error: err.message }),
     });
   }
-});
+  },
+);
 
 module.exports = router;

@@ -263,10 +263,26 @@ router.put(
       return res
         .status(409)
         .json({ message: "An account with this email already exists." });
+    // Coordinators: the course / program(s) they oversee can be changed here.
+    if (user.role === "coordinator" && req.body.programs !== undefined) {
+      const programs = Array.isArray(req.body.programs)
+        ? [...new Set(req.body.programs)]
+        : [];
+      if (programs.length === 0 || !programs.every((p) => ALL_PROGRAMS.includes(p))) {
+        return res.status(400).json({
+          message: "Select at least one valid course / program for the coordinator.",
+        });
+      }
+      user.programs = programs;
+    }
     user.fullName = req.body.fullName.trim();
     user.email = email;
     if (req.body.password) user.password = req.body.password;
     await user.save();
+    if (user.role === "coordinator") {
+      // Their student roster depends on their programs — refresh it live.
+      emitDashboardUpdate({ users: [user._id], scope: "coordinator-programs" });
+    }
     res.json({ user: user.toSafeObject() });
   },
 );
@@ -330,6 +346,13 @@ router.post(
       .optional({ checkFalsy: true })
       .matches(/^\d{6}$/)
       .withMessage("Monthly OTP must be 6 digits."),
+    // A coordinator oversees one or more course / programs and only sees students enrolled in them.
+    body("programs")
+      .isArray({ min: 1 })
+      .withMessage("Select at least one course / program for the coordinator."),
+    body("programs.*")
+      .isIn(ALL_PROGRAMS)
+      .withMessage("Select a valid course / program."),
   ],
   async (req, res) => {
     const errors = validationResult(req);
@@ -339,6 +362,7 @@ router.post(
 
     try {
       const { fullName, email, password } = req.body;
+      const programs = [...new Set(req.body.programs)];
 
       const existing = await User.findOne({ email: email.toLowerCase() });
       if (existing) {
@@ -353,6 +377,7 @@ router.post(
         email: email.toLowerCase(),
         password: tempPassword,
         role: "coordinator",
+        programs,
       });
 
       await sendMail({
@@ -370,6 +395,7 @@ router.post(
         message:
           "Coordinator account created. The temporary password was set during creation — share it with them securely.",
         user: user.toSafeObject(),
+        tempPassword,
       });
     } catch (err) {
       if (err.code === 11000 && err.keyPattern?.email) {

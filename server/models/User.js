@@ -25,6 +25,10 @@ const UserSchema = new mongoose.Schema(
       enum: ["full", "read-only"],
       default: "full",
     },
+    // Coordinator accounts: the course / program(s) they oversee. A coordinator sees every
+    // student enrolled in one of these programs (see routes/staffRoutes.js). Ignored for
+    // every other role.
+    programs: [{ type: String, trim: true }],
     isActive: { type: Boolean, default: true },
     isArchived: { type: Boolean, default: false },
     archivedAt: { type: Date },
@@ -81,6 +85,7 @@ UserSchema.methods.toSafeObject = function toSafeObject() {
     email: this.email,
     role: this.role,
     adminType: this.adminType,
+    ...(this.role === "coordinator" ? { programs: this.programs || [] } : {}),
     isActive: this.isActive,
     createdAt: this.createdAt,
   };

@@ -4,6 +4,7 @@ import { useAuth } from "../../context/AuthContext";
 import api from "../../api/axios";
 import DashboardShell from "../../components/DashboardShell";
 import DashboardLoading from "../../components/DashboardLoading";
+import CoordinatorFolders from "./CoordinatorFolders";
 import { BACHELOR_PROGRAMS, ASSOCIATE_PROGRAMS } from "../../constants/courses";
 import { useRealtimeDashboard } from "../../hooks/useRealtimeDashboard";
 
@@ -14,6 +15,7 @@ const ManageStaffStudents = () => {
   const isCoordinator = user?.role === "coordinator";
   const base = isCoordinator ? "/coordinator" : "/registrar";
   const [students, setStudents] = useState([]);
+  const [myPrograms, setMyPrograms] = useState([]);
   const [search, setSearch] = useState("");
   const [programFilter, setProgramFilter] = useState("");
   const [programMenuOpen, setProgramMenuOpen] = useState(false);
@@ -23,6 +25,7 @@ const ManageStaffStudents = () => {
     try {
       const { data } = await api.get(`/staff${base}/students`);
       setStudents(data.students || []);
+      setMyPrograms(data.programs || []);
     } catch {
       // Keep the existing list if a refresh fails.
     }
@@ -36,6 +39,13 @@ const ManageStaffStudents = () => {
   useRealtimeDashboard(fetchStudents);
 
   if (loading) return <DashboardLoading role={user?.role} />;
+
+  // A coordinator only ever sees students from their own program(s), so the program filter
+  // lists just the programs actually present in their roster (and is hidden when there is
+  // only one). The registrar keeps the full list of programs.
+  const programOptions = isCoordinator
+    ? [...new Set(students.map((s) => s.course).filter(Boolean))].sort()
+    : PROGRAMS;
   const filtered = students.filter((student) => {
     const matchesSearch =
       `${student.user?.fullName} ${student.user?.email} ${student.course} ${student.companyPlacement}`
@@ -51,10 +61,19 @@ const ManageStaffStudents = () => {
       title={isCoordinator ? "Coordinator Dashboard" : "Registrar Dashboard"}
       subtitle={
         isCoordinator
-          ? "Review student profiles and submit final performance evaluations."
+          ? myPrograms.length > 0
+            ? `Students enrolled in: ${myPrograms.join(", ")}.`
+            : "Review student profiles and submit final performance evaluations."
           : "View student records, OJT placement, and completed certificates."
       }
     >
+      {isCoordinator && <CoordinatorFolders students={students} />}
+      {isCoordinator && myPrograms.length === 0 && students.length === 0 && (
+        <div className="mb-5 rounded-2xl border border-white/35 bg-white/50 p-4 text-sm text-navy/70">
+          No course / program has been assigned to your account yet. Ask an
+          administrator to assign one so your students appear here.
+        </div>
+      )}
       <div className="relative z-20 mb-5 rounded-2xl border border-white/35 bg-white/25 p-3 shadow-sm backdrop-blur-md sm:p-4">
         <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
           <p className="text-xs font-bold uppercase tracking-[0.14em] text-[#5E7867]">
@@ -69,10 +88,11 @@ const ManageStaffStudents = () => {
             className={`input-field min-w-0 flex-1 bg-white/65 ${
               /^\d+$/.test(search.trim()) ? "numeric-value" : ""
             }`}
-            placeholder="Search student records"
+            placeholder="Search by name, email, program, or company"
             value={search}
             onChange={(event) => setSearch(event.target.value)}
           />
+          {programOptions.length > 1 && (
           <div className="relative min-w-0 flex-1 lg:max-w-md">
             <button
               type="button"
@@ -98,7 +118,7 @@ const ManageStaffStudents = () => {
                 aria-label="Programs"
                 className="absolute left-0 right-0 top-[calc(100%+0.4rem)] z-30 max-h-72 overflow-y-auto rounded-xl border border-white/55 bg-[#edf7ef]/95 p-1.5 shadow-[0_16px_35px_rgba(15,30,53,0.16)] backdrop-blur-xl"
               >
-                {["", ...PROGRAMS].map((program) => (
+                {["", ...programOptions].map((program) => (
                   <button
                     key={program || "all-programs"}
                     type="button"
@@ -120,6 +140,7 @@ const ManageStaffStudents = () => {
               </div>
             )}
           </div>
+          )}
           {(search || programFilter) && (
             <button
               type="button"

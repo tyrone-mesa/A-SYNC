@@ -1,7 +1,9 @@
 const express = require("express");
+const mongoose = require("mongoose");
 const StudentProfile = require("../models/StudentProfile");
 const AttendanceLog = require("../models/AttendanceLog");
 const User = require("../models/User");
+const CoordinatorFolder = require("../models/CoordinatorFolder");
 const SecurityAuditLog = require("../models/SecurityAuditLog");
 const ExcelJS = require("exceljs");
 const CompanyProfile = require("../models/CompanyProfile");
@@ -103,18 +105,33 @@ const studentQuery = () =>
     .populate("user", "fullName email isActive isArchived createdAt")
     .sort({ createdAt: -1 });
 
+// A coordinator's scope: every student enrolled in one of the course / programs on the
+// coordinator's account, plus any student an admin explicitly assigned to them (legacy
+// assignment via PUT /api/admin/students/:id/assign-coordinator keeps working).
+const coordinatorScope = (coordinator) => ({
+  $or: [
+    { course: { $in: coordinator.programs || [] } },
+    { coordinator: coordinator._id },
+  ],
+});
+
+const isInCoordinatorScope = (profile, coordinator) =>
+  (coordinator.programs || []).includes(profile.course) ||
+  String(profile.coordinator || "") === String(coordinator._id);
+
 router.get(
   "/coordinator/students",
   authorize("coordinator"),
   async (req, res) => {
-    // Batch 9: coordinators are scoped to their assigned students only.
-    const students = (await studentQuery()).filter(
-      (profile) =>
-        profile.user &&
-        !profile.user.isArchived &&
-        String(profile.coordinator || "") === String(req.user._id),
-    );
-    res.json({ students });
+    const students = (
+      await StudentProfile.find({
+        user: { $exists: true },
+        ...coordinatorScope(req.user),
+      })
+        .populate("user", "fullName email isActive isArchived createdAt")
+        .sort({ createdAt: -1 })
+    ).filter((profile) => profile.user && !profile.user.isArchived);
+    res.json({ students, programs: req.user.programs || [] });
   },
 );
 
@@ -126,7 +143,7 @@ router.get(
       "user",
       "fullName email isActive createdAt",
     );
-    if (!profile)
+    if (!profile || !isInCoordinatorScope(profile, req.user))
       return res.status(404).json({ message: "Student not found." });
     const attendanceLogs = await AttendanceLog.find({ student: profile._id })
       .sort({ timeIn: -1 })
@@ -144,7 +161,7 @@ router.put(
   async (req, res) => {
     const { performanceGrade, evaluation } = req.body;
     const profile = await StudentProfile.findById(req.params.id);
-    if (!profile)
+    if (!profile || !isInCoordinatorScope(profile, req.user))
       return res.status(404).json({ message: "Student not found." });
     if (profile.assessmentSubmittedAt)
       return res.status(409).json({
@@ -222,6 +239,166 @@ router.put(
 
     res.json({ profile: updatedProfile });
   },
+);
+
+// ---------------------------------------------------------------------------
+// Coordinator folders — private, named groups of students on the coordinator dashboard.
+// Every route is limited to folders owned by the signed-in coordinator, and only students
+// inside that coordinator's own scope can ever be added to a folder.
+// ---------------------------------------------------------------------------
+
+// Express 4 does not catch rejected promises from async handlers, so wrap each one.
+const handle = (fn) => (req, res, next) =>
+  Promise.resolve(fn(req, res, next)).catch((err) => {
+    console.error("Coordinator folder error:", err.message);
+    if (res.headersSent) return next(err);
+    res.status(500).json({ message: "Something went wrong. Please try again." });
+  });
+
+const cleanFolderName = (value) =>
+  String(value || "").trim().replace(/\s+/g, " ");
+
+const validateFolderName = (name) => {
+  if (!name) return "Folder name is required.";
+  if (name.length > 60) return "Folder name must be 60 characters or fewer.";
+  return "";
+};
+
+const findOwnedFolder = async (req) => {
+  if (!mongoose.isValidObjectId(req.params.id)) return null;
+  return CoordinatorFolder.findOne({
+    _id: req.params.id,
+    coordinator: req.user._id,
+  });
+};
+
+const duplicateNameResponse = (res) =>
+  res
+    .status(409)
+    .json({ message: "You already have a folder with that name." });
+
+router.get(
+  "/coordinator/folders",
+  authorize("coordinator"),
+  handle(async (req, res) => {
+    const folders = await CoordinatorFolder.find({
+      coordinator: req.user._id,
+    })
+      .collation({ locale: "en", strength: 2 })
+      .sort({ name: 1 })
+      .lean();
+    res.json({ folders });
+  }),
+);
+
+router.post(
+  "/coordinator/folders",
+  authorize("coordinator"),
+  handle(async (req, res) => {
+    const name = cleanFolderName(req.body?.name);
+    const nameError = validateFolderName(name);
+    if (nameError) return res.status(400).json({ message: nameError });
+    try {
+      const folder = await CoordinatorFolder.create({
+        coordinator: req.user._id,
+        name,
+      });
+      res.status(201).json({ folder });
+    } catch (err) {
+      if (err.code === 11000) return duplicateNameResponse(res);
+      throw err;
+    }
+  }),
+);
+
+router.put(
+  "/coordinator/folders/:id",
+  authorize("coordinator"),
+  handle(async (req, res) => {
+    const name = cleanFolderName(req.body?.name);
+    const nameError = validateFolderName(name);
+    if (nameError) return res.status(400).json({ message: nameError });
+    const folder = await findOwnedFolder(req);
+    if (!folder) return res.status(404).json({ message: "Folder not found." });
+    folder.name = name;
+    try {
+      await folder.save();
+    } catch (err) {
+      if (err.code === 11000) return duplicateNameResponse(res);
+      throw err;
+    }
+    res.json({ folder });
+  }),
+);
+
+router.delete(
+  "/coordinator/folders/:id",
+  authorize("coordinator"),
+  handle(async (req, res) => {
+    const folder = await findOwnedFolder(req);
+    if (!folder) return res.status(404).json({ message: "Folder not found." });
+    // Only the folder is removed — the students themselves are untouched.
+    await folder.deleteOne();
+    res.json({ message: "Folder deleted." });
+  }),
+);
+
+router.post(
+  "/coordinator/folders/:id/students",
+  authorize("coordinator"),
+  handle(async (req, res) => {
+    const folder = await findOwnedFolder(req);
+    if (!folder) return res.status(404).json({ message: "Folder not found." });
+
+    const requested = Array.isArray(req.body?.studentIds)
+      ? [...new Set(req.body.studentIds.map(String))].filter((id) =>
+          mongoose.isValidObjectId(id),
+        )
+      : [];
+    if (requested.length === 0) {
+      return res
+        .status(400)
+        .json({ message: "Select at least one student to add." });
+    }
+
+    // Only students this coordinator is actually allowed to see can be added.
+    const allowed = (
+      await StudentProfile.find({
+        _id: { $in: requested },
+        user: { $exists: true },
+        ...coordinatorScope(req.user),
+      }).populate("user", "isArchived")
+    ).filter((profile) => profile.user && !profile.user.isArchived);
+    if (allowed.length === 0) {
+      return res.status(400).json({
+        message: "None of the selected students are in your programs.",
+      });
+    }
+
+    const updated = await CoordinatorFolder.findByIdAndUpdate(
+      folder._id,
+      { $addToSet: { students: { $each: allowed.map((p) => p._id) } } },
+      { new: true },
+    );
+    res.json({ folder: updated });
+  }),
+);
+
+router.delete(
+  "/coordinator/folders/:id/students/:studentId",
+  authorize("coordinator"),
+  handle(async (req, res) => {
+    const folder = await findOwnedFolder(req);
+    if (!folder || !mongoose.isValidObjectId(req.params.studentId)) {
+      return res.status(404).json({ message: "Folder not found." });
+    }
+    const updated = await CoordinatorFolder.findByIdAndUpdate(
+      folder._id,
+      { $pull: { students: req.params.studentId } },
+      { new: true },
+    );
+    res.json({ folder: updated });
+  }),
 );
 
 router.get("/registrar/students", authorize("registrar"), async (req, res) => {

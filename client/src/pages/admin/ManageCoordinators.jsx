@@ -2,8 +2,9 @@ import React, { useEffect, useState } from "react";
 import api from "../../api/axios";
 import DashboardShell from "../../components/DashboardShell";
 import ListRowSkeleton from "../../components/ListRowSkeleton";
+import ProgramMultiSelect from "../../components/ProgramMultiSelect";
 
-const emptyForm = { fullName: "", email: "", password: "" };
+const emptyForm = { fullName: "", email: "", password: "", programs: [] };
 
 // Admin-only page for registering coordinator accounts. Coordinators never self-register and
 // only ever get read-only access to the student roster — this page is where that access
@@ -47,6 +48,10 @@ const ManageCoordinators = () => {
   const handleCreate = async (e) => {
     e.preventDefault();
     setError("");
+    if (form.programs.length === 0) {
+      setError("Select at least one course / program for the coordinator.");
+      return;
+    }
     setCreating(true);
     try {
       const { data } = await api.post("/admin/coordinators", form);
@@ -90,21 +95,31 @@ const ManageCoordinators = () => {
 
   const saveCoordinator = async (event) => {
     event.preventDefault();
-    const { data } = await api.put(
-      `/admin/users/${editingCoordinator._id}`,
-      editingCoordinator,
-    );
-    setCoordinators((items) =>
-      items.map((item) => (item._id === data.user._id ? data.user : item)),
-    );
-    setEditingCoordinator(null);
-    setEditMessage("Coordinator profile updated.");
+    if (editingCoordinator.programs.length === 0) {
+      setEditMessage("Select at least one course / program for the coordinator.");
+      return;
+    }
+    try {
+      const { data } = await api.put(
+        `/admin/users/${editingCoordinator._id}`,
+        editingCoordinator,
+      );
+      setCoordinators((items) =>
+        items.map((item) => (item._id === data.user._id ? data.user : item)),
+      );
+      setEditingCoordinator(null);
+      setEditMessage("Coordinator profile updated.");
+    } catch (err) {
+      setEditMessage(
+        err.response?.data?.message || "Failed to update coordinator.",
+      );
+    }
   };
 
   return (
     <DashboardShell
       title="Manage Coordinators"
-      subtitle="Coordinators can only view the student roster — no editing, deleting, or company access."
+      subtitle="Each coordinator only sees the students enrolled in their assigned course / programs — no company access."
     >
       <div className="mx-auto w-full max-w-4xl">
         <div className="mb-6 flex flex-col items-stretch justify-between gap-3 sm:flex-row sm:items-start">
@@ -188,6 +203,13 @@ const ManageCoordinators = () => {
                   onChange={handleChange}
                 />
               </div>
+              <div className="sm:col-span-2">
+                <ProgramMultiSelect
+                  idPrefix="create-coordinator-programs"
+                  value={form.programs}
+                  onChange={(programs) => setForm({ ...form, programs })}
+                />
+              </div>
             </div>
             <button
               type="submit"
@@ -231,6 +253,22 @@ const ManageCoordinators = () => {
                   <div className="min-w-0">
                     <p className="text-navy font-medium">{c.fullName}</p>
                     <p className="break-all text-navy/65 text-sm">{c.email}</p>
+                    <div className="mt-2 flex flex-wrap gap-1.5">
+                      {(c.programs || []).length === 0 ? (
+                        <span className="text-xs font-medium text-[#DF2E1B]">
+                          No program assigned — edit to assign one
+                        </span>
+                      ) : (
+                        c.programs.map((program) => (
+                          <span
+                            key={program}
+                            className="rounded-full bg-[#dfeecf] px-2.5 py-0.5 text-xs font-medium text-[#5E7867]"
+                          >
+                            {program}
+                          </span>
+                        ))
+                      )}
+                    </div>
                   </div>
                   <div className="flex shrink-0 flex-wrap items-center gap-3">
                     <span
@@ -257,6 +295,7 @@ const ManageCoordinators = () => {
                           fullName: c.fullName,
                           email: c.email,
                           password: "",
+                          programs: c.programs || [],
                         })
                       }
                       className="text-[#5E7867] text-xs font-medium hover:underline"
@@ -282,6 +321,8 @@ const ManageCoordinators = () => {
                 {selectedCoordinator?._id === c._id && (
                   <div className="rounded-lg bg-navy/5 px-4 pb-4 text-xs text-navy/70">
                     Email: {c.email}
+                    <br />
+                    Programs: {(c.programs || []).join(", ") || "None"}
                     <br />
                     Created:{" "}
                     {c.createdAt ? new Date(c.createdAt).toLocaleString() : "-"}
@@ -342,6 +383,15 @@ const ManageCoordinators = () => {
                 })
               }
             />
+            <div className="sm:col-span-3">
+              <ProgramMultiSelect
+                idPrefix="edit-coordinator-programs"
+                value={editingCoordinator.programs}
+                onChange={(programs) =>
+                  setEditingCoordinator({ ...editingCoordinator, programs })
+                }
+              />
+            </div>
             <div className="flex gap-2">
               <button className="btn-primary px-4 py-2">Save</button>
               <button

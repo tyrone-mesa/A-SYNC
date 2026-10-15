@@ -2,7 +2,6 @@ import React, { useCallback, useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import api from "../../api/axios";
 import DashboardShell from "../../components/DashboardShell";
-import SelectDropdown from "../../components/SelectDropdown";
 import DashboardLoading from "../../components/DashboardLoading";
 import { useRealtimeDashboard } from "../../hooks/useRealtimeDashboard";
 
@@ -25,22 +24,6 @@ const AdminDashboard = () => {
 
   // Refetch instantly when the server reports a dashboard-relevant mutation.
   useRealtimeDashboard(fetchStats);
-
-  const [aboutFile, setAboutFile] = useState(null);
-  const [aboutImage, setAboutImage] = useState("");
-  const [aboutImageSize, setAboutImageSize] = useState("md");
-  const [aboutBusy, setAboutBusy] = useState(false);
-  const [aboutMsg, setAboutMsg] = useState("");
-
-  useEffect(() => {
-    api
-      .get("/site-settings")
-      .then(({ data }) => {
-        setAboutImage(data.aboutImage || "");
-        setAboutImageSize(data.aboutImageSize || "md");
-      })
-      .catch(() => setAboutImage(""));
-  }, []);
 
   if (loading) return <DashboardLoading role="admin" />;
 
@@ -73,40 +56,6 @@ const AdminDashboard = () => {
       to: "/admin/reports",
     },
   ];
-
-  const handleAboutUpload = async () => {
-    setAboutBusy(true);
-    setAboutMsg("");
-    try {
-      const body = new FormData();
-      body.append("image", aboutFile);
-      const { data } = await api.post("/site-settings/admin/upload", body);
-      await api.put("/site-settings/admin", {
-        aboutImage: data.url,
-        aboutImageSize,
-      });
-      setAboutImage(data.url);
-      setAboutFile(null);
-      setAboutMsg("About image updated.");
-    } catch (err) {
-      setAboutMsg(
-        err.response?.data?.message || "Failed to update the image.",
-      );
-    } finally {
-      setAboutBusy(false);
-    }
-  };
-
-  const handleAboutClear = async () => {
-    setAboutBusy(true);
-    try {
-      await api.put("/site-settings/admin", { aboutImage: "" });
-      setAboutImage("");
-      setAboutMsg("About image removed.");
-    } finally {
-      setAboutBusy(false);
-    }
-  };
 
   return (
     <DashboardShell
@@ -143,62 +92,6 @@ const AdminDashboard = () => {
             </p>
           </Link>
         ))}
-      </div>
-
-      <div className="mt-4 rounded-[20px] border border-[#0b5d3d]/10 bg-[#f8fbfa] p-5 shadow-sm">
-        <h3 className="mb-1 font-display text-lg font-semibold text-[#0b5d3d]">
-          Landing Page · About Image
-        </h3>
-        <p className="mb-3 text-sm text-navy/60">
-          Customize the image shown at the top of the About ASIATECHSYNC
-          section (mobile and web). Leave empty to hide it.
-        </p>
-        <div className="flex flex-wrap items-center gap-3">
-          <input
-            type="file"
-            accept="image/*"
-            onChange={(e) => setAboutFile(e.target.files?.[0] || null)}
-            className="input-field max-w-xs py-1.5 text-sm"
-          />
-          <SelectDropdown
-            value={aboutImageSize}
-            onChange={(e) => setAboutImageSize(e.target.value)}
-            options={[
-              { value: "sm", label: "Small" },
-              { value: "md", label: "Medium" },
-              { value: "lg", label: "Large" },
-            ]}
-            className="input-field max-w-[140px] py-1.5 text-sm"
-          />
-          <button
-            type="button"
-            className="btn-primary h-9 px-4 text-sm"
-            disabled={aboutBusy || !aboutFile}
-            onClick={handleAboutUpload}
-          >
-            {aboutBusy ? "Uploading…" : "Upload & Set"}
-          </button>
-          {aboutImage && (
-            <>
-              <button
-                type="button"
-                className="btn-secondary h-9 px-4 text-sm"
-                disabled={aboutBusy}
-                onClick={handleAboutClear}
-              >
-                Remove
-              </button>
-              <img
-                src={aboutImage.startsWith("/") ? aboutImage : `/${aboutImage}`}
-                alt="About preview"
-                className="h-14 w-24 rounded-xl object-cover"
-              />
-            </>
-          )}
-        </div>
-        {aboutMsg && (
-          <p className="mt-2 text-xs text-[#5E7867]">{aboutMsg}</p>
-        )}
       </div>
 
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-5">

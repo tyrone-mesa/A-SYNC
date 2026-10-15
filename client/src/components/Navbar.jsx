@@ -157,14 +157,6 @@ const Navbar = ({ variant = "static" }) => {
         : "border-transparent bg-white/10 text-white/80 hover:bg-white/[0.18]"
     }`;
 
-  const [buildSha, setBuildSha] = useState("");
-  useEffect(() => {
-    fetch("/api/version")
-      .then((r) => r.json())
-      .then((d) => setBuildSha(d.sha || ""))
-      .catch(() => setBuildSha(""));
-  }, []);
-
   const tabLink = (tab) => (
     <Link
       key={tab.to}
@@ -345,7 +337,7 @@ const Navbar = ({ variant = "static" }) => {
       {createPortal(
       <nav
         aria-label="Mobile navigation"
-        className={`fixed inset-x-3 bottom-3 z-[2147483647] rounded-2xl border border-white/100 bg-white px-1.5 pt-2 shadow-[0_10px_30px_rgba(15,30,53,0.28)] scrollbar-hide lg:hidden ${
+        className={`fixed inset-x-3 bottom-3 z-[2147483647] rounded-2xl border border-white/60 bg-white px-1.5 pt-2 shadow-[0_10px_30px_rgba(15,30,53,0.28)] scrollbar-hide lg:hidden ${
           variant === "dashboard" ? "!hidden" : ""
         }`}
         style={{ paddingBottom: "max(0.5rem, env(safe-area-inset-bottom))" }}
@@ -423,11 +415,6 @@ const Navbar = ({ variant = "static" }) => {
             );
           })()}
         </div>
-        {buildSha && (
-          <p className="pt-1 text-center text-[8px] font-medium tracking-widest text-[#0F1E35]/35">
-            BUILD {buildSha}
-          </p>
-        )}
       </nav>,
       document.body,
       )}

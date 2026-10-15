@@ -327,7 +327,8 @@
     @apply relative max-w-[78%] rounded-[18px] px-3 py-2 text-sm shadow-sm;
   }
   .chat-bubble--mine {
-    @apply bg-[#dfeecf] text-navy;
+    background: var(--chat-mine-bg, #dfeecf);
+    color: var(--chat-mine-text, #0F1E35);
   }
   .chat-bubble--mine::after {
     content: "";
@@ -336,11 +337,25 @@
     bottom: 10px;
     width: 10px;
     height: 10px;
-    background: #dfeecf;
+    background: var(--chat-mine-bg, #dfeecf);
     clip-path: polygon(0 0, 100% 50%, 0 100%);
   }
   .chat-bubble--other {
-    @apply border border-black/5 bg-white text-navy;
+    @apply border border-black/5;
+    background: var(--chat-other-bg, #ffffff);
+    color: var(--chat-other-text, #0F1E35);
+  }
+  .chat-themed {
+    background-color: var(--chat-bg, transparent);
+    background-image: var(--chat-pattern, none);
+    background-size: var(--chat-pattern-size, auto);
+    background-attachment: local;
+  }
+  .chat-meta {
+    color: var(--chat-meta, rgba(15, 30, 53, 0.65));
+  }
+  .chat-bubble--mine .chat-meta {
+    color: var(--chat-mine-meta, var(--chat-meta, rgba(15, 30, 53, 0.65)));
   }
   .chat-bubble--other::before {
     content: "";
@@ -349,7 +364,7 @@
     bottom: 10px;
     width: 10px;
     height: 10px;
-    background: white;
+    background: var(--chat-other-bg, white);
     clip-path: polygon(100% 0, 0 50%, 100% 100%);
   }
   .chat-bubble--unified {

@@ -6,6 +6,8 @@ import Loader from "../components/Loader";
 import { useAuth } from "../context/AuthContext";
 import DashboardShell from "../components/DashboardShell";
 import MessageAttachment from "../components/MessageAttachment";
+import ChatThemePicker from "../components/ChatThemePicker";
+import { useChatTheme } from "../utils/chatTheme";
 
 const getOtherParticipant = (conversation, myId) =>
   conversation.participants.find((p) => String(p._id) !== String(myId));
@@ -39,6 +41,7 @@ const Messages = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
   const myUserId = getUserId(user);
+  const chatTheme = useChatTheme(myUserId);
 
   const [conversations, setConversations] = useState([]);
   const [loadingList, setLoadingList] = useState(true);
@@ -753,6 +756,8 @@ const Messages = () => {
                             </p>
                           )}
                         </div>
+                        <div className="flex shrink-0 items-center gap-2">
+                        {activeId && <ChatThemePicker themeState={chatTheme} />}
                         {user?.role === "admin" && activeId && (
                           <button
                             type="button"
@@ -763,9 +768,13 @@ const Messages = () => {
                             {deleting ? "Deleting…" : "Delete"}
                           </button>
                         )}
+                        </div>
                       </div>
 
-                      <div className="min-h-0 flex-1 space-y-2 overflow-y-auto px-4 py-3">
+                      <div
+                        className="chat-themed min-h-0 flex-1 space-y-2 overflow-y-auto px-4 py-3"
+                        style={chatTheme.style}
+                      >
                         {!activeId ? (
                           <div className="flex h-full items-center justify-center text-sm text-navy/65">
                             Select a conversation to view messages.
@@ -790,7 +799,7 @@ const Messages = () => {
                                       {m.body}
                                     </p>
                                   <MessageAttachment attachment={m.attachment} />
-                                    <p className="mt-1 text-left text-[9px] leading-none text-navy/65">
+                                    <p className="chat-meta mt-1 text-left text-[9px] leading-none">
                                       {formatTime(m.createdAt)}
                                     </p>
                                   </div>

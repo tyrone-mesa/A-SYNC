@@ -6,6 +6,8 @@ import { useAuth } from "../context/AuthContext";
 import api from "../api/axios";
 import SelectDropdown from "./SelectDropdown";
 import MessageAttachment from "./MessageAttachment";
+import ChatThemePicker from "./ChatThemePicker";
+import { useChatTheme } from "../utils/chatTheme";
 
 const POLL_INTERVAL_MS = 30000;
 const THREAD_POLL_INTERVAL_MS = 15000;
@@ -385,6 +387,7 @@ const FloatingMessageCircle = () => {
   };
 
   const currentUserId = getUserId(user);
+  const chatTheme = useChatTheme(currentUserId);
   const activeConversation = conversations.find(
     (conversation) => conversation._id === activeConversationId,
   );
@@ -920,15 +923,24 @@ const FloatingMessageCircle = () => {
                   >
                     {activeConversationId ? (
                       <>
-                        <button
-                          type="button"
-                          aria-label="Back to inbox"
-                          onClick={() => setActiveConversationId(null)}
-                          className="mx-2 mb-1 mt-2 flex h-7 w-7 shrink-0 items-center justify-center self-start rounded-full border border-black/10 text-sm leading-none text-[#17633e] transition hover:bg-[#17633e] hover:text-white"
+                        <div className="mx-2 mb-1 mt-2 flex shrink-0 items-center justify-between">
+                          <button
+                            type="button"
+                            aria-label="Back to inbox"
+                            onClick={() => setActiveConversationId(null)}
+                            className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full border border-black/10 text-sm leading-none text-[#17633e] transition hover:bg-[#17633e] hover:text-white"
+                          >
+                            ←
+                          </button>
+                          <ChatThemePicker
+                            themeState={chatTheme}
+                            className="!h-7 !w-7"
+                          />
+                        </div>
+                        <div
+                          className="chat-themed flex min-h-0 flex-1 flex-col gap-2 overflow-y-auto px-3 py-2"
+                          style={chatTheme.style}
                         >
-                          ←
-                        </button>
-                        <div className="flex min-h-0 flex-1 flex-col gap-2 overflow-y-auto px-3 py-2">
                           {loadingThread ? (
                             <p className="m-auto text-xs text-navy/60">
                               Loading conversation...
@@ -942,7 +954,15 @@ const FloatingMessageCircle = () => {
                               return (
                                 <div
                                   key={item._id}
-                                  className={`max-w-[88%] rounded-2xl px-3 py-2 ${isOwnMessage ? "ml-auto bg-[#17633e] text-white" : "mr-auto bg-white text-navy shadow-sm"}`}
+                                  className={`max-w-[88%] rounded-2xl px-3 py-2 shadow-sm ${isOwnMessage ? "ml-auto" : "mr-auto"}`}
+                                  style={{
+                                    background: isOwnMessage
+                                      ? "var(--chat-mine-bg)"
+                                      : "var(--chat-other-bg)",
+                                    color: isOwnMessage
+                                      ? "var(--chat-mine-text)"
+                                      : "var(--chat-other-text)",
+                                  }}
                                 >
                                   <p className="whitespace-pre-wrap break-words text-xs leading-relaxed">
                                     {item.body}
@@ -951,7 +971,12 @@ const FloatingMessageCircle = () => {
                                     attachment={item.attachment}
                                   />
                                   <p
-                                    className={`mt-1 text-right text-[9px] ${isOwnMessage ? "text-white/65" : "text-navy/50"}`}
+                                    className="mt-1 text-right text-[9px]"
+                                    style={{
+                                      color: isOwnMessage
+                                        ? "var(--chat-mine-meta)"
+                                        : "var(--chat-meta)",
+                                    }}
                                   >
                                     {formatMessageTime(item.createdAt)}
                                   </p>

@@ -24,3 +24,15 @@ export function resolveFileUrl(path) {
 
   return `${API_ORIGIN}${path.startsWith("/") ? "" : "/"}${path}`;
 }
+
+// Resolves a message/attachment URL for <img>, <iframe> and <a> use.
+// - Full URLs (e.g. Cloudinary) are returned untouched.
+// - Local "/uploads/..." paths are pointed at the API origin, so they also work
+//   when the client and server are hosted on different origins.
+export function resolveAttachmentUrl(path) {
+  if (!path) return "";
+  if (/^https?:\/\//i.test(path)) return path;
+  const marker = path.indexOf("/uploads/");
+  const normalized = marker !== -1 ? path.slice(marker) : path;
+  return resolveFileUrl(normalized);
+}

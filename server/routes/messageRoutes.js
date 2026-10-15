@@ -10,6 +10,7 @@ const Notification = require("../models/Notification");
 const { protect } = require("../middleware/auth");
 const { notify, createInAppNotification } = require("../utils/notify");
 const { sendMail } = require("../utils/mailer");
+const { persistUpload } = require("../utils/persistUpload");
 const {
   archiveMessage,
   getHistoryModel,
@@ -526,13 +527,22 @@ router.post(
     if (!conversation)
       return res.status(404).json({ message: "Conversation not found." });
 
+    // Honors STORAGE_PROVIDER: local disk by default, Cloudinary when configured
+    // (so attachments survive redeploys and stay viewable by every participant).
+    let attachmentUrl = "";
+    if (req.file) {
+      attachmentUrl = await persistUpload(req.file, {
+        folder: "message-attachments",
+      });
+    }
+
     const message = await Message.create({
       conversation: conversation._id,
       sender: req.user._id,
       body: body.trim(),
       attachment: req.file
         ? {
-            url: `/uploads/${path.basename(req.file.path)}`,
+            url: attachmentUrl,
             name: req.file.originalname,
             mimeType: req.file.mimetype,
             size: req.file.size,

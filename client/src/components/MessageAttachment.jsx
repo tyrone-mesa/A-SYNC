@@ -1,12 +1,7 @@
 import React, { useState } from "react";
 import AttachmentViewer from "./AttachmentViewer";
+import { resolveAttachmentUrl } from "../utils/fileUrl";
 
-const resolveUrl = (path) => {
-  if (!path) return "";
-  const marker = path.indexOf("uploads/");
-  if (marker !== -1) return `/${path.slice(marker)}`;
-  return path.startsWith("/") ? path : `/${path}`;
-};
 
 const formatSize = (bytes) => {
   if (!bytes) return "";
@@ -20,7 +15,7 @@ const MessageAttachment = ({ attachment }) => {
   const [open, setOpen] = useState(false);
   const [imageFailed, setImageFailed] = useState(false);
   if (!attachment?.url) return null;
-  const url = resolveUrl(attachment.url);
+  const url = resolveAttachmentUrl(attachment.url);
   const isImage =
     (attachment.mimeType || "").startsWith("image/") && !imageFailed;
 

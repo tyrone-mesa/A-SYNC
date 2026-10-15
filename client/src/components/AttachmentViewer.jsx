@@ -1,11 +1,7 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
+import { resolveAttachmentUrl } from "../utils/fileUrl";
+import { downloadBlob } from "../utils/download";
 
-const resolveUrl = (path) => {
-  if (!path) return "";
-  const marker = path.indexOf("uploads/");
-  if (marker !== -1) return `/${path.slice(marker)}`;
-  return path.startsWith("/") ? path : `/${path}`;
-};
 
 const formatSize = (bytes) => {
   if (!bytes) return "";
@@ -17,6 +13,7 @@ const formatSize = (bytes) => {
 // iframe, everything else shows a file card - all with a Download button.
 // Opens over the current page (no new tab); closes via X, backdrop, or Esc.
 const AttachmentViewer = ({ attachment, onClose }) => {
+  const [loadFailed, setLoadFailed] = useState(false);
   useEffect(() => {
     if (!attachment) return undefined;
     const onKey = (event) => {
@@ -30,8 +27,26 @@ const AttachmentViewer = ({ attachment, onClose }) => {
     };
   }, [attachment, onClose]);
 
+  useEffect(() => {
+    setLoadFailed(false);
+  }, [attachment?.url]);
+
   if (!attachment?.url) return null;
-  const url = resolveUrl(attachment.url);
+  const url = resolveAttachmentUrl(attachment.url);
+
+  // The "download" attribute is ignored for cross-origin URLs (e.g. Cloudinary),
+  // so fetch the file and save it as a blob; fall back to opening the URL.
+  const handleDownload = async (event) => {
+    event.preventDefault();
+    event.stopPropagation();
+    try {
+      const response = await fetch(url);
+      if (!response.ok) throw new Error("Download failed");
+      downloadBlob(await response.blob(), attachment.name || "attachment");
+    } catch {
+      window.open(url, "_blank", "noopener,noreferrer");
+    }
+  };
   const mime = attachment.mimeType || "";
   const isImage = mime.startsWith("image/");
   const isPreviewable = isImage || mime === "application/pdf" || mime.startsWith("text/");
@@ -68,7 +83,7 @@ const AttachmentViewer = ({ attachment, onClose }) => {
           href={url}
           download={attachment.name || true}
           className="btn-primary flex h-8 shrink-0 items-center gap-1.5 px-3 text-xs"
-          onClick={(e) => e.stopPropagation()}
+          onClick={handleDownload}
         >
           <svg
             viewBox="0 0 24 24"
@@ -91,8 +106,20 @@ const AttachmentViewer = ({ attachment, onClose }) => {
         className="mx-auto flex min-h-0 w-full max-w-3xl flex-1 items-center justify-center overflow-hidden rounded-b-2xl bg-black/40 p-3"
         onClick={(e) => e.stopPropagation()}
       >
-        {isImage && (
+        {isImage && loadFailed && (
+          <div className="flex flex-col items-center gap-2 rounded-2xl bg-white/95 px-8 py-8 text-center">
+            <p className="text-sm font-semibold text-[#0F1E35]">
+              This image could not be loaded.
+            </p>
+            <p className="max-w-xs text-xs text-[#0F1E35]/60">
+              The file may have been removed from the server. Ask the sender to
+              upload it again.
+            </p>
+          </div>
+        )}
+        {isImage && !loadFailed && (
           <img
+            onError={() => setLoadFailed(true)}
             src={url}
             alt={attachment.name || "Attachment"}
             className="max-h-full max-w-full rounded-xl object-contain"
@@ -119,6 +146,7 @@ const AttachmentViewer = ({ attachment, onClose }) => {
             <a
               href={url}
               download={attachment.name || true}
+              onClick={handleDownload}
               className="btn-primary flex h-9 items-center gap-2 px-5 text-sm"
             >
               <svg

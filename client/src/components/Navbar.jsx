@@ -341,7 +341,7 @@ const Navbar = ({ variant = "static" }) => {
       {/* Mobile app tab bar - icons at the bottom, center A-Sync logo. */}
       <nav
         aria-label="Mobile navigation"
-        className={`fixed inset-x-3 bottom-3 z-[100] rounded-2xl border border-white/100 bg-white px-1.5 pt-2 shadow-[0_10px_30px_rgba(15,30,53,0.28)] scrollbar-hide lg:hidden ${
+        className={`fixed inset-x-3 bottom-3 z-[2147483647] rounded-2xl border border-white/100 bg-white px-1.5 pt-2 shadow-[0_10px_30px_rgba(15,30,53,0.28)] scrollbar-hide lg:hidden ${
           variant === "dashboard" ? "!hidden" : ""
         }`}
         style={{ paddingBottom: "max(0.5rem, env(safe-area-inset-bottom))" }}

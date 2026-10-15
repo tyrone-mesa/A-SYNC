@@ -553,3 +553,17 @@
     scroll-behavior: auto !important;
   }
 }
+
+
+/* Mobile: About-section media stays inside its slide - never escapes
+   toward the docked tab bar. */
+@media (max-width: 1023px) {
+  #about {
+    overflow: clip;
+  }
+  #about img {
+    max-height: 200px !important;
+    max-width: 100%;
+    object-fit: contain;
+  }
+}

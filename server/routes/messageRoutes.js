@@ -1,4 +1,5 @@
 const express = require("express");
+const path = require("path");
 const mongoose = require("mongoose");
 const Conversation = require("../models/Conversation");
 const upload = require("../middleware/upload");
@@ -531,7 +532,7 @@ router.post(
       body: body.trim(),
       attachment: req.file
         ? {
-            url: req.file.path,
+            url: `/uploads/${path.basename(req.file.path)}`,
             name: req.file.originalname,
             mimeType: req.file.mimetype,
             size: req.file.size,

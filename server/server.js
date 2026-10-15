@@ -781,6 +781,13 @@ if (
     ),
   );
 
+  app.get("/api/version", (req, res) => {
+    res.json({
+      sha: (process.env.RAILWAY_GIT_COMMIT_SHA || "local").slice(0, 7),
+      startedAt: new Date().toISOString(),
+    });
+  });
+
   app.get("*", (req, res, next) => {
     /*
      * Don't send the React index page for API

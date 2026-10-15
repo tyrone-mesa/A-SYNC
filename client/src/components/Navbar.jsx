@@ -157,6 +157,14 @@ const Navbar = ({ variant = "static" }) => {
         : "border-transparent bg-white/10 text-white/80 hover:bg-white/[0.18]"
     }`;
 
+  const [buildSha, setBuildSha] = useState("");
+  useEffect(() => {
+    fetch("/api/version")
+      .then((r) => r.json())
+      .then((d) => setBuildSha(d.sha || ""))
+      .catch(() => setBuildSha(""));
+  }, []);
+
   const tabLink = (tab) => (
     <Link
       key={tab.to}
@@ -411,6 +419,11 @@ const Navbar = ({ variant = "static" }) => {
             );
           })()}
         </div>
+        {buildSha && (
+          <p className="pt-1 text-center text-[8px] font-medium tracking-widest text-[#0F1E35]/35">
+            BUILD {buildSha}
+          </p>
+        )}
       </nav>
     </header>
   );

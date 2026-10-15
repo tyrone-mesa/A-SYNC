@@ -30,9 +30,9 @@ const ManageCoordinators = () => {
       .some((value) => value.toLowerCase().includes(query));
   });
 
-  const load = () => {
-    setLoading(true);
-    api
+  const load = ({ silent = false } = {}) => {
+    if (!silent) setLoading(true);
+    return api
       .get("/admin/coordinators")
       .then(({ data }) => setCoordinators(data.coordinators))
       .finally(() => setLoading(false));
@@ -100,13 +100,13 @@ const ManageCoordinators = () => {
       return;
     }
     try {
-      const { data } = await api.put(
+      await api.put(
         `/admin/users/${editingCoordinator._id}`,
         editingCoordinator,
       );
-      setCoordinators((items) =>
-        items.map((item) => (item._id === data.user._id ? data.user : item)),
-      );
+      // The save response only carries a trimmed "safe" user (id, not _id), so it can't be
+      // merged into the list reliably. Refetch the list quietly so the new programs show at once.
+      await load({ silent: true });
       setEditingCoordinator(null);
       setEditMessage("Coordinator profile updated.");
     } catch (err) {

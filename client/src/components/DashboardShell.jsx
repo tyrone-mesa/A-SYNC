@@ -307,58 +307,6 @@ const DashboardShell = ({
         >
           <header className="flex min-w-0 flex-col gap-3 border-b border-white/15 bg-gradient-to-b from-[rgba(33,76,63,0.82)] to-[rgba(33,76,63,0.68)] px-3 py-3 text-white backdrop-blur-md sm:px-6">
             <div className="flex min-w-0 items-center justify-between gap-3 lg:justify-start">
-              <div className="flex lg:hidden min-w-0 flex-1">
-                <div
-                  ref={mobileMenuRef}
-                  className="flex min-w-0 flex-1 gap-2 overflow-x-auto scrollbar-hide pb-1 snap-x snap-mandatory"
-                  style={{ WebkitOverflowScrolling: "touch" }}
-                >
-                  {items
-              .filter(
-                (i) =>
-                  (!i.adminOnly || user?.adminType !== "read-only") &&
-                  i.label !== "Messages",
-              )
-              .map((item) => {
-                    const isActive = isItemActive(item, location.pathname);
-
-                    return (
-                      <NavLink
-                        key={item.to}
-                        to={item.to}
-                        end={
-                          item.to === "/company/jobs" ||
-                          item.to === "/company/jobs/new"
-                        }
-                        data-active={isActive}
-                        aria-current={isActive ? "page" : undefined}
-                        style={{ pointerEvents: "auto", cursor: "pointer" }}
-                        className={({ isActive: linkActive }) =>
-                          `relative shrink-0 snap-center whitespace-nowrap rounded-full px-4 py-2.5 text-xs sm:text-sm font-medium transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-white/30 focus:ring-offset-2 ${
-                            linkActive
-                              ? "border border-[#d2e9e1]/50 bg-[#eaf3ee] text-[#173d34] shadow-[0_6px_18px_rgba(23,61,52,0.16),inset_0_1px_2px_rgba(255,255,255,0.35)]"
-                              : "border border-transparent bg-white/10 text-white/80 hover:bg-white/[0.18]"
-                          }`
-                        }
-                      >
-                        {({ isActive: linkActive }) => (
-                          <motion.span
-                            whileTap={{ scale: 0.97 }}
-                            whileHover={{ y: -2 }}
-                            transition={mobileNavTransition}
-                            className="relative z-10 flex items-center gap-2"
-                          >
-                            {item.label}
-                            {linkActive && (
-                              <span className="h-1.5 w-1.5 rounded-full bg-[#173d34]" />
-                            )}
-                          </motion.span>
-                        )}
-                      </NavLink>
-                    );
-                  })}
-                </div>
-              </div>
 
               <motion.div
                 className="hidden lg:flex lg:items-start lg:gap-3"

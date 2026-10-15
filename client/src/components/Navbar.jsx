@@ -249,8 +249,14 @@ const Navbar = ({ variant = "static" }) => {
               )}
             </div>
 
-            <div className="ml-auto flex items-center gap-2 lg:hidden">
+            <div className="ml-auto mr-1.5 flex items-center gap-2 lg:hidden">
               {showNotifications && <NotificationBell />}
+              {user && showNotifications && (
+                <span
+                  aria-hidden="true"
+                  className="h-4 w-px shrink-0 bg-white/40"
+                />
+              )}
               {user && (
                 <span className="shrink-0 text-[12px] font-semibold text-white/80">
                   {user.fullName.split(" ")[0]}

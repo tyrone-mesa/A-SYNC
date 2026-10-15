@@ -162,7 +162,7 @@ const DashboardShell = ({
   children,
   compact = false,
 }) => {
-  const { user } = useAuth();
+  const { user, logout } = useAuth();
   const location = useLocation();
   const currentRole = role || user?.role || "student";
   const items = navMap[currentRole] || navMap.student;
@@ -487,6 +487,30 @@ const DashboardShell = ({
                 </NavLink>
               );
             })}
+          <button
+            type="button"
+            onClick={() => {
+              logout();
+              window.location.href = "/";
+            }}
+            className="flex min-w-[64px] flex-1 flex-col items-center justify-center gap-1 rounded-xl px-1.5 py-1.5 text-[9.5px] font-semibold leading-none text-[#0F1E35]/55 transition-colors"
+          >
+            <svg
+              viewBox="0 0 24 24"
+              width="22"
+              height="22"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="1.8"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              aria-hidden="true"
+            >
+              <path d="M12 4v7 M6.6 7.2a7 7 0 1 0 10.8 0" />
+            </svg>
+            <span>Logout</span>
+            <span className="h-1 w-1 rounded-full bg-transparent" />
+          </button>
         </div>
       </nav>
     </motion.div>

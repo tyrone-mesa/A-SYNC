@@ -1,4 +1,5 @@
-import React from "react";
+import React, { useState } from "react";
+import AttachmentViewer from "./AttachmentViewer";
 
 const resolveUrl = (path) =>
   !path ? "" : path.startsWith("/") ? path : `/${path}`;
@@ -9,50 +10,68 @@ const formatSize = (bytes) => {
   return `${Math.max(1, Math.round(bytes / 1024))} KB`;
 };
 
-// Renders a message attachment: images inline (click to open full size),
-// everything else as a downloadable file chip. Max upload size is 50MB
-// (enforced again on the server).
+// Attachment bubble inside messages. Tapping opens the in-app viewer
+// (same page, with back button + download) instead of a new tab.
 const MessageAttachment = ({ attachment }) => {
+  const [open, setOpen] = useState(false);
+  const [imageFailed, setImageFailed] = useState(false);
   if (!attachment?.url) return null;
   const url = resolveUrl(attachment.url);
-  const isImage = (attachment.mimeType || "").startsWith("image/");
+  const isImage =
+    (attachment.mimeType || "").startsWith("image/") && !imageFailed;
 
   if (isImage) {
     return (
-      <a
-        href={url}
-        target="_blank"
-        rel="noreferrer"
-        className="mt-1 block overflow-hidden rounded-xl"
-      >
-        <img
-          src={url}
-          alt={attachment.name || "Attachment"}
-          className="max-h-44 w-auto max-w-full object-cover"
-          loading="lazy"
-        />
-      </a>
+      <>
+        <button
+          type="button"
+          onClick={() => setOpen(true)}
+          className="mt-1 block overflow-hidden rounded-xl"
+          aria-label={`View ${attachment.name || "image attachment"}`}
+        >
+          <img
+            src={url}
+            alt={attachment.name || "Attachment"}
+            className="max-h-44 w-auto max-w-full object-cover"
+            loading="lazy"
+            onError={() => setImageFailed(true)}
+          />
+        </button>
+        {open && (
+          <AttachmentViewer
+            attachment={attachment}
+            onClose={() => setOpen(false)}
+          />
+        )}
+      </>
     );
   }
 
   return (
-    <a
-      href={url}
-      target="_blank"
-      rel="noreferrer"
-      download={attachment.name || true}
-      className="mt-1 flex items-center gap-2 rounded-xl bg-black/10 px-2.5 py-2 text-xs font-medium underline-offset-2 transition hover:underline"
-    >
-      <span aria-hidden="true">📎</span>
-      <span className="min-w-0 flex-1 truncate">
-        {attachment.name || "Attachment"}
-      </span>
-      {attachment.size > 0 && (
-        <span className="shrink-0 opacity-70">
-          {formatSize(attachment.size)}
+    <>
+      <button
+        type="button"
+        onClick={() => setOpen(true)}
+        className="mt-1 flex w-full items-center gap-2 rounded-xl bg-black/10 px-2.5 py-2 text-left text-xs font-medium underline-offset-2 transition hover:underline"
+        aria-label={`View ${attachment.name || "file attachment"}`}
+      >
+        <span aria-hidden="true">📎</span>
+        <span className="min-w-0 flex-1 truncate">
+          {attachment.name || "Attachment"}
         </span>
+        {attachment.size > 0 && (
+          <span className="shrink-0 opacity-70">
+            {formatSize(attachment.size)}
+          </span>
+        )}
+      </button>
+      {open && (
+        <AttachmentViewer
+          attachment={attachment}
+          onClose={() => setOpen(false)}
+        />
       )}
-    </a>
+    </>
   );
 };
 

@@ -504,7 +504,7 @@ const LandingPage = ({ intro = false, onIntroComplete }) => {
                 data-about-slide
                 className="min-w-[85%] snap-center"
               >
-                <h2 className="mb-3 break-words text-left text-[clamp(1.5rem,6.5vw,2rem)] font-extrabold leading-tight text-[#1D2939]">
+                <h2 className="mb-3 max-w-full break-words text-left text-[clamp(1.35rem,5.75vw,1.75rem)] font-extrabold leading-snug text-[#1D2939] [overflow-wrap:anywhere]">
                   {slide.name}
                 </h2>
                 <div className="relative mx-auto h-[220px] w-full max-w-[20rem] sm:h-[260px]">

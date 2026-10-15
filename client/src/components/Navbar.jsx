@@ -338,7 +338,11 @@ const Navbar = ({ variant = "static" }) => {
         document.body,
       )}
 
-      {/* Mobile app tab bar - icons at the bottom, center A-Sync logo. */}
+      {/* Mobile app tab bar - icons at the bottom, center A-Sync logo.
+          Portaled to document.body: on the home page this Navbar lives inside
+          the hero <section class="isolate">, which traps its z-index, so the
+          later "About" section painted OVER the fixed bar. */}
+      {createPortal(
       <nav
         aria-label="Mobile navigation"
         className={`fixed inset-x-3 bottom-3 z-[2147483647] rounded-2xl border border-white/100 bg-white px-1.5 pt-2 shadow-[0_10px_30px_rgba(15,30,53,0.28)] scrollbar-hide lg:hidden ${
@@ -424,7 +428,9 @@ const Navbar = ({ variant = "static" }) => {
             BUILD {buildSha}
           </p>
         )}
-      </nav>
+      </nav>,
+      document.body,
+      )}
     </header>
   );
 };

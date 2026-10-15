@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 import { resolveAttachmentUrl } from "../utils/fileUrl";
 import { downloadBlob } from "../utils/download";
 
@@ -51,23 +52,32 @@ const AttachmentViewer = ({ attachment, onClose }) => {
   const isImage = mime.startsWith("image/");
   const isPreviewable = isImage || mime === "application/pdf" || mime.startsWith("text/");
 
-  return (
+  // Rendered through a portal on <body> so no parent (navbar, bottom bar,
+  // transformed/blurred containers) can cover the Back / Download buttons.
+  const viewer = (
     <div
       role="dialog"
       aria-modal="true"
       aria-label={attachment.name || "Attachment preview"}
-      className="fixed inset-0 z-[2147483647] flex flex-col bg-[#0F1E35]/85 p-4 backdrop-blur-sm"
+      className="fixed inset-0 z-[2147483647] flex flex-col bg-[#0F1E35]/90 backdrop-blur-sm"
+      style={{
+        height: "100dvh",
+        paddingTop: "max(env(safe-area-inset-top), 0.75rem)",
+        paddingBottom: "max(env(safe-area-inset-bottom), 0.75rem)",
+        paddingLeft: "0.75rem",
+        paddingRight: "0.75rem",
+      }}
       onClick={onClose}
     >
       <div
-        className="mx-auto flex w-full max-w-3xl items-center gap-2 rounded-t-2xl bg-white/95 px-3 py-2.5"
+        className="mx-auto flex w-full max-w-3xl shrink-0 items-center gap-2 rounded-t-2xl bg-white px-3 py-2.5 shadow-lg"
         onClick={(e) => e.stopPropagation()}
       >
         <button
           type="button"
           aria-label="Close preview"
           onClick={onClose}
-          className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[#E7F0E9] text-lg font-bold text-[#17633e] transition hover:bg-[#d7e6da]"
+          className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-[#E7F0E9] text-xl font-bold text-[#17633e] transition hover:bg-[#d7e6da] active:scale-95"
         >
           ←
         </button>
@@ -82,7 +92,7 @@ const AttachmentViewer = ({ attachment, onClose }) => {
         <a
           href={url}
           download={attachment.name || true}
-          className="btn-primary flex h-8 shrink-0 items-center gap-1.5 px-3 text-xs"
+          className="btn-primary flex h-11 shrink-0 items-center gap-1.5 px-4 text-sm"
           onClick={handleDownload}
         >
           <svg
@@ -103,7 +113,7 @@ const AttachmentViewer = ({ attachment, onClose }) => {
       </div>
 
       <div
-        className="mx-auto flex min-h-0 w-full max-w-3xl flex-1 items-center justify-center overflow-hidden rounded-b-2xl bg-black/40 p-3"
+        className="mx-auto flex min-h-0 w-full max-w-3xl flex-1 items-center justify-center overflow-hidden rounded-b-2xl bg-black/50 p-3"
         onClick={(e) => e.stopPropagation()}
       >
         {isImage && loadFailed && (
@@ -169,6 +179,10 @@ const AttachmentViewer = ({ attachment, onClose }) => {
       </div>
     </div>
   );
+
+  return typeof document !== "undefined"
+    ? createPortal(viewer, document.body)
+    : viewer;
 };
 
 export default AttachmentViewer;

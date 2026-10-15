@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { createPortal } from "react-dom";
+import { Link } from "react-router-dom";
 import api from "../../api/axios";
 
 const MAX_CANDIDATES = 100;
@@ -138,14 +139,24 @@ const FolderModal = ({ folder, studentsById, students, onClose, onFolderChange }
                       {student.course || "No program"} · {student.user?.email}
                     </p>
                   </div>
-                  <button
-                    type="button"
-                    onClick={() => removeStudent(student._id)}
-                    className="shrink-0 text-xs font-semibold text-[#DF2E1B] hover:underline"
-                    aria-label={`Remove ${student.user?.fullName} from this folder`}
-                  >
-                    Remove
-                  </button>
+                  <div className="flex shrink-0 items-center gap-3">
+                    <Link
+                      to={`/coordinator/students/${student._id}`}
+                      onClick={onClose}
+                      className="btn-secondary px-3 py-1.5 text-xs"
+                      aria-label={`View details of ${student.user?.fullName}`}
+                    >
+                      View details
+                    </Link>
+                    <button
+                      type="button"
+                      onClick={() => removeStudent(student._id)}
+                      className="text-xs font-semibold text-[#DF2E1B] hover:underline"
+                      aria-label={`Remove ${student.user?.fullName} from this folder`}
+                    >
+                      Remove
+                    </button>
+                  </div>
                 </li>
               ))}
             </ul>

@@ -5,6 +5,7 @@ import api from "../api/axios";
 import Loader from "../components/Loader";
 import { useAuth } from "../context/AuthContext";
 import DashboardShell from "../components/DashboardShell";
+import MessageAttachment from "../components/MessageAttachment";
 
 const getOtherParticipant = (conversation, myId) =>
   conversation.participants.find((p) => String(p._id) !== String(myId));
@@ -52,6 +53,8 @@ const Messages = () => {
   const [concernReply, setConcernReply] = useState("");
   const [replyingConcern, setReplyingConcern] = useState(false);
   const [newMessageOpen, setNewMessageOpen] = useState(false);
+  const [pendingFile, setPendingFile] = useState(null);
+  const fileInputRef = useRef(null);
   const [contacts, setContacts] = useState([]);
   const [contactSearch, setContactSearch] = useState("");
   const [loadingContacts, setLoadingContacts] = useState(false);
@@ -252,19 +255,29 @@ const Messages = () => {
 
   const handleSend = async (e) => {
     e.preventDefault();
-    if (!draft.trim() || sending) return;
+    if ((!draft.trim() && !pendingFile) || sending) return;
     const body = draft.trim();
     setMessageError("");
     setSending(true);
     try {
-      const { data } = await api.post(
-        `/messages/conversations/${activeId}/messages`,
-        {
-          body,
-        },
-      );
+      let data;
+      if (pendingFile) {
+        const form = new FormData();
+        if (body) form.append("body", body);
+        form.append("file", pendingFile);
+        ({ data } = await api.post(
+          `/messages/conversations/${activeId}/messages`,
+          form,
+        ));
+      } else {
+        ({ data } = await api.post(
+          `/messages/conversations/${activeId}/messages`,
+          { body },
+        ));
+      }
       setMessages((prev) => mergeMessages(prev, [data.message]));
       setDraft((current) => (current === body ? "" : current));
+      setPendingFile(null);
       loadConversations();
     } catch (error) {
       setMessageError(
@@ -776,6 +789,7 @@ const Messages = () => {
                                     <p className="whitespace-pre-line leading-relaxed">
                                       {m.body}
                                     </p>
+                                  <MessageAttachment attachment={m.attachment} />
                                     <p className="mt-1 text-left text-[9px] leading-none text-navy/65">
                                       {formatTime(m.createdAt)}
                                     </p>
@@ -793,6 +807,48 @@ const Messages = () => {
                         className="messages-composer messages-direct-composer"
                       >
                         <input
+                          ref={fileInputRef}
+                          type="file"
+                          className="hidden"
+                          onChange={(e) => {
+                            const file = e.target.files?.[0];
+                            if (file) {
+                              if (file.size > 50 * 1024 * 1024) {
+                                setMessageError(
+                                  "File is too large. Maximum size is 50MB.",
+                                );
+                              } else {
+                                setPendingFile(file);
+                                setMessageError("");
+                              }
+                            }
+                            e.target.value = "";
+                          }}
+                        />
+                        {pendingFile && (
+                          <span className="flex max-w-[160px] items-center gap-1.5 rounded-lg bg-[#E7F0E9] px-2 py-1 text-[11px] font-medium text-[#17633e]">
+                            <span className="truncate">
+                              📎 {pendingFile.name}
+                            </span>
+                            <button
+                              type="button"
+                              aria-label="Remove attachment"
+                              onClick={() => setPendingFile(null)}
+                              className="shrink-0 font-bold"
+                            >
+                              ✕
+                            </button>
+                          </span>
+                        )}
+                        <button
+                          type="button"
+                          aria-label="Attach a file"
+                          onClick={() => fileInputRef.current?.click()}
+                          className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-black/10 bg-white text-lg font-bold leading-none text-[#17633e] transition hover:bg-[#E7F0E9]"
+                        >
+                          +
+                        </button>
+                        <input
                           className={`input-field h-9 min-h-9 flex-1 px-3 py-2 text-sm ${
                             /^\d+$/.test(draft.trim()) ? "numeric-value" : ""
                           }`}
@@ -803,7 +859,9 @@ const Messages = () => {
                         />
                         <button
                           type="submit"
-                          disabled={!activeId || sending || !draft.trim()}
+                          disabled={
+                            !activeId || sending || (!draft.trim() && !pendingFile)
+                          }
                           className="btn-primary h-9 shrink-0 px-4 py-2 text-sm"
                         >
                           Send

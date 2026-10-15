@@ -310,3 +310,9 @@ module.exports.uploadLogo = uploadLogo;
 
 module.exports.uploadStudentAvatar =
   uploadStudentAvatar;
+
+// Messaging attachments: any file type, up to 50MB.
+module.exports.uploadMessageAttachment = multer({
+  storage,
+  limits: { fileSize: 50 * 1024 * 1024 },
+});

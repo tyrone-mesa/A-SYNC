@@ -5,6 +5,7 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import api from "../api/axios";
 import SelectDropdown from "./SelectDropdown";
+import MessageAttachment from "./MessageAttachment";
 
 const POLL_INTERVAL_MS = 30000;
 const THREAD_POLL_INTERVAL_MS = 15000;
@@ -50,6 +51,8 @@ const FloatingMessageCircle = () => {
   const [contacts, setContacts] = useState([]);
   const [contactSearch, setContactSearch] = useState("");
   const [messageDraft, setMessageDraft] = useState("");
+  const [pendingFile, setPendingFile] = useState(null);
+  const fileInputRef = useRef(null);
   const [loadingMessages, setLoadingMessages] = useState(false);
   const [loadingThread, setLoadingThread] = useState(false);
   const [sendingMessage, setSendingMessage] = useState(false);
@@ -346,16 +349,30 @@ const FloatingMessageCircle = () => {
 
   const sendDirectMessage = async (event) => {
     event.preventDefault();
-    if (!activeConversationId || !messageDraft.trim() || sendingMessage) return;
+    if (!activeConversationId || sendingMessage) return;
+    const text = messageDraft.trim();
+    if (!text && !pendingFile) return;
     setSendingMessage(true);
     setMessageError("");
     try {
-      const { data } = await api.post(
-        `/messages/conversations/${activeConversationId}/messages`,
-        { body: messageDraft.trim() },
-      );
+      let data;
+      if (pendingFile) {
+        const form = new FormData();
+        if (text) form.append("body", text);
+        form.append("file", pendingFile);
+        ({ data } = await api.post(
+          `/messages/conversations/${activeConversationId}/messages`,
+          form,
+        ));
+      } else {
+        ({ data } = await api.post(
+          `/messages/conversations/${activeConversationId}/messages`,
+          { body: text },
+        ));
+      }
       setThreadMessages((items) => [...items, data.message]);
       setMessageDraft("");
+      setPendingFile(null);
       await loadMessageConversations(true);
     } catch (requestError) {
       setMessageError(
@@ -930,6 +947,9 @@ const FloatingMessageCircle = () => {
                                   <p className="whitespace-pre-wrap break-words text-xs leading-relaxed">
                                     {item.body}
                                   </p>
+                                  <MessageAttachment
+                                    attachment={item.attachment}
+                                  />
                                   <p
                                     className={`mt-1 text-right text-[9px] ${isOwnMessage ? "text-white/65" : "text-navy/50"}`}
                                   >
@@ -948,9 +968,52 @@ const FloatingMessageCircle = () => {
                         </div>
                         <form
                           onSubmit={sendDirectMessage}
-                          className="flex shrink-0 items-end gap-2 border-t border-black/10 bg-white p-3"
+                          className="shrink-0 border-t border-black/10 bg-white p-3"
                         >
-                          <textarea
+                          <input
+                            ref={fileInputRef}
+                            type="file"
+                            className="hidden"
+                            onChange={(event) => {
+                              const file = event.target.files?.[0];
+                              if (file) {
+                                if (file.size > 50 * 1024 * 1024) {
+                                  setMessageError(
+                                    "File is too large. Maximum size is 50MB.",
+                                  );
+                                } else {
+                                  setPendingFile(file);
+                                  setMessageError("");
+                                }
+                              }
+                              event.target.value = "";
+                            }}
+                          />
+                          {pendingFile && (
+                            <div className="mb-2 flex items-center gap-2 rounded-lg bg-[#E7F0E9] px-2.5 py-1.5 text-xs font-medium text-[#17633e]">
+                              <span className="truncate">
+                                📎 {pendingFile.name}
+                              </span>
+                              <button
+                                type="button"
+                                aria-label="Remove attachment"
+                                onClick={() => setPendingFile(null)}
+                                className="shrink-0 font-bold"
+                              >
+                                ✕
+                              </button>
+                            </div>
+                          )}
+                          <div className="flex items-end gap-2">
+                            <button
+                              type="button"
+                              aria-label="Attach a file"
+                              onClick={() => fileInputRef.current?.click()}
+                              className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-black/10 bg-white text-xl font-bold leading-none text-[#17633e] transition hover:bg-[#E7F0E9]"
+                            >
+                              +
+                            </button>
+                            <textarea
                             value={messageDraft}
                             onChange={(event) =>
                               setMessageDraft(event.target.value)
@@ -963,11 +1026,15 @@ const FloatingMessageCircle = () => {
                           />
                           <button
                             type="submit"
-                            disabled={!messageDraft.trim() || sendingMessage}
+                            disabled={
+                              (!messageDraft.trim() && !pendingFile) ||
+                              sendingMessage
+                            }
                             className="rounded-xl bg-[#17633e] px-3 py-2 text-xs font-semibold text-white transition hover:bg-[#0f4d32] disabled:cursor-not-allowed disabled:opacity-50"
                           >
                             {sendingMessage ? "Sending..." : "Send"}
                           </button>
+                          </div>
                         </form>
                       </>
                     ) : loadingMessages ? (

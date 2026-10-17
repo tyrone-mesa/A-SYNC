@@ -165,10 +165,9 @@ const InterviewSimulator = () => {
                   value={form.jobTitle}
                   onChange={handleFormChange}
                   disabled={availableJobs.length === 0}
-                  options={availableJobs.map((job) => ({
-                    value: job.title,
-                    label: job.title,
-                  }))}
+                  options={[
+                    ...new Set(availableJobs.map((job) => job.title)),
+                  ].map((title) => ({ value: title, label: title }))}
                 />
               </div>
               <div>

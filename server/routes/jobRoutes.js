@@ -26,6 +26,9 @@ const matchesSalaryRange = (job, minLimit, maxLimit) => {
   return maxSalary >= minLimit && minSalary <= maxLimit;
 };
 
+const escapeRegex = (value) =>
+  String(value).replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+
 // @route   GET /api/jobs
 // @desc    Browse/search OJT vacancies with filters: department, skills, company, keyword
 // @access  Public
@@ -54,13 +57,13 @@ router.get("/", async (req, res) => {
 
     const pageNumber = Math.max(1, Number.parseInt(page, 10) || 1);
     const limitNumber = Math.min(
-      100,
+      1000,
       Math.max(1, Number.parseInt(limit, 10) || 24),
     );
 
     const query = { status: "open" };
 
-    if (department) query.department = new RegExp(`^${department}$`, "i");
+    if (department) query.department = new RegExp(`^${escapeRegex(department)}$`, "i");
     if (workSetup) query.workSetup = workSetup;
     if (jobType) query.jobType = jobType;
     if (company) query.company = company;
@@ -71,42 +74,57 @@ router.get("/", async (req, res) => {
         .filter(Boolean);
       if (skillsArray.length) {
         query.skillsRequired = {
-          $in: skillsArray.map((s) => new RegExp(s, "i")),
+          $in: skillsArray.map((s) => new RegExp(escapeRegex(s), "i")),
         };
       }
     }
     if (keyword) {
       query.$or = [
-        { title: new RegExp(keyword, "i") },
-        { description: new RegExp(keyword, "i") },
+        { title: new RegExp(escapeRegex(keyword), "i") },
+        { description: new RegExp(escapeRegex(keyword), "i") },
       ];
     }
 
+    const minValue = Number(salaryMin) || 0;
+    const maxValue = Number(salaryMax) || 9999999;
+    const hasSalaryFilter = minValue > 0 || maxValue < 9999999;
     const skip = (pageNumber - 1) * limitNumber;
 
-    const [jobs, total] = await Promise.all([
-      Job.find(query)
+    let jobsPage;
+    let total;
+    if (hasSalaryFilter) {
+      // Stipend is free text, so it can only be filtered in code. Filter the whole
+      // result set first, then paginate, so total/pages stay correct.
+      const allJobs = await Job.find(query)
         .populate(
           "company",
           "companyName logoUrl companyUploadedLogo industry address isVerified",
         )
-        .sort({ createdAt: -1 })
-        .skip(skip)
-        .limit(limitNumber),
-      Job.countDocuments(query),
-    ]);
-
-    const minValue = Number(salaryMin) || 0;
-    const maxValue = Number(salaryMax) || 9999999;
-    const filteredJobs = jobs.filter((job) =>
-      matchesSalaryRange(job, minValue, maxValue),
-    );
+        .sort({ createdAt: -1 });
+      const matching = allJobs.filter((job) =>
+        matchesSalaryRange(job, minValue, maxValue),
+      );
+      total = matching.length;
+      jobsPage = matching.slice(skip, skip + limitNumber);
+    } else {
+      [jobsPage, total] = await Promise.all([
+        Job.find(query)
+          .populate(
+            "company",
+            "companyName logoUrl companyUploadedLogo industry address isVerified",
+          )
+          .sort({ createdAt: -1 })
+          .skip(skip)
+          .limit(limitNumber),
+        Job.countDocuments(query),
+      ]);
+    }
 
     res.json({
-      jobs: filteredJobs,
-      total: filteredJobs.length,
+      jobs: jobsPage,
+      total,
       page: pageNumber,
-      pages: Math.ceil(filteredJobs.length / limitNumber),
+      pages: Math.ceil(total / limitNumber),
     });
   } catch (err) {
     res

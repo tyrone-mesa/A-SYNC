@@ -3,7 +3,10 @@ import api from "../../api/axios";
 import DashboardLoading from "../../components/DashboardLoading";
 import DashboardShell from "../../components/DashboardShell";
 
-const today = () => new Date().toISOString().slice(0, 10);
+// Philippine calendar date (YYYY-MM-DD). toISOString() is UTC, which is still "yesterday"
+// between 12:00 AM and 8:00 AM in the Philippines.
+const today = () =>
+  new Date().toLocaleDateString("en-CA", { timeZone: "Asia/Manila" });
 const formatDate = (value) =>
   new Date(value).toLocaleDateString([], {
     year: "numeric",

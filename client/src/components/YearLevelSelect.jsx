@@ -28,7 +28,10 @@ const YearLevelSelect = ({
   };
 
   return (
-    <div ref={wrapperRef} className="relative w-full">
+    <div
+      ref={wrapperRef}
+      className={`relative w-full ${open ? "z-40" : ""}`}
+    >
       <input
         type="hidden"
         name={name}
@@ -58,7 +61,7 @@ const YearLevelSelect = ({
         <div
           role="listbox"
           aria-label="Year level options"
-          className="absolute left-0 right-0 top-[calc(100%+0.4rem)] z-50 rounded-xl border border-white/55 bg-[#edf7ef]/98 p-1.5 shadow-[0_16px_35px_rgba(15,30,53,0.16)] backdrop-blur-xl"
+          className="absolute left-0 right-0 top-[calc(100%+0.4rem)] z-50 rounded-xl border border-white/55 bg-[#edf7ef] p-1.5 shadow-[0_16px_35px_rgba(15,30,53,0.16)] backdrop-blur-xl"
         >
           <button
             type="button"

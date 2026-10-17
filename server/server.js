@@ -3,6 +3,7 @@ const fs = require("fs");
 require("dotenv").config({ path: path.join(__dirname, ".env") });
 
 const express = require("express");
+require("./utils/asyncErrors"); // forward async route errors to the error middleware
 const cors = require("cors");
 const helmet = require("helmet");
 const rateLimit = require("express-rate-limit");

@@ -3,7 +3,6 @@ import { useParams } from "react-router-dom";
 import api from "../../api/axios";
 import DashboardShell from "../../components/DashboardShell";
 import DashboardLoading from "../../components/DashboardLoading";
-import StatusBadge from "../../components/StatusBadge";
 import { downloadExport } from "../../utils/download";
 
 const ManageStudentAttendance = () => {
@@ -244,7 +243,7 @@ const ManageStudentAttendance = () => {
               {students.length} Student{students.length !== 1 ? "s" : ""} on OJT
             </p>
 
-            <div className="divide-y divide-black/10">
+            <div className="space-y-3">
               {students.map((student) => {
                 const openRecord = getOpenAttendanceRecord(student.studentId);
                 const isExpanded = expandedStudent === student.studentId;
@@ -253,126 +252,151 @@ const ManageStudentAttendance = () => {
                 return (
                   <div
                     key={student.studentId}
-                    className="border-b border-black/10 py-4 last:border-b-0"
+                    className="rounded-2xl border border-black/10 bg-white p-4 shadow-sm"
                   >
-                    {/* Student Summary Row */}
-                    <div
-                      className="cursor-pointer flex items-center justify-between hover:bg-black/2 p-2 rounded"
-                      onClick={() => toggleExpandStudent(student.studentId)}
-                    >
-                      <div className="flex-1">
-                        <h3 className="font-semibold text-[#5E7867]">
-                          {student.fullName}
-                        </h3>
-                        <div className="text-sm text-navy/65 mt-1">
-                          <p>{student.jobTitle}</p>
-                          <p>
-                            {student.email} • {student.phone}
-                          </p>
-                          <div className="mt-2 flex items-center gap-2">
-                            <div className="flex-1">
-                              <div className="flex justify-between mb-1">
-                                <span className="text-xs font-medium">
-                                  OJT Hours Progress
-                                </span>
-                                <span className="text-xs font-semibold text-[#5E7867]">
-                                  {student.completedOJTHours || 0}/
-                                  {student.requiredOJTHours || 0}h
-                                </span>
-                              </div>
-                              <div className="w-full bg-[#dfe8e0] rounded-full h-2">
-                                <div
-                                  className="h-2 rounded-full bg-gradient-to-r from-[#214c3f] via-[#5d8f76] to-[#c4e1c1] transition-all"
-                                  style={{
-                                    width: `${
-                                      student.requiredOJTHours
-                                        ? Math.min(
-                                            (student.completedOJTHours /
-                                              student.requiredOJTHours) *
-                                              100,
-                                            100,
-                                          )
-                                        : 0
-                                    }%`,
-                                  }}
-                                />
-                              </div>
+                    {/* Student Summary Card */}
+                    {(() => {
+                      const completed = student.completedOJTHours || 0;
+                      const required = student.requiredOJTHours || 0;
+                      const percent = required
+                        ? Math.min((completed / required) * 100, 100)
+                        : 0;
+                      const initials = (student.fullName || "?")
+                        .split(" ")
+                        .filter(Boolean)
+                        .slice(0, 2)
+                        .map((word) => word[0])
+                        .join("")
+                        .toUpperCase();
+                      const busy =
+                        actionInProgress === student.studentId ||
+                        (openRecord && actionInProgress === openRecord._id) ||
+                        loadingAttendance[student.studentId];
+
+                      return (
+                        <>
+                          {/* Header: avatar, name, status */}
+                          <div className="flex items-start gap-3">
+                            <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-[#214c3f]/10 text-sm font-bold text-[#214c3f]">
+                              {initials}
+                            </div>
+                            <div className="min-w-0 flex-1">
+                              <h3 className="text-base font-bold leading-tight text-navy">
+                                {student.fullName}
+                              </h3>
+                              {student.jobTitle && (
+                                <p className="mt-0.5 text-xs font-medium text-[#5E7867]">
+                                  {student.jobTitle}
+                                </p>
+                              )}
+                            </div>
+                            <span
+                              className={`inline-flex shrink-0 items-center gap-1.5 rounded-full px-2.5 py-1 text-[11px] font-semibold ${
+                                openRecord
+                                  ? "bg-green-100 text-green-800"
+                                  : "bg-black/5 text-navy/60"
+                              }`}
+                            >
+                              <span
+                                className={`h-1.5 w-1.5 rounded-full ${
+                                  openRecord ? "bg-green-600" : "bg-navy/30"
+                                }`}
+                              />
+                              {openRecord
+                                ? `In ${formatTime(openRecord.timeIn)}`
+                                : "Not timed in"}
+                            </span>
+                          </div>
+
+                          {/* Contact */}
+                          <div className="mt-3 space-y-0.5 text-xs text-navy/65">
+                            <p className="break-all">{student.email}</p>
+                            {student.phone && <p>{student.phone}</p>}
+                          </div>
+
+                          {/* Progress */}
+                          <div className="mt-3">
+                            <div className="mb-1 flex items-center justify-between text-xs">
+                              <span className="font-medium text-navy/70">
+                                OJT hours
+                              </span>
+                              <span className="font-semibold text-[#5E7867]">
+                                {completed}/{required}h
+                                {required > 0 && completed >= required
+                                  ? " ✓"
+                                  : ""}
+                              </span>
+                            </div>
+                            <div className="h-2 w-full rounded-full bg-[#dfe8e0]">
+                              <div
+                                className="h-2 rounded-full bg-gradient-to-r from-[#214c3f] via-[#5d8f76] to-[#c4e1c1] transition-all"
+                                style={{ width: `${percent}%` }}
+                              />
                             </div>
                           </div>
-                        </div>
-                      </div>
 
-                      <div className="text-right mr-4">
-                        {openRecord && (
-                          <StatusBadge
-                            status="active"
-                            label={`Timed in: ${formatTime(openRecord.timeIn)}`}
-                          />
-                        )}
-                      </div>
+                          {/* Actions */}
+                          <div className="mt-4 grid grid-cols-2 gap-2">
+                            {!openRecord ? (
+                              <button
+                                type="button"
+                                onClick={() => handleTimeIn(student.studentId)}
+                                disabled={busy}
+                                className="btn-primary col-span-2 text-sm disabled:opacity-50"
+                              >
+                                {actionInProgress === student.studentId
+                                  ? "Recording..."
+                                  : "Time In"}
+                              </button>
+                            ) : (
+                              <button
+                                type="button"
+                                onClick={() =>
+                                  handleTimeOut(openRecord._id, student.studentId)
+                                }
+                                disabled={busy}
+                                className="btn-danger col-span-2 text-sm disabled:opacity-50"
+                              >
+                                {actionInProgress === openRecord._id
+                                  ? "Recording..."
+                                  : "Time Out"}
+                              </button>
+                            )}
+                            {["xlsx", "xls"].map((format) => {
+                              const exportKey = `${student.studentId}-${format}`;
+                              return (
+                                <button
+                                  key={format}
+                                  type="button"
+                                  onClick={() => handleDtrExport(student, format)}
+                                  disabled={exportingDtr === exportKey}
+                                  className="btn-secondary h-9 text-xs uppercase disabled:opacity-50"
+                                  title={`Export ${student.fullName}'s DTR as ${format.toUpperCase()}`}
+                                >
+                                  {exportingDtr === exportKey
+                                    ? "..."
+                                    : `DTR · ${format}`}
+                                </button>
+                              );
+                            })}
+                          </div>
 
-                      <div className="flex shrink-0 items-center gap-1.5 mr-3">
-                        {["xlsx", "xls"].map((format) => {
-                          const exportKey = `${student.studentId}-${format}`;
-                          return (
-                            <button
-                              key={format}
-                              type="button"
-                              onClick={(event) => {
-                                event.stopPropagation();
-                                handleDtrExport(student, format);
-                              }}
-                              disabled={exportingDtr === exportKey}
-                              className="btn-secondary h-8 px-2 text-[10px] uppercase disabled:opacity-50"
-                              title={`Export ${student.fullName}'s DTR as ${format.toUpperCase()}`}
-                            >
-                              {exportingDtr === exportKey ? "..." : format}
-                            </button>
-                          );
-                        })}
-                      </div>
-
-                      <div className="text-[#5E7867] font-semibold text-lg">
-                        {isExpanded ? "−" : "+"}
-                      </div>
-                    </div>
+                          <button
+                            type="button"
+                            onClick={() => toggleExpandStudent(student.studentId)}
+                            className="mt-3 flex w-full items-center justify-center gap-1 rounded-lg py-1.5 text-xs font-semibold text-[#5E7867] hover:bg-black/5"
+                          >
+                            {isExpanded
+                              ? "Hide details ▴"
+                              : "Attendance history & assessment ▾"}
+                          </button>
+                        </>
+                      );
+                    })()}
 
                     {/* Expanded Details */}
                     {isExpanded && (
-                      <div className="mt-4 pl-4 border-l-2 border-forest/30 space-y-4">
-                        {/* Quick Actions */}
-                        <div className="flex gap-3">
-                          {!openRecord ? (
-                            <button
-                              onClick={() => handleTimeIn(student.studentId)}
-                              disabled={
-                                actionInProgress === student.studentId ||
-                                loadingAttendance[student.studentId]
-                              }
-                              className="flex-1 btn-primary text-sm disabled:opacity-50"
-                            >
-                              {actionInProgress === student.studentId
-                                ? "Recording..."
-                                : "Time In"}
-                            </button>
-                          ) : (
-                            <button
-                              onClick={() =>
-                                handleTimeOut(openRecord._id, student.studentId)
-                              }
-                              disabled={
-                                actionInProgress === openRecord._id ||
-                                loadingAttendance[student.studentId]
-                              }
-                              className="flex-1 btn-danger text-sm disabled:opacity-50"
-                            >
-                              {actionInProgress === openRecord._id
-                                ? "Recording..."
-                                : "Time Out"}
-                            </button>
-                          )}
-                        </div>
-
+                      <div className="mt-3 space-y-4 border-t border-black/10 pt-4">
                         {!student.assessmentSubmittedAt && (
                           <form
                             onSubmit={(event) =>

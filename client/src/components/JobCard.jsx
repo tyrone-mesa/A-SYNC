@@ -39,10 +39,28 @@ const formatTimeAgo = (date) => {
   return `${Math.floor(daysAgo / 365)}y ago`;
 };
 
+// Every card needs the student's hours and OJT-placement flag. Share one request between
+// all the cards on screen instead of one /students/me call per card.
+let studentInfoCache = { key: null, at: 0, promise: null };
+const loadStudentInfo = (key) => {
+  const fresh =
+    studentInfoCache.key === key && Date.now() - studentInfoCache.at < 30000;
+  if (!fresh) {
+    const promise = api.get("/students/me").then(({ data }) => data);
+    promise.catch(() => {
+      if (studentInfoCache.promise === promise)
+        studentInfoCache = { key: null, at: 0, promise: null };
+    });
+    studentInfoCache = { key, at: Date.now(), promise };
+  }
+  return studentInfoCache.promise;
+};
+
 const JobCard = ({ job, onSelect, match = null }) => {
   const navigate = useNavigate();
   const { user } = useAuth();
   const [studentHours, setStudentHours] = useState(null);
+  const [hasOjtPlacement, setHasOjtPlacement] = useState(false);
   const [applying, setApplying] = useState(false);
   const [applyMessage, setApplyMessage] = useState("");
   const [now, setNow] = useState(Date.now());
@@ -63,18 +81,30 @@ const JobCard = ({ job, onSelect, match = null }) => {
   const postedTimeAgo = formatTimeAgo(job.createdAt || job.postedAt || now);
 
   useEffect(() => {
-    if (user?.role !== "student" || !isFullTime) return;
+    if (user?.role !== "student") return;
 
-    api
-      .get("/students/me")
-      .then(({ data }) => setStudentHours(data.profile?.completedOJTHours || 0))
-      .catch(() => setStudentHours(0));
-  }, [user, isFullTime]);
+    let cancelled = false;
+    loadStudentInfo(user._id || user.id || "student")
+      .then((data) => {
+        if (cancelled) return;
+        setStudentHours(data.profile?.completedOJTHours || 0);
+        setHasOjtPlacement(Boolean(data.hasActiveOjtPlacement));
+      })
+      .catch(() => {
+        if (!cancelled) setStudentHours(0);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [user]);
 
+  // An approved OJT locks every other OJT posting; Full-Time Jobs keep the 300-hour gate.
+  const ojtLocked = !isFullTime && user?.role === "student" && hasOjtPlacement;
   const isEligible =
-    !isFullTime ||
-    user?.role !== "student" ||
-    (studentHours ?? 0) >= MIN_HOURS_FOR_FULLTIME;
+    !ojtLocked &&
+    (!isFullTime ||
+      user?.role !== "student" ||
+      (studentHours ?? 0) >= MIN_HOURS_FOR_FULLTIME);
 
   const handleApply = async (e) => {
     e.preventDefault();
@@ -248,7 +278,9 @@ const JobCard = ({ job, onSelect, match = null }) => {
                   ? "Admin View"
                   : user.role === "company"
                     ? "Company View"
-                    : !isEligible
+                    : ojtLocked
+                      ? "OJT placed"
+                      : !isEligible
                       ? `Need ${MIN_HOURS_FOR_FULLTIME} hrs`
                       : "Apply Now"}
           </button>

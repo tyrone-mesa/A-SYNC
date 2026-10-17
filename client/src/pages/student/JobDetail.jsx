@@ -13,6 +13,7 @@ const JobDetail = ({ job: modalJob, onClose, modal = false }) => {
   const navigate = useNavigate();
   const [job, setJob] = useState(modalJob || null);
   const [studentHours, setStudentHours] = useState(null); // null until loaded for a logged-in student
+  const [hasOjtPlacement, setHasOjtPlacement] = useState(false);
   const [loading, setLoading] = useState(true);
   const [coverNote, setCoverNote] = useState("");
   const [applying, setApplying] = useState(false);
@@ -32,8 +33,10 @@ const JobDetail = ({ job: modalJob, onClose, modal = false }) => {
     Promise.all(requests)
       .then(([jobRes, studentRes]) => {
         setJob(jobRes.data.job);
-        if (studentRes)
+        if (studentRes) {
           setStudentHours(studentRes.data.profile.completedOJTHours || 0);
+          setHasOjtPlacement(Boolean(studentRes.data.hasActiveOjtPlacement));
+        }
       })
       .finally(() => setLoading(false));
   }, [id, user, modalJob]);
@@ -90,10 +93,14 @@ const JobDetail = ({ job: modalJob, onClose, modal = false }) => {
   const slotsLeft = Math.max(job.slotsAvailable - job.slotsFilled, 0);
   const isFullTime = job.jobType === "Full-Time Job";
   const isAcceptingApplications = job.status === "open" && slotsLeft > 0;
+  // A student with an approved OJT can't apply to another OJT (a coordinator/admin
+  // transfer is the way to change company).
+  const ojtLocked = !isFullTime && user?.role === "student" && hasOjtPlacement;
   const isEligible =
-    !isFullTime ||
-    user?.role !== "student" ||
-    (studentHours ?? 0) >= MIN_HOURS_FOR_FULLTIME;
+    !ojtLocked &&
+    (!isFullTime ||
+      user?.role !== "student" ||
+      (studentHours ?? 0) >= MIN_HOURS_FOR_FULLTIME);
 
   return (
     <motion.div
@@ -218,7 +225,14 @@ const JobDetail = ({ job: modalJob, onClose, modal = false }) => {
                   : "This posting has no remaining slots."}
               </div>
             )}
-            {!isEligible && (
+            {ojtLocked && (
+              <div className="mb-4 rounded-[14px] border border-[#f0d7a2] bg-[#fff7ea] px-4 py-3 text-[12px] font-medium text-[#8d4f00]">
+                You already have an approved OJT placement, so you can't apply
+                to another OJT. If you have a problem with your company, ask
+                your coordinator or the admin office to transfer you.
+              </div>
+            )}
+            {!isEligible && !ojtLocked && (
               <div className="mb-4 rounded-[14px] border border-[#f0d7a2] bg-[#fff7ea] px-4 py-3 text-[12px] font-medium text-[#8d4f00]">
                 Full-Time Job postings require at least {MIN_HOURS_FOR_FULLTIME}{" "}
                 completed OJT hours. You currently have {studentHours ?? 0}.

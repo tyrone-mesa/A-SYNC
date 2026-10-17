@@ -22,6 +22,8 @@ const upload = require("../middleware/upload");
 const scanUploadedFile = require("../middleware/scanUpload");
 const { persistUpload } = require("../utils/persistUpload");
 const { emitDashboardUpdate } = require("../utils/socket");
+const { notify } = require("../utils/notify");
+const { recordAudit } = require("../utils/securityAudit");
 
 const router = express.Router();
 router.use(protect);
@@ -682,6 +684,312 @@ router.put(
       return res.status(404).json({ message: "Archived account not found." });
     res.json({ user: user.toSafeObject() });
   },
+);
+
+// ---------------------------------------------------------------------------------------
+// OJT transfers
+//
+// If a student has a problem with the company that approved them, an admin or the
+// student's coordinator can ask another company to take them over. The flow is:
+//   1. Staff POST /transfer/students/:id  -> a "transfer_pending" application is created
+//      for the new company's OJT posting. The student's current placement stays approved.
+//   2. The new company confirms (-> approved) or refuses (-> declined) it from its normal
+//      applicants list (PUT /api/applications/:id/status, see applicationRoutes.js).
+//   3. On confirmation the old placement becomes "transferred" and the slot counts move.
+// Coordinators are limited to students in their own programs. Read-only admins can't
+// transfer. Completed OJT hours live on the student profile, so they carry over.
+// ---------------------------------------------------------------------------------------
+const TRANSFER_ROLES = ["admin", "coordinator"];
+
+const escapeRegex = (value) => String(value).replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+
+// Loads the student for a transfer request and enforces the coordinator's scope.
+const loadTransferStudent = async (req, res) => {
+  const profile = await StudentProfile.findById(req.params.id).populate(
+    "user",
+    "fullName email isArchived",
+  );
+  if (
+    !profile ||
+    !profile.user ||
+    profile.user.isArchived ||
+    (req.user.role === "coordinator" && !isInCoordinatorScope(profile, req.user))
+  ) {
+    res.status(404).json({ message: "Student not found." });
+    return null;
+  }
+  return profile;
+};
+
+// The student's current approved OJT placement (Full-Time Job approvals are ignored).
+const findCurrentOjtPlacement = async (studentId) => {
+  const approved = await Application.find({
+    student: studentId,
+    status: "approved",
+  })
+    .populate({ path: "job", select: "title jobType" })
+    .populate({ path: "company", select: "companyName user" });
+  return approved.find((a) => a.job && a.job.jobType !== "Full-Time Job") || null;
+};
+
+const placementSummary = (application) =>
+  application
+    ? {
+        _id: application._id,
+        status: application.status,
+        jobTitle: application.job?.title || "",
+        companyName: application.company?.companyName || "",
+        companyId: application.company?._id || null,
+        requestedAt: application.transfer?.requestedAt || null,
+        reason: application.transfer?.reason || "",
+      }
+    : null;
+
+// @route   GET /api/staff/transfer/students/:id
+// @desc    Current OJT placement + any transfer request still waiting on a company.
+router.get(
+  "/transfer/students/:id",
+  authorize(...TRANSFER_ROLES),
+  handle(async (req, res) => {
+    const profile = await loadTransferStudent(req, res);
+    if (!profile) return;
+    const [current, pending] = await Promise.all([
+      findCurrentOjtPlacement(profile._id),
+      Application.findOne({ student: profile._id, status: "transfer_pending" })
+        .populate({ path: "job", select: "title" })
+        .populate({ path: "company", select: "companyName" }),
+    ]);
+    res.json({
+      current: placementSummary(current),
+      pending: placementSummary(pending),
+    });
+  }),
+);
+
+// @route   GET /api/staff/transfer/jobs?q=
+// @desc    Open OJT postings that still have a free slot (the possible destinations).
+router.get(
+  "/transfer/jobs",
+  authorize(...TRANSFER_ROLES),
+  handle(async (req, res) => {
+    const query = {
+      status: "open",
+      jobType: "OJT",
+      $expr: { $lt: ["$slotsFilled", "$slotsAvailable"] },
+    };
+    const q = String(req.query.q || "").trim().slice(0, 80);
+    if (q) query.title = { $regex: escapeRegex(q), $options: "i" };
+
+    const jobs = await Job.find(query)
+      .populate("company", "companyName")
+      .sort({ createdAt: -1 })
+      .limit(100)
+      .select("title department company slotsAvailable slotsFilled");
+    res.json({
+      jobs: jobs.map((job) => ({
+        _id: job._id,
+        title: job.title,
+        department: job.department,
+        companyId: job.company?._id,
+        companyName: job.company?.companyName || "",
+        slotsLeft: Math.max(job.slotsAvailable - job.slotsFilled, 0),
+      })),
+    });
+  }),
+);
+
+// @route   POST /api/staff/transfer/students/:id   { jobId, reason }
+// @desc    Ask another company to take over a student's OJT placement.
+router.post(
+  "/transfer/students/:id",
+  authorize(...TRANSFER_ROLES),
+  authorizeFullAdmin,
+  handle(async (req, res) => {
+    const reason = String(req.body?.reason || "").trim();
+    if (reason.length < 5) {
+      return res
+        .status(400)
+        .json({ message: "Please enter the reason for the transfer." });
+    }
+    if (reason.length > 1000) {
+      return res
+        .status(400)
+        .json({ message: "The reason must be 1000 characters or fewer." });
+    }
+    if (!mongoose.isValidObjectId(req.body?.jobId)) {
+      return res.status(400).json({ message: "Choose a company posting." });
+    }
+
+    const profile = await loadTransferStudent(req, res);
+    if (!profile) return;
+
+    const current = await findCurrentOjtPlacement(profile._id);
+    if (!current) {
+      return res.status(409).json({
+        message: "This student has no approved OJT placement to transfer from.",
+      });
+    }
+    if (await Application.exists({ student: profile._id, status: "transfer_pending" })) {
+      return res.status(409).json({
+        message:
+          "A transfer request is already waiting for a company's answer. Cancel it first to send a new one.",
+      });
+    }
+
+    const job = await Job.findById(req.body.jobId).populate("company", "companyName user");
+    if (!job || job.status !== "open" || job.jobType !== "OJT") {
+      return res
+        .status(400)
+        .json({ message: "That posting is not an open OJT opening." });
+    }
+    if (job.slotsFilled >= job.slotsAvailable) {
+      return res.status(400).json({ message: "That posting has no free slots." });
+    }
+    if (String(job.company._id) === String(current.company._id)) {
+      return res.status(400).json({
+        message: "Choose a different company from the student's current one.",
+      });
+    }
+
+    const now = new Date();
+    const transfer = {
+      fromApplication: current._id,
+      requestedBy: req.user._id,
+      requestedByRole: req.user.role,
+      reason,
+      requestedAt: now,
+    };
+    const historyEntry = {
+      status: "transfer_pending",
+      note: `Transfer requested by ${req.user.role} ${req.user.fullName || ""} from ${current.company.companyName}. Reason: ${reason}`.replace(/\s+/g, " "),
+    };
+
+    // (job, student) is unique, so a closed-out earlier application is reused.
+    let application = await Application.findOne({
+      job: job._id,
+      student: profile._id,
+    });
+    if (application) {
+      if (!["declined", "withdrawn", "transferred"].includes(application.status)) {
+        return res.status(409).json({
+          message: "This student already has an application for that posting.",
+        });
+      }
+      application.status = "transfer_pending";
+      application.transfer = transfer;
+      application.statusHistory.push(historyEntry);
+      await application.save();
+    } else {
+      application = await Application.create({
+        job: job._id,
+        student: profile._id,
+        company: job.company._id,
+        coverNote: `Transfer request: ${reason}`.slice(0, 1500),
+        status: "transfer_pending",
+        transfer,
+        statusHistory: [historyEntry],
+      });
+    }
+
+    const companyUser = job.company.user
+      ? await User.findById(job.company.user).select("email fullName")
+      : null;
+    if (companyUser) {
+      notify({
+        recipientUserId: companyUser._id,
+        recipientEmail: companyUser.email,
+        recipientName: companyUser.fullName,
+        type: "application_status",
+        title: `Transfer request: ${profile.user.fullName}`,
+        body: `ASIATECH ${req.user.role} asked you to take over ${profile.user.fullName} for "${job.title}". Please confirm or decline in your applicants list. Reason: ${reason}`,
+        link: `/company/jobs/${job._id}/applicants`,
+      });
+    }
+    notify({
+      recipientUserId: profile.user._id,
+      recipientEmail: profile.user.email,
+      recipientName: profile.user.fullName,
+      type: "application_status",
+      title: "Transfer requested",
+      body: `A transfer to ${job.company.companyName} ("${job.title}") was requested for you. Your current placement stays active until that company confirms.`,
+      link: "/student/applications",
+    });
+
+    recordAudit(req, {
+      action: "OJT_TRANSFER_REQUESTED",
+      outcome: "success",
+      user: req.user,
+      details: `Student ${profile.user.email}: ${current.company.companyName} -> ${job.company.companyName} ("${job.title}"). Reason: ${reason}`,
+    });
+
+    emitDashboardUpdate({
+      users: [profile.user._id, job.company.user],
+      roles: ["company", "admin", "coordinator"],
+      scope: "applications",
+    });
+
+    res.status(201).json({
+      message: "Transfer request sent. Waiting for the company to confirm.",
+      application,
+    });
+  }),
+);
+
+// @route   DELETE /api/staff/transfer/:applicationId
+// @desc    Cancel a transfer request that is still waiting on the company. Admins can
+//          cancel any; a coordinator only the ones they sent.
+router.delete(
+  "/transfer/:applicationId",
+  authorize(...TRANSFER_ROLES),
+  authorizeFullAdmin,
+  handle(async (req, res) => {
+    if (!mongoose.isValidObjectId(req.params.applicationId)) {
+      return res.status(404).json({ message: "Transfer request not found." });
+    }
+    const application = await Application.findOne({
+      _id: req.params.applicationId,
+      status: "transfer_pending",
+    })
+      .populate({ path: "job", select: "title" })
+      .populate({ path: "company", select: "user" })
+      .populate({ path: "student", select: "user" });
+    if (
+      !application ||
+      (req.user.role === "coordinator" &&
+        String(application.transfer?.requestedBy) !== String(req.user._id))
+    ) {
+      return res.status(404).json({ message: "Transfer request not found." });
+    }
+
+    application.status = "withdrawn";
+    application.statusHistory.push({
+      status: "withdrawn",
+      note: `Transfer request cancelled by ${req.user.role}.`,
+    });
+    await application.save();
+
+    if (application.company?.user) {
+      notify({
+        recipientUserId: application.company.user,
+        type: "application_status",
+        title: "Transfer request cancelled",
+        body: `The transfer request for "${application.job?.title || "your posting"}" was cancelled.`,
+        link: "/company/jobs",
+      });
+    }
+    recordAudit(req, {
+      action: "OJT_TRANSFER_CANCELLED",
+      outcome: "success",
+      user: req.user,
+      details: `Application ${application._id}`,
+    });
+    emitDashboardUpdate({
+      users: [application.student?.user, application.company?.user],
+      roles: ["company", "admin", "coordinator"],
+      scope: "applications",
+    });
+    res.json({ message: "Transfer request cancelled." });
+  }),
 );
 
 module.exports = router;

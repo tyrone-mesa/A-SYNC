@@ -57,6 +57,26 @@ router.post("/", protect, authorize("student"), async (req, res) => {
       });
     }
 
+    // One OJT at a time: once a student has an approved OJT placement (or a transfer
+    // request is waiting for a company's answer) they cannot apply to another OJT posting.
+    // Full-Time Job postings are unaffected — they have their own 300-hour gate above.
+    // Moving to a different company goes through an admin/coordinator transfer instead.
+    if (job.jobType !== "Full-Time Job") {
+      const activePlacements = await Application.find({
+        student: studentProfile._id,
+        status: { $in: ["approved", "transfer_pending"] },
+      }).populate({ path: "job", select: "jobType" });
+      const hasOjtPlacement = activePlacements.some(
+        (a) => a.job && a.job.jobType !== "Full-Time Job",
+      );
+      if (hasOjtPlacement) {
+        return res.status(403).json({
+          message:
+            "You already have an approved OJT placement, so you can't apply to another OJT. If you have a problem with your current company, ask your coordinator or the admin office to transfer you.",
+        });
+      }
+    }
+
     const existing = await Application.findOne({
       job: jobId,
       student: studentProfile._id,
@@ -231,8 +251,11 @@ router.put("/:id/status", protect, authorize("company"), async (req, res) => {
       in_review: ["interview_scheduled", "approved", "declined"],
       interview_scheduled: ["approved", "declined"],
       approved: ["declined"],
+      // A transfer request: the new company either takes the student over or refuses.
+      transfer_pending: ["approved", "declined"],
       declined: [],
       withdrawn: [],
+      transferred: [],
     };
 
     const companyProfile = await CompanyProfile.findOne({ user: req.user._id });
@@ -240,7 +263,7 @@ router.put("/:id/status", protect, authorize("company"), async (req, res) => {
       _id: req.params.id,
       company: companyProfile._id,
     })
-      .populate({ path: "job", select: "title" })
+      .populate({ path: "job", select: "title jobType slotsAvailable slotsFilled" })
       .populate({
         path: "student",
         populate: { path: "user", select: "fullName email" },
@@ -255,6 +278,43 @@ router.put("/:id/status", protect, authorize("company"), async (req, res) => {
       return res.status(400).json({
         message: `Cannot move an application from "${application.status.replace(/_/g, " ")}" to "${status.replace(/_/g, " ")}".`,
       });
+    }
+
+    const isTransfer = application.status === "transfer_pending";
+    const isOjtApproval =
+      status === "approved" && application.job?.jobType !== "Full-Time Job";
+
+    if (isOjtApproval) {
+      // A student can only hold one approved OJT. (For a transfer, the placement being
+      // replaced is allowed — it is closed out below once this company confirms.)
+      const otherApproved = await Application.find({
+        student: application.student._id,
+        _id: { $ne: application._id },
+        status: "approved",
+      }).populate({ path: "job", select: "jobType" });
+      const conflict = otherApproved.find(
+        (a) =>
+          a.job?.jobType !== "Full-Time Job" &&
+          !(
+            isTransfer &&
+            String(a._id) === String(application.transfer?.fromApplication)
+          ),
+      );
+      if (conflict) {
+        return res.status(409).json({
+          message:
+            "This student already has an approved OJT placement at another company. Ask the admin office or coordinator to transfer them.",
+        });
+      }
+    }
+
+    if (isTransfer && status === "approved") {
+      const freshJob = await Job.findById(application.job._id);
+      if (!freshJob || freshJob.slotsFilled >= freshJob.slotsAvailable) {
+        return res.status(409).json({
+          message: "This posting has no remaining slots to accept the transfer.",
+        });
+      }
     }
 
     const wasApproved = application.status === "approved";
@@ -273,7 +333,87 @@ router.put("/:id/status", protect, authorize("company"), async (req, res) => {
       });
     }
 
-    if (application.student?.user?.email) {
+    // Transfer confirmed: close out the old placement and tell everyone involved.
+    if (isTransfer && status === "approved") {
+      const old = await Application.findById(
+        application.transfer?.fromApplication,
+      )
+        .populate({ path: "job", select: "title" })
+        .populate({ path: "company", select: "companyName user" });
+      if (old && old.status === "approved") {
+        old.status = "transferred";
+        old.transferredToApplication = application._id;
+        old.statusHistory.push({
+          status: "transferred",
+          note: `Transferred to ${companyProfile.companyName}.${
+            application.transfer?.reason
+              ? ` Reason: ${application.transfer.reason}`
+              : ""
+          }`,
+        });
+        await old.save();
+        await Job.findByIdAndUpdate(old.job._id, {
+          $inc: { slotsFilled: -1 },
+        });
+        if (old.company?.user) {
+          createInAppNotification({
+            recipientUserId: old.company.user,
+            type: "application_status",
+            title: "Intern transferred",
+            body: `${application.student?.user?.fullName || "A student"} was transferred from your company to ${companyProfile.companyName}.`,
+            link: "/company/dashboard",
+          });
+        }
+      }
+    }
+
+    // A student holds one OJT at a time: once an OJT is approved, withdraw any of their
+    // other still-open OJT applications.
+    if (isOjtApproval) {
+      const stillOpen = await Application.find({
+        student: application.student._id,
+        _id: { $ne: application._id },
+        status: { $in: ["in_review", "interview_scheduled"] },
+      }).populate({ path: "job", select: "jobType" });
+      for (const other of stillOpen) {
+        if (other.job?.jobType === "Full-Time Job") continue;
+        other.status = "withdrawn";
+        other.statusHistory.push({
+          status: "withdrawn",
+          note: "Closed automatically: the student was placed in another OJT.",
+        });
+        await other.save();
+      }
+    }
+
+    if (isTransfer) {
+      const verb = status === "approved" ? "accepted" : "declined";
+      const studentName = application.student?.user?.fullName || "The student";
+      if (application.transfer?.requestedBy) {
+        notify({
+          recipientUserId: application.transfer.requestedBy,
+          type: "application_status",
+          title: `Transfer ${verb}: ${studentName}`,
+          body: `${companyProfile.companyName} ${verb} the transfer request for "${application.job.title}".`,
+          link: `${
+            application.transfer.requestedByRole === "coordinator"
+              ? "/coordinator/students/"
+              : "/admin/students/"
+          }${application.student._id}`,
+        });
+      }
+      if (status === "approved" && application.student?.user) {
+        notify({
+          recipientUserId: application.student.user._id,
+          recipientEmail: application.student.user.email,
+          recipientName: application.student.user.fullName,
+          type: "application_status",
+          title: "You have been transferred",
+          body: `You are now placed at ${companyProfile.companyName} for "${application.job.title}".`,
+          link: "/student/applications",
+        });
+      }
+    } else if (application.student?.user?.email) {
       const { subject, html } = applicationStatusEmail({
         studentName: application.student.user.fullName,
         jobTitle: application.job.title,
@@ -295,7 +435,7 @@ router.put("/:id/status", protect, authorize("company"), async (req, res) => {
     // company's applicant list refreshes.
     emitDashboardUpdate({
       users: [application.student?.user?._id],
-      roles: ["company"],
+      roles: isTransfer ? ["company", "admin", "coordinator"] : ["company"],
       scope: "applications",
     });
 

@@ -16,8 +16,33 @@ const ApplicationSchema = new mongoose.Schema(
     coverNote: { type: String, trim: true, default: "", maxlength: 1500 },
     status: {
       type: String,
-      enum: ["in_review", "approved", "declined"],
+      enum: [
+        "in_review",
+        "interview_scheduled",
+        "approved",
+        "declined",
+        "withdrawn",
+        // An admin/coordinator asked the company to take this student over from another
+        // company. The student's current placement stays "approved" until this company
+        // confirms (-> "approved") or refuses (-> "declined").
+        "transfer_pending",
+        // The student's OJT placement that was moved to another company.
+        "transferred",
+      ],
       default: "in_review",
+    },
+    // Set only on applications created by an admin/coordinator transfer request.
+    transfer: {
+      fromApplication: { type: mongoose.Schema.Types.ObjectId, ref: "Application" },
+      requestedBy: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
+      requestedByRole: { type: String, default: "" },
+      reason: { type: String, trim: true, default: "", maxlength: 1000 },
+      requestedAt: { type: Date },
+    },
+    // Set on the OLD placement once the transfer is confirmed.
+    transferredToApplication: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Application",
     },
     statusHistory: [
       {

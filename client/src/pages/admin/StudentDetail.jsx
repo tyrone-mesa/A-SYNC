@@ -9,6 +9,7 @@ import DashboardShell from "../../components/DashboardShell";
 import DashboardLoading from "../../components/DashboardLoading";
 import { openProtectedFile } from "../../utils/protectedFile";
 import AvatarCropper from "../../components/AvatarCropper";
+import TransferStudentPanel from "../../components/TransferStudentPanel";
 import { resolveFileUrl } from "../../utils/fileUrl";
 
 const DOC_STATUS_LABELS = {
@@ -379,6 +380,11 @@ const StudentDetail = () => {
           Coordinator view — review this student's profile and OJT progress.
           Final assessments can only be submitted once.
         </div>
+      )}
+
+      {(user?.role === "coordinator" ||
+        (isAdmin && user?.adminType !== "read-only")) && (
+        <TransferStudentPanel studentId={id} />
       )}
 
       {isAdmin && (

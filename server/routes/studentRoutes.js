@@ -61,7 +61,20 @@ router.get("/me", protect, authorize("student"), async (req, res) => {
   );
   if (!profile)
     return res.status(404).json({ message: "Student profile not found." });
-  res.json({ profile });
+
+  // Lets the apply buttons explain why OJT postings are locked: a student with an approved
+  // OJT (or a transfer request in progress) can't apply to another OJT.
+  const placements = await Application.find({
+    student: profile._id,
+    status: { $in: ["approved", "transfer_pending"] },
+  })
+    .populate({ path: "job", select: "jobType" })
+    .select("job status");
+  const hasActiveOjtPlacement = placements.some(
+    (a) => a.job && a.job.jobType !== "Full-Time Job",
+  );
+
+  res.json({ profile, hasActiveOjtPlacement });
 });
 
 // @route   PUT /api/students/me

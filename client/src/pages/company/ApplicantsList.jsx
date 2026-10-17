@@ -62,7 +62,13 @@ const ApplicantsList = () => {
   useEffect(loadApplicants, [jobId]);
 
   const updateStatus = async (appId, status) => {
-    await api.put(`/applications/${appId}/status`, { status });
+    try {
+      await api.put(`/applications/${appId}/status`, { status });
+    } catch (err) {
+      window.alert(
+        err.response?.data?.message || "Could not update this application.",
+      );
+    }
     loadApplicants();
   };
 
@@ -285,8 +291,49 @@ const ApplicantsList = () => {
               )}
             </div>
 
+            {app.status === "transfer_pending" && (
+              <div className="mb-4 rounded-[14px] border border-[#f0d7a2] bg-[#fff7ea] px-4 py-3">
+                <p className="text-sm font-semibold text-[#8d4f00]">
+                  Transfer request from the ASIATECH{" "}
+                  {app.transfer?.requestedByRole || "office"}
+                </p>
+                {app.transfer?.reason && (
+                  <p className="mt-1 text-sm text-[#8d4f00]/90">
+                    Reason: {app.transfer.reason}
+                  </p>
+                )}
+                <p className="mt-1 text-xs text-[#8d4f00]/80">
+                  Accepting makes this student your intern and closes their
+                  placement at the previous company.
+                </p>
+                <div className="mt-3 flex flex-wrap gap-2">
+                  <button
+                    type="button"
+                    onClick={() => updateStatus(app._id, "approved")}
+                    className="btn-primary px-4 py-2 text-xs"
+                  >
+                    Accept transfer
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (window.confirm("Decline this transfer request?"))
+                        updateStatus(app._id, "declined");
+                    }}
+                    className="btn-secondary px-4 py-2 text-xs"
+                  >
+                    Decline
+                  </button>
+                </div>
+              </div>
+            )}
+
             <div className="flex flex-wrap items-center gap-3">
-              <div className="min-w-[160px] flex-1">
+              <div
+                className={`min-w-[160px] flex-1 ${
+                  app.status === "transfer_pending" ? "hidden" : ""
+                }`}
+              >
                 <label
                   className="mb-1 block text-xs text-navy/65"
                   htmlFor={`applicant-status-${app._id}`}

@@ -13,7 +13,7 @@ const Logo = ({ size = 40, className = "" }) => (
     }}
   >
     <img
-      src="/system-logo/A-Sync-Logo.png"
+      src="/system-logo/A-Sync-Logo.svg"
       alt="A-Sync official logo"
       width={size}
       height={size}

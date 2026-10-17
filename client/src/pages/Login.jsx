@@ -108,7 +108,7 @@ const Login = ({ modal = false, onClose, onCompanyRegister, onForgotPassword, in
     <div className="flex h-full flex-col justify-center px-6 py-8 sm:px-10 sm:py-12">
       <div className="text-center">
         <img
-          src="/system-logo/A-Sync-Logo.png"
+          src="/system-logo/A-Sync-Logo.svg"
           alt="AsiatechSync"
           className="mx-auto h-16 w-16 object-contain sm:h-20 sm:w-20"
         />

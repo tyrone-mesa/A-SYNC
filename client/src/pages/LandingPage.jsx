@@ -124,7 +124,7 @@ const PARTNER_BENEFITS = [
 // Numbers: 2/4/6/8/10... each step ≈ 4px. These only affect desktop (md and up).
 const ABOUT_SLIDES = [
   {
-    image: "/system-logo/A-Sync-Logo.png",
+    image: "/system-logo/A-Sync-Logo.svg",
     alt: "A-Sync official logo",
     name: "Connecting ASIATECH Students to the Industry",
     role: "AsiatechSync connects students with meaningful industry opportunities.",

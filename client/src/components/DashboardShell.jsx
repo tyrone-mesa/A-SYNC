@@ -306,17 +306,17 @@ const DashboardShell = ({
           transition={{ duration: 0.24, ease: [0.22, 1, 0.36, 1] }}
         >
           <header className="flex min-w-0 flex-col gap-3 border-b border-white/15 bg-gradient-to-b from-[rgba(33,76,63,0.82)] to-[rgba(33,76,63,0.68)] px-3 py-3 text-white backdrop-blur-md sm:px-6">
-            <div className="flex min-w-0 items-center justify-between gap-3 lg:justify-start">
+            <div className="flex min-w-0 items-start justify-between gap-3 lg:items-center lg:justify-start">
 
               <motion.div
-                className="hidden lg:flex lg:items-start lg:gap-3"
+                className="flex min-w-0 flex-1 items-start gap-3 lg:flex-none"
                 initial={hasShellAnimated() ? false : { opacity: 0, y: -10 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.3, delay: 0.1 }}
               >
-                <div>
+                <div className="min-w-0">
                   <motion.p
-                    className="text-xs uppercase tracking-[0.2em] text-white/60 font-semibold"
+                    className="text-[11px] uppercase tracking-[0.2em] text-white/60 font-semibold sm:text-xs"
                     initial={hasShellAnimated() ? false : { opacity: 0 }}
                     animate={{ opacity: 1 }}
                     transition={{ duration: 0.3, delay: 0.15 }}
@@ -324,7 +324,7 @@ const DashboardShell = ({
                     {currentRole}
                   </motion.p>
                   <motion.h1
-                    className="mt-1 font-display text-2xl font-bold tracking-tight text-white"
+                    className="mt-1 font-display text-xl font-bold leading-tight tracking-tight text-white sm:text-2xl"
                     initial={hasShellAnimated() ? false : { opacity: 0 }}
                     animate={{ opacity: 1 }}
                     transition={{ duration: 0.3, delay: 0.2 }}
@@ -336,7 +336,7 @@ const DashboardShell = ({
 
               {user && (
                 <motion.div
-                  className="ml-auto rounded-full border border-white/20 bg-white/10 px-3 py-1.5 text-xs sm:text-sm text-white backdrop-blur-sm whitespace-nowrap shadow-sm"
+                  className="ml-auto shrink-0 rounded-full border border-white/20 bg-white/10 px-3 py-1.5 text-xs sm:text-sm text-white backdrop-blur-sm whitespace-nowrap shadow-sm"
                   initial={hasShellAnimated() ? false : { opacity: 0, scale: 0.9 }}
                   animate={{ opacity: 1, scale: 1 }}
                   transition={{
@@ -355,23 +355,16 @@ const DashboardShell = ({
               )}
             </div>
 
-            <motion.div
-              className="flex lg:hidden min-w-0 items-center justify-between gap-2"
-              initial={hasShellAnimated() ? false : { opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ duration: 0.3, delay: 0.15 }}
-            >
-              <div className="min-w-0">
-                <p className="text-xs uppercase tracking-[0.2em] text-white/60 truncate font-semibold">
-                  {currentRole} {title && "•"} {title}
-                </p>
-              </div>
-              {actions && (
-                <div className="flex min-w-0 flex-wrap items-center gap-2 shrink-0">
-                  {actions}
-                </div>
-              )}
-            </motion.div>
+            {actions && (
+              <motion.div
+                className="flex lg:hidden min-w-0 flex-wrap items-center gap-2"
+                initial={hasShellAnimated() ? false : { opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ duration: 0.3, delay: 0.15 }}
+              >
+                {actions}
+              </motion.div>
+            )}
 
             {actions && (
               <motion.div

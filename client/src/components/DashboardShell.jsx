@@ -19,7 +19,7 @@ const navMap = {
   company: [
     { label: "Dashboard", to: "/company/dashboard" },
     { label: "Company Profile", to: "/company/profile" },
-    { label: "Job Postings", to: "/company/jobs" },
+    { label: "Job Posted", to: "/company/jobs" },
     { label: "Post Job", to: "/company/jobs/new" },
     { label: "Student Attendance", to: "/company/attendance" },
     { label: "Evaluations", to: "/company/evaluations" },
@@ -459,7 +459,7 @@ const DashboardShell = ({
               (item) => !item.adminOnly || user?.adminType !== "read-only",
             )
             .map((item) => {
-              const active = location.pathname.startsWith(item.to);
+              const active = isItemActive(item, location.pathname);
               return (
                 <NavLink
                   key={item.to}
@@ -510,4 +510,4 @@ const DashboardShell = ({
   );
 };
 
-export default DashboardShell;
+export default DashboardShell;a

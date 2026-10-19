@@ -6,6 +6,7 @@ import TimeTracker from "../../components/TimeTracker";
 import DashboardShell from "../../components/DashboardShell";
 import DashboardLoading from "../../components/DashboardLoading";
 import { useRealtimeDashboard } from "../../hooks/useRealtimeDashboard";
+import { openProtectedFile } from "../../utils/protectedFile";
 
 const StudentDashboard = () => {
   const navigate = useNavigate();
@@ -70,6 +71,18 @@ const StudentDashboard = () => {
       );
     } finally {
       setMessagingAdmin(false);
+    }
+  };
+
+  const openDocument = async (path) => {
+    try {
+      await openProtectedFile(path);
+    } catch (error) {
+      window.alert(
+        error.response?.status === 404
+          ? "This file could not be found. Please upload it again from your profile."
+          : "Unable to open this file right now. Please try again.",
+      );
     }
   };
 
@@ -224,6 +237,86 @@ const StudentDashboard = () => {
           </ul>
         </div>
       )}
+
+      <div className="mb-6 rounded-[20px] border border-[#0b5d3d]/10 bg-[#f8fbfa] p-4 shadow-sm">
+        <div className="mb-4 flex items-center justify-between">
+          <h2 className="font-display text-xl font-semibold text-[#0b5d3d]">
+            My Documents
+          </h2>
+          <Link
+            to="/student/profile"
+            className="text-sm font-medium text-[#0b5d3d] hover:underline"
+          >
+            Manage
+          </Link>
+        </div>
+
+        <div className="divide-y divide-black/10">
+          {[
+            {
+              key: "resume",
+              label: "Resume",
+              url: profile.resumeUrl,
+              name: profile.resumeOriginalName,
+              status: profile.resumeStatus,
+              reason: profile.resumeRejectionReason,
+              path: `/students/${profile._id}/resume`,
+            },
+            {
+              key: "transcript",
+              label: "Transcript / COR",
+              url: profile.transcriptUrl,
+              name: profile.transcriptOriginalName,
+              status: profile.transcriptStatus,
+              reason: profile.transcriptRejectionReason,
+              path: "/students/me/transcript",
+            },
+          ].map((doc) => (
+            <div
+              key={doc.key}
+              className="flex items-center justify-between gap-4 py-4 first:pt-0 last:pb-0"
+            >
+              <div className="min-w-0">
+                <p className="font-medium text-navy">{doc.label}</p>
+                <p className="truncate text-sm text-navy/65">
+                  {doc.url ? doc.name || "Uploaded file" : "Not uploaded"}
+                </p>
+                {doc.url && doc.status === "pending" && (
+                  <p className="text-xs font-semibold text-[#b8860b]">
+                    Pending review
+                  </p>
+                )}
+                {doc.url && doc.status === "approved" && (
+                  <p className="text-xs font-semibold text-[#5E7867]">
+                    Approved
+                  </p>
+                )}
+                {doc.url && doc.status === "rejected" && (
+                  <p className="text-xs font-semibold text-[#DF2E1B]">
+                    Rejected{doc.reason ? `: ${doc.reason}` : ""}
+                  </p>
+                )}
+              </div>
+              {doc.url ? (
+                <button
+                  type="button"
+                  onClick={() => openDocument(doc.path)}
+                  className="btn-secondary shrink-0 px-3 py-1.5 text-xs"
+                >
+                  View
+                </button>
+              ) : (
+                <Link
+                  to="/student/profile"
+                  className="shrink-0 text-xs font-medium text-[#0b5d3d] hover:underline"
+                >
+                  Upload
+                </Link>
+              )}
+            </div>
+          ))}
+        </div>
+      </div>
 
       <div className="rounded-[20px] border border-[#0b5d3d]/10 bg-[#f8fbfa] p-4 shadow-sm">
         <div className="mb-4 flex items-center justify-between">

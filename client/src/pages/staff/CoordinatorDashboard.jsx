@@ -3,7 +3,6 @@ import { Link } from "react-router-dom";
 import api from "../../api/axios";
 import DashboardShell from "../../components/DashboardShell";
 import DashboardLoading from "../../components/DashboardLoading";
-import CoordinatorFolders from "./CoordinatorFolders";
 import { useRealtimeDashboard } from "../../hooks/useRealtimeDashboard";
 
 const hoursOf = (s) => s.completedOJTHours || 0;
@@ -91,8 +90,6 @@ const CoordinatorDashboard = () => {
           </Link>
         ))}
       </div>
-
-      <CoordinatorFolders students={students} />
 
       <div className="grid gap-6 mb-6 sm:grid-cols-2">
         <div className={cardClass}>

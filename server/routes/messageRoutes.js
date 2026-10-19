@@ -1,5 +1,4 @@
 const express = require("express");
-const path = require("path");
 const mongoose = require("mongoose");
 const Conversation = require("../models/Conversation");
 const upload = require("../middleware/upload");

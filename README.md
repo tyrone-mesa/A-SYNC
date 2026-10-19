@@ -241,8 +241,8 @@ The backend `.env` supports:
 - `CLIENT_URL`
 - `ADMIN_EMAIL`
 - `ADMIN_PASSWORD`
-- `CLAMAV_SCAN`
-- `CLAMSCAN_PATH`
+- `CLAMAV_ENABLED` (set to `true` only when `clamdscan` and the clamd daemon are installed and running)
+- `CLAMAV_SCAN` and `CLAMSCAN_PATH` (only used by the startup check in `server.js`)
 - `STORAGE_PROVIDER`
 - `CLOUDINARY_CLOUD_NAME`
 - `CLOUDINARY_API_KEY`

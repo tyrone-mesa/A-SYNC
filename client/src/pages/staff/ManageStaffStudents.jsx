@@ -38,7 +38,7 @@ const ManageStaffStudents = () => {
   // Refetch instantly when the server reports a dashboard-relevant mutation.
   useRealtimeDashboard(fetchStudents);
 
-  if (loading) return <DashboardLoading role={user?.role} />;
+  if (loading) return <DashboardLoading role={user?.role} statCount={0} />;
 
   // A coordinator only ever sees students from their own program(s), so the program filter
   // lists just the programs actually present in their roster (and is hidden when there is
@@ -58,7 +58,7 @@ const ManageStaffStudents = () => {
   return (
     <DashboardShell
       role={user.role}
-      title={isCoordinator ? "Coordinator Dashboard" : "Registrar Dashboard"}
+      title={isCoordinator ? "Students" : "Student Records"}
       subtitle={
         isCoordinator
           ? myPrograms.length > 0

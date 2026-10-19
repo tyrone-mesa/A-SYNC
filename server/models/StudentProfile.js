@@ -53,6 +53,12 @@ const StudentProfileSchema = new mongoose.Schema(
     certificateUrl: { type: String, default: "" },
     certificateOriginalName: { type: String, default: "" },
     assessmentSubmittedAt: { type: Date },
+    // Who submitted the final assessment (and the attached certificate).
+    assessmentSubmittedBy: {
+      type: String,
+      enum: ["", "company", "coordinator"],
+      default: "",
+    },
     assessmentCompany: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "CompanyProfile",

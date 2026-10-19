@@ -12,6 +12,62 @@ import AvatarCropper from "../../components/AvatarCropper";
 import TransferStudentPanel from "../../components/TransferStudentPanel";
 import { resolveFileUrl } from "../../utils/fileUrl";
 
+const NO_FILE_MESSAGE = "No file has been attached yet.";
+
+// Shows the certificate link only when the file can really be opened. The check runs on load,
+// so a missing file never opens a new tab with an error page: the message shows here instead.
+const AttachedFile = ({ url, name }) => {
+  const [state, setState] = useState(url ? "checking" : "missing");
+
+  useEffect(() => {
+    if (!url) {
+      setState("missing");
+      return undefined;
+    }
+    let cancelled = false;
+    setState("checking");
+    const target = resolveFileUrl(url);
+    const crossOrigin = (() => {
+      try {
+        return new URL(target, window.location.href).origin !== window.location.origin;
+      } catch {
+        return false;
+      }
+    })();
+    fetch(target, { method: "HEAD", cache: "no-store" })
+      .then((response) => {
+        const type = response.headers.get("content-type") || "";
+        const isPage = type.includes("text/html");
+        if (!cancelled) setState(response.ok && !isPage ? "ok" : "missing");
+      })
+      .catch(() => {
+        // A cross-origin host (e.g. Cloudinary) may block the check; trust its link.
+        if (!cancelled) setState(crossOrigin ? "ok" : "missing");
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [url]);
+
+  if (state === "checking")
+    return <p className="text-sm text-navy/60">Checking attached file…</p>;
+  if (state === "missing")
+    return <p className="text-sm text-navy/60">{NO_FILE_MESSAGE}</p>;
+  return (
+    <div>
+      <a
+        href={resolveFileUrl(url)}
+        target="_blank"
+        rel="noreferrer"
+        className="inline-block text-sm font-semibold text-[#457D53] hover:underline"
+      >
+        View attached certificate
+      </a>
+      {name && <p className="mt-1 text-xs text-navy/50">{name}</p>}
+    </div>
+  );
+};
+
 const DOC_STATUS_LABELS = {
   none: "",
   pending: "Pending review",
@@ -565,19 +621,43 @@ const StudentDetail = () => {
         </form>
       )}
       {!isAdmin && profile.assessmentSubmittedAt && (
-        <div className="mb-8 rounded-2xl border border-forest/20 bg-[#dfeecf] px-4 py-3 text-sm text-[#5E7867]">
-          Final grade and evaluation submitted and locked.
+        <div className="mb-8 rounded-[24px] border border-black/5 bg-[#f8faf8] p-6 shadow-sm">
+          <h2 className="mb-3 font-display text-xl font-semibold text-navy">
+            Final assessment
+          </h2>
+          <p className="text-sm text-navy/70">
+            Submitted by:{" "}
+            <span className="font-semibold text-navy">
+              {(profile.assessmentSubmittedBy ||
+                (profile.assessmentCompany ? "company" : "coordinator")) ===
+              "company"
+                ? `Company${profile.companyPlacement ? ` (${profile.companyPlacement})` : ""}`
+                : "Coordinator"}
+            </span>
+            {" · "}
+            {new Date(profile.assessmentSubmittedAt).toLocaleDateString()}
+          </p>
+          <p className="mt-2 text-sm text-navy/70">
+            Grade:{" "}
+            <span className="font-semibold text-navy">
+              {profile.performanceGrade || "—"}
+            </span>
+          </p>
+          {profile.evaluation && (
+            <p className="mt-2 whitespace-pre-wrap text-sm text-navy/70">
+              {profile.evaluation}
+            </p>
+          )}
+          <div className="mt-4">
+            <AttachedFile
+              url={profile.certificateUrl}
+              name={profile.certificateOriginalName}
+            />
+          </div>
+          <p className="mt-4 text-xs text-[#5E7867]">
+            Final grade and evaluation submitted and locked.
+          </p>
         </div>
-      )}
-      {!isAdmin && profile.assessmentSubmittedAt && profile.certificateUrl && (
-        <a
-          href={resolveFileUrl(profile.certificateUrl)}
-          target="_blank"
-          rel="noreferrer"
-          className="mb-8 inline-block text-sm font-semibold text-[#457D53] hover:underline"
-        >
-          View attached certificate
-        </a>
       )}
 
       {isAdmin && editing && (

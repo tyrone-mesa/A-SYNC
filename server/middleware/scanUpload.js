@@ -1,6 +1,5 @@
 const fs = require("fs");
 const path = require("path");
-const crypto = require("crypto");
 const { execFile } = require("child_process");
 const util = require("util");
 
@@ -9,15 +8,22 @@ const execFileAsync = util.promisify(execFile);
 const REJECTION_MESSAGE =
   "The uploaded file could not be inspected and was rejected.";
 
+// Images (avatars, logos) plus documents (resume, transcript/COR, certificates).
 const ALLOWED_EXTENSIONS = new Set([
   ".jpg",
   ".jpeg",
   ".png",
+  ".pdf",
+  ".doc",
+  ".docx",
 ]);
 
 const ALLOWED_MIMETYPES = new Set([
   "image/jpeg",
   "image/png",
+  "application/pdf",
+  "application/msword",
+  "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
 ]);
 
 const CLOUDINARY_HOSTS = new Set([
@@ -25,7 +31,8 @@ const CLOUDINARY_HOSTS = new Set([
   "cloudinary.com",
 ]);
 
-const MAX_FILE_SIZE = 3 * 1024 * 1024;
+// Upload middleware (multer) already enforces each route's own limit (3MB or 5MB).
+const MAX_FILE_SIZE = 5 * 1024 * 1024;
 
 function isCloudinaryFile(file) {
   if (!file) return false;
@@ -212,6 +219,39 @@ function isPng(buffer) {
   );
 }
 
+function isPdf(buffer) {
+  // "%PDF"
+  return (
+    buffer.length >= 4 &&
+    buffer[0] === 0x25 &&
+    buffer[1] === 0x50 &&
+    buffer[2] === 0x44 &&
+    buffer[3] === 0x46
+  );
+}
+
+function isLegacyDoc(buffer) {
+  // OLE2 compound file header (.doc)
+  return (
+    buffer.length >= 4 &&
+    buffer[0] === 0xd0 &&
+    buffer[1] === 0xcf &&
+    buffer[2] === 0x11 &&
+    buffer[3] === 0xe0
+  );
+}
+
+function isZipContainer(buffer) {
+  // "PK\x03\x04" (.docx is a zip)
+  return (
+    buffer.length >= 4 &&
+    buffer[0] === 0x50 &&
+    buffer[1] === 0x4b &&
+    buffer[2] === 0x03 &&
+    buffer[3] === 0x04
+  );
+}
+
 async function inspectLocalFile(file) {
   if (!file.path) {
     return {
@@ -277,6 +317,21 @@ async function inspectLocalFile(file) {
   ) {
     signatureValid =
       isPng(header);
+  } else if (
+    basic.extension === ".pdf"
+  ) {
+    signatureValid =
+      isPdf(header);
+  } else if (
+    basic.extension === ".doc"
+  ) {
+    signatureValid =
+      isLegacyDoc(header);
+  } else if (
+    basic.extension === ".docx"
+  ) {
+    signatureValid =
+      isZipContainer(header);
   }
 
   if (!signatureValid) {
@@ -460,14 +515,13 @@ async function scanCloudinaryFile(
     parsedUrl.pathname.toLowerCase();
 
   if (
-    !pathname.includes(
-      "/image/upload/",
-    )
+    !pathname.includes("/image/upload/") &&
+    !pathname.includes("/raw/upload/")
   ) {
     return {
       valid: false,
       reason:
-        "Cloudinary resource is not an image upload.",
+        "Cloudinary resource is not an image or document upload.",
     };
   }
 

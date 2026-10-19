@@ -2,8 +2,18 @@ import React from "react";
 import Skeleton from "./Skeleton";
 
 // Placeholder for the rounded stat tiles shown at the top of dashboards.
+// `count` matches the number of real tiles so the layout doesn't jump on load.
+const GRID_BY_COUNT = {
+  3: "sm:grid-cols-3",
+  4: "sm:grid-cols-2 lg:grid-cols-4",
+  5: "sm:grid-cols-2 lg:grid-cols-5",
+};
+
 const StatCardSkeleton = ({ count = 3 }) => (
-  <div className="mb-6 grid gap-4 sm:grid-cols-3" aria-busy="true">
+  <div
+    className={`mb-6 grid gap-4 ${GRID_BY_COUNT[count] || "sm:grid-cols-3"}`}
+    aria-busy="true"
+  >
     {Array.from({ length: count }).map((_, i) => (
       <div
         key={i}

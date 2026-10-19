@@ -1226,4 +1226,4 @@ const StudentDetail = () => {
   );
 };
 
-export default StudentDetail;w
+export default StudentDetail;

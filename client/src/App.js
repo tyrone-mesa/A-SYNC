@@ -94,9 +94,6 @@ const RegistrarDashboard = React.lazy(
 const ManageStaffStudents = React.lazy(
   () => import("./pages/staff/ManageStaffStudents"),
 );
-const RegistrarStudentDetail = React.lazy(
-  () => import("./pages/staff/RegistrarStudentDetail"),
-);
 
 function App() {
   const location = useLocation();
@@ -431,7 +428,7 @@ function App() {
                   path="/registrar/students/:id"
                   element={
                     <ProtectedRoute roles={["registrar"]}>
-                      <RegistrarStudentDetail />
+                      <StudentDetail />
                     </ProtectedRoute>
                   }
                 />

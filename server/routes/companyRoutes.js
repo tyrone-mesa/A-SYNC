@@ -678,6 +678,9 @@ router.post(
       profile.assessmentCompany =
         companyProfile._id;
 
+      profile.assessmentSubmittedBy =
+        "company";
+
       profile.companyPlacement =
         companyProfile.companyName;
 

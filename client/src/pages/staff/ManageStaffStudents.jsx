@@ -280,4 +280,4 @@ const ManageStaffStudents = () => {
   );
 };
 
-export default ManageStaffStudents;2
+export default ManageStaffStudents;

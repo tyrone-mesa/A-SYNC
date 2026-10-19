@@ -188,6 +188,7 @@ router.put(
       performanceGrade: String(performanceGrade).trim(),
       evaluation: String(evaluation).trim(),
       assessmentSubmittedAt: new Date(),
+      assessmentSubmittedBy: "coordinator",
     };
 
     // Same storage pipeline the company assessment uses; a storage
@@ -403,13 +404,28 @@ router.delete(
   }),
 );
 
+// Older records were saved before assessmentSubmittedBy existed: a company assessment always
+// stored assessmentCompany, a coordinator assessment never did.
+const submittedByOf = (profile) => {
+  if (!profile.assessmentSubmittedAt) return "";
+  if (profile.assessmentSubmittedBy) return profile.assessmentSubmittedBy;
+  return profile.assessmentCompany ? "company" : "coordinator";
+};
+
 router.get("/registrar/students", authorize("registrar"), async (req, res) => {
   const students = (
     await studentQuery().select(
-      "user course yearLevel department completedOJTHours requiredOJTHours companyPlacement performanceGrade evaluation certificateUrl certificateOriginalName assessmentSubmittedAt",
+      "user course yearLevel department completedOJTHours requiredOJTHours companyPlacement performanceGrade evaluation certificateUrl certificateOriginalName assessmentSubmittedAt assessmentSubmittedBy assessmentCompany",
     )
   ).filter((profile) => profile.user && !profile.user.isArchived);
-  res.json({ students });
+  res.json({
+    students: students.map((profile) => {
+      const data = profile.toObject();
+      data.assessmentSubmittedBy = submittedByOf(profile);
+      delete data.assessmentCompany;
+      return data;
+    }),
+  });
 });
 
 router.get(
@@ -441,6 +457,7 @@ router.get(
           ? profile.certificateOriginalName
           : "",
         assessmentSubmittedAt: profile.assessmentSubmittedAt,
+        assessmentSubmittedBy: submittedByOf(profile),
       },
     });
   },

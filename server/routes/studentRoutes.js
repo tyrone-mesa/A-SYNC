@@ -297,6 +297,24 @@ router.delete(
   },
 );
 
+// @route   GET /api/students/me/transcript
+// @desc    Lets a student open their own uploaded transcript / COR. Never public.
+router.get(
+  "/me/transcript",
+  protect,
+  authorize("student"),
+  async (req, res) => {
+    const profile = await StudentProfile.findOne({ user: req.user._id });
+    if (!profile || !profile.transcriptUrl) {
+      return res.status(404).json({ message: "Transcript not found." });
+    }
+    return serveFile(res, profile.transcriptUrl, {
+      disposition: "attachment",
+      filename: profile.transcriptOriginalName || "transcript.pdf",
+    });
+  },
+);
+
 // Students may view only their own admin-managed profile picture. It is never public.
 router.get("/me/avatar", protect, authorize("student"), async (req, res) => {
   const profile = await StudentProfile.findOne({ user: req.user._id });

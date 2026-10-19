@@ -337,8 +337,8 @@ const LandingPage = ({ intro = false, onIntroComplete }) => {
 
   return (
     <div className="min-h-screen bg-[#FBF8F3]">
-      <section className="relative isolate overflow-hidden bg-white text-[#1D2939]">
-        <div className="absolute inset-0 bg-gradient-to-br from-white via-[#F8F6F2] to-[#F0EDE6]">
+      <section className="relative isolate overflow-hidden bg-[#8E9382] text-[#1D2939]">
+        <div className="absolute inset-0 bg-gradient-to-br from-[#8E9382] via-[#8E9382] to-[#82887A]">
           <div
             className={`absolute inset-0 ${
               intro && isIntroVideoPlaying && !prefersReducedMotion
@@ -724,21 +724,21 @@ const LandingPage = ({ intro = false, onIntroComplete }) => {
                   variants={fadeUp}
                   whileHover={prefersReducedMotion ? undefined : { y: -4 }}
                   transition={{ duration: 0.25, ease: "easeOut" }}
-                  className="min-w-[80%] snap-center flex h-full flex-col rounded-2xl border border-[#ECE7DD] bg-white p-6 shadow-sm transition-shadow duration-300 hover:shadow-md md:min-w-0"
+                  className="min-w-[80%] snap-center flex h-full flex-col rounded-2xl border border-[#7A8070] bg-[#8E9382] p-6 shadow-sm transition-shadow duration-300 hover:shadow-md md:min-w-0"
                 >
                   <div className="mb-5 flex items-center gap-3">
-                    <span className="flex h-11 w-11 items-center justify-center rounded-full bg-[#EAF3EA] text-[#1E5D46]">
+                    <span className="flex h-11 w-11 items-center justify-center rounded-full bg-white/20 text-white">
                       <Icon size={22} />
                     </span>
-                    <p className="text-sm font-black text-[#E8C165]">
+                    <p className="text-sm font-black text-white">
                       {feature.number}
                     </p>
                   </div>
 
-                  <h3 className="mb-3 text-xl font-bold text-[#1D2939]">
+                  <h3 className="mb-3 text-xl font-bold text-white">
                     {feature.title}
                   </h3>
-                  <p className="text-[#4B5768]">{feature.description}</p>
+                  <p className="text-white">{feature.description}</p>
                 </motion.div>
               );
             })}
@@ -841,13 +841,13 @@ const LandingPage = ({ intro = false, onIntroComplete }) => {
                   whileHover={
                     prefersReducedMotion ? undefined : { y: -7, scale: 1.02 }
                   }
-                  className="min-w-[84%] snap-center rounded-2xl border border-[#ECE7DD] bg-white p-7 shadow-sm transition duration-300 hover:-translate-y-1 hover:shadow-md md:min-w-0"
+                  className="min-w-[84%] snap-center rounded-2xl border border-[#7A8070] bg-[#8E9382] p-7 shadow-sm transition duration-300 hover:-translate-y-1 hover:shadow-md md:min-w-0"
                 >
-                  <Icon className="mb-6 text-[#1E5D46]" size={32} />
-                  <h3 className="mb-2 text-xl font-bold text-[#1D2939]">
+                  <Icon className="mb-6 text-white" size={32} />
+                  <h3 className="mb-2 text-xl font-bold text-white">
                     {opportunity.title}
                   </h3>
-                  <p className="text-[#4B5768]">{opportunity.description}</p>
+                  <p className="text-white">{opportunity.description}</p>
                 </motion.div>
               );
             })}
@@ -913,17 +913,17 @@ const LandingPage = ({ intro = false, onIntroComplete }) => {
                 key={title}
                 whileHover={prefersReducedMotion ? undefined : { y: -4 }}
                 transition={{ duration: 0.25, ease: "easeOut" }}
-                className="min-w-[80%] snap-center flex gap-4 rounded-2xl border border-[#ECE7DD] bg-white p-6 shadow-sm transition-shadow duration-300 hover:shadow-md md:min-w-0"
+                className="min-w-[80%] snap-center flex gap-4 rounded-2xl border border-[#7A8070] bg-[#8E9382] p-6 shadow-sm transition-shadow duration-300 hover:shadow-md md:min-w-0"
               >
                 <CheckCircle
-                  className="mt-1 shrink-0 text-[#1E5D46]"
+                  className="mt-1 shrink-0 text-white"
                   size={23}
                 />
                 <div>
-                  <h3 className="mb-2 text-xl font-bold text-[#1D2939]">
+                  <h3 className="mb-2 text-xl font-bold text-white">
                     {title}
                   </h3>
-                  <p className="text-[#4B5768]">{description}</p>
+                  <p className="text-white">{description}</p>
                 </div>
               </motion.div>
             ))}

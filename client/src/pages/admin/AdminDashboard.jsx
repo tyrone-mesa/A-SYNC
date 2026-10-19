@@ -152,6 +152,51 @@ const AdminDashboard = () => {
             Breakdowns by program, application funnel, and monthly trends.
           </p>
         </Link>
+        <Link
+          to="/admin/registrars"
+          className="rounded-[20px] border border-[#0b5d3d]/10 bg-[#f8fbfa] p-5 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md hover:border-[#0b5d3d]/20"
+        >
+          <h3 className="font-display text-lg font-semibold text-[#0b5d3d]">
+            Manage Registrars
+          </h3>
+          <p className="mt-2 text-sm text-[#0F1E35]/60">
+            Register registrars who can view student records and OJT
+            certificates.
+          </p>
+        </Link>
+        <Link
+          to="/admin/admins"
+          className="rounded-[20px] border border-[#0b5d3d]/10 bg-[#f8fbfa] p-5 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md hover:border-[#0b5d3d]/20"
+        >
+          <h3 className="font-display text-lg font-semibold text-[#0b5d3d]">
+            Manage Admins
+          </h3>
+          <p className="mt-2 text-sm text-[#0F1E35]/60">
+            Add or review administrator accounts.
+          </p>
+        </Link>
+        <Link
+          to="/admin/archive"
+          className="rounded-[20px] border border-[#0b5d3d]/10 bg-[#f8fbfa] p-5 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md hover:border-[#0b5d3d]/20"
+        >
+          <h3 className="font-display text-lg font-semibold text-[#0b5d3d]">
+            Archive
+          </h3>
+          <p className="mt-2 text-sm text-[#0F1E35]/60">
+            Review and restore archived user accounts.
+          </p>
+        </Link>
+        <Link
+          to="/admin/security-audit"
+          className="rounded-[20px] border border-[#0b5d3d]/10 bg-[#f8fbfa] p-5 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md hover:border-[#0b5d3d]/20"
+        >
+          <h3 className="font-display text-lg font-semibold text-[#0b5d3d]">
+            Security Audit
+          </h3>
+          <p className="mt-2 text-sm text-[#0F1E35]/60">
+            Review sign-in activity and security events.
+          </p>
+        </Link>
       </div>
     </DashboardShell>
   );

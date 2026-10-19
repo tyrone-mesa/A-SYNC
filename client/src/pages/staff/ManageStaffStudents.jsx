@@ -4,6 +4,7 @@ import { useAuth } from "../../context/AuthContext";
 import api from "../../api/axios";
 import DashboardShell from "../../components/DashboardShell";
 import DashboardLoading from "../../components/DashboardLoading";
+import CoordinatorFolders from "./CoordinatorFolders";
 import { BACHELOR_PROGRAMS, ASSOCIATE_PROGRAMS } from "../../constants/courses";
 import { useRealtimeDashboard } from "../../hooks/useRealtimeDashboard";
 
@@ -66,6 +67,7 @@ const ManageStaffStudents = () => {
           : "View student records, OJT placement, and completed certificates."
       }
     >
+      {isCoordinator && <CoordinatorFolders students={students} />}
       {isCoordinator && myPrograms.length === 0 && students.length === 0 && (
         <div className="mb-5 rounded-2xl border border-white/35 bg-white/50 p-4 text-sm text-navy/70">
           No course / program has been assigned to your account yet. Ask an
@@ -278,4 +280,4 @@ const ManageStaffStudents = () => {
   );
 };
 
-export default ManageStaffStudents;
+export default ManageStaffStudents;2

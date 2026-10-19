@@ -85,6 +85,12 @@ const ManageRegistrars = React.lazy(
   () => import("./pages/admin/ManageRegistrars"),
 );
 const SecurityAudit = React.lazy(() => import("./pages/admin/SecurityAudit"));
+const CoordinatorDashboard = React.lazy(
+  () => import("./pages/staff/CoordinatorDashboard"),
+);
+const RegistrarDashboard = React.lazy(
+  () => import("./pages/staff/RegistrarDashboard"),
+);
 const ManageStaffStudents = React.lazy(
   () => import("./pages/staff/ManageStaffStudents"),
 );
@@ -385,7 +391,7 @@ function App() {
                   path="/coordinator/dashboard"
                   element={
                     <ProtectedRoute roles={["coordinator"]}>
-                      <ManageStaffStudents />
+                      <CoordinatorDashboard />
                     </ProtectedRoute>
                   }
                 />
@@ -409,7 +415,7 @@ function App() {
                   path="/registrar/dashboard"
                   element={
                     <ProtectedRoute roles={["registrar"]}>
-                      <ManageStaffStudents />
+                      <RegistrarDashboard />
                     </ProtectedRoute>
                   }
                 />

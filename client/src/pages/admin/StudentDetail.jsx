@@ -113,7 +113,9 @@ const StudentDetail = () => {
     const endpoint =
       user?.role === "coordinator"
         ? `/staff/coordinator/students/${id}`
-        : `/admin/students/${id}`;
+        : user?.role === "registrar"
+          ? `/staff/registrar/students/${id}`
+          : `/admin/students/${id}`;
     api
       .get(endpoint)
       .then(({ data }) => {
@@ -136,6 +138,7 @@ const StudentDetail = () => {
         }
         setOpenLog(data.openLog || null);
       })
+      .catch(() => setProfile(null))
       .finally(() => setLoading(false));
   };
 
@@ -1223,4 +1226,4 @@ const StudentDetail = () => {
   );
 };
 
-export default StudentDetail;
+export default StudentDetail;w

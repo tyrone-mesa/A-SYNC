@@ -5,7 +5,7 @@ import StatusBadge from "../../components/StatusBadge";
 import ExportButtons from "../../components/ExportButtons";
 import DashboardShell from "../../components/DashboardShell";
 import DashboardLoading from "../../components/DashboardLoading";
-import { openProtectedFile } from "../../utils/protectedFile";
+import DocumentButtons from "../../components/DocumentButtons";
 import SelectDropdown from "../../components/SelectDropdown";
 
 const STATUS_OPTIONS = [
@@ -248,24 +248,28 @@ const ApplicantsList = () => {
 
             <div className="mb-3 flex flex-wrap items-center gap-3 border-b border-black/10 pb-3">
               {app.student?.resumeUrl && (
-                <button
-                  onClick={() =>
-                    openProtectedFile(`/students/${app.student._id}/resume`)
-                  }
-                  className="text-xs font-medium text-[#457D53] hover:underline"
-                >
-                  View Resume
-                </button>
+                <div className="flex w-full flex-wrap items-center gap-2 sm:w-auto">
+                  <span className="text-xs font-semibold text-navy/70">
+                    Resume
+                  </span>
+                  <DocumentButtons
+                    path={`/students/${app.student._id}/resume`}
+                    name={app.student.resumeOriginalName}
+                    label="Resume"
+                  />
+                </div>
               )}
               {app.student?.transcriptUrl && (
-                <button
-                  onClick={() =>
-                    openProtectedFile(`/students/${app.student._id}/transcript`)
-                  }
-                  className="text-xs font-medium text-[#457D53] hover:underline"
-                >
-                  View Transcript
-                </button>
+                <div className="flex w-full flex-wrap items-center gap-2 sm:w-auto">
+                  <span className="text-xs font-semibold text-navy/70">
+                    Transcript / COR
+                  </span>
+                  <DocumentButtons
+                    path={`/students/${app.student._id}/transcript`}
+                    name={app.student.transcriptOriginalName}
+                    label="Transcript / COR"
+                  />
+                </div>
               )}
               {app.student?.user?._id && (
                 <button
@@ -394,7 +398,7 @@ const ApplicantsList = () => {
                       </div>
                     </div>
                     <p className="mt-1 text-navy/70">
-                      {formatWhen(schedule.proposedDateTime)} ·{" "}
+                      {formatWhen(schedule.proposedDateTime)} · {" "}
                       {schedule.mode === "online" ? "Online" : "On-site"}
                       {schedule.locationOrLink
                         ? ` · ${schedule.locationOrLink}`

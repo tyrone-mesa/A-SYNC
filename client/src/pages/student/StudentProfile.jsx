@@ -6,7 +6,7 @@ import { useAuth } from "../../context/AuthContext";
 import ExportButtons from "../../components/ExportButtons";
 import DashboardShell from "../../components/DashboardShell";
 import DashboardLoading from "../../components/DashboardLoading";
-import { openProtectedFile } from "../../utils/protectedFile";
+import DocumentButtons from "../../components/DocumentButtons";
 
 const StudentProfile = () => {
   const { changePassword, user } = useAuth();
@@ -571,27 +571,23 @@ const StudentProfile = () => {
             >
               Upload
             </button>
-            {profile.resumeUrl && (
-              <>
-                <button
-                  type="button"
-                  onClick={() =>
-                    openProtectedFile(`/students/${profile._id}/resume`)
-                  }
-                  className="btn-secondary shrink-0 h-9 px-3 text-xs"
-                >
-                  View
-                </button>
-                <button
-                  type="button"
-                  onClick={() => deleteFile("resume")}
-                  className="btn-danger shrink-0 h-9 px-3 text-xs"
-                >
-                  Remove
-                </button>
-              </>
-            )}
           </div>
+          {profile.resumeUrl && (
+            <div className="mt-2 flex flex-wrap items-center gap-2">
+              <DocumentButtons
+                path={`/students/${profile._id}/resume`}
+                name={profile.resumeOriginalName}
+                label="Resume"
+              />
+              <button
+                type="button"
+                onClick={() => deleteFile("resume")}
+                className="btn-danger h-9 shrink-0 px-3 text-xs"
+              >
+                Remove
+              </button>
+            </div>
+          )}
         </div>
 
         <div>
@@ -629,27 +625,23 @@ const StudentProfile = () => {
             >
               Upload
             </button>
-            {profile.transcriptUrl && (
-              <>
-                <button
-                  type="button"
-                  onClick={() =>
-                    openProtectedFile(`/students/${profile._id}/transcript`)
-                  }
-                  className="btn-secondary shrink-0 h-9 px-3 text-xs"
-                >
-                  View
-                </button>
-                <button
-                  type="button"
-                  onClick={() => deleteFile("transcript")}
-                  className="btn-danger shrink-0 h-9 px-3 text-xs"
-                >
-                  Remove
-                </button>
-              </>
-            )}
           </div>
+          {profile.transcriptUrl && (
+            <div className="mt-2 flex flex-wrap items-center gap-2">
+              <DocumentButtons
+                path={`/students/${profile._id}/transcript`}
+                name={profile.transcriptOriginalName}
+                label="Transcript / COR"
+              />
+              <button
+                type="button"
+                onClick={() => deleteFile("transcript")}
+                className="btn-danger h-9 shrink-0 px-3 text-xs"
+              >
+                Remove
+              </button>
+            </div>
+          )}
         </div>
       </div>
 

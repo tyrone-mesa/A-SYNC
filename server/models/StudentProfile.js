@@ -22,18 +22,6 @@ const StudentProfileSchema = new mongoose.Schema(
     resumeOriginalName: { type: String, default: "" },
     transcriptUrl: { type: String, default: "" }, // path to uploaded transcript/COR file
     transcriptOriginalName: { type: String, default: "" },
-    resumeStatus: {
-      type: String,
-      enum: ["none", "pending", "approved", "rejected"],
-      default: "none",
-    },
-    resumeRejectionReason: { type: String, default: "" },
-    transcriptStatus: {
-      type: String,
-      enum: ["none", "pending", "approved", "rejected"],
-      default: "none",
-    },
-    transcriptRejectionReason: { type: String, default: "" },
     // Batch 6: OJT completion verification by the admin office.
     ojtCompletionVerified: { type: Boolean, default: false },
     ojtCompletionVerifiedAt: { type: Date },

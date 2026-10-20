@@ -6,7 +6,7 @@ import TimeTracker from "../../components/TimeTracker";
 import DashboardShell from "../../components/DashboardShell";
 import DashboardLoading from "../../components/DashboardLoading";
 import { useRealtimeDashboard } from "../../hooks/useRealtimeDashboard";
-import { openProtectedFile } from "../../utils/protectedFile";
+import DocumentButtons from "../../components/DocumentButtons";
 
 const StudentDashboard = () => {
   const navigate = useNavigate();
@@ -71,18 +71,6 @@ const StudentDashboard = () => {
       );
     } finally {
       setMessagingAdmin(false);
-    }
-  };
-
-  const openDocument = async (path) => {
-    try {
-      await openProtectedFile(path);
-    } catch (error) {
-      window.alert(
-        error.response?.status === 404
-          ? "This file could not be found. Please upload it again from your profile."
-          : "Unable to open this file right now. Please try again.",
-      );
     }
   };
 
@@ -270,22 +258,20 @@ const StudentDashboard = () => {
           ].map((doc) => (
             <div
               key={doc.key}
-              className="flex items-center justify-between gap-4 py-4 first:pt-0 last:pb-0"
+              className="flex flex-wrap items-center justify-between gap-3 py-4 first:pt-0 last:pb-0"
             >
-              <div className="min-w-0">
+              <div className="min-w-0 flex-1 basis-40">
                 <p className="font-medium text-navy">{doc.label}</p>
                 <p className="truncate text-sm text-navy/65">
                   {doc.url ? doc.name || "Uploaded file" : "Not uploaded"}
                 </p>
               </div>
               {doc.url ? (
-                <button
-                  type="button"
-                  onClick={() => openDocument(doc.path)}
-                  className="btn-secondary shrink-0 px-3 py-1.5 text-xs"
-                >
-                  View
-                </button>
+                <DocumentButtons
+                  path={doc.path}
+                  name={doc.name}
+                  label={doc.label}
+                />
               ) : (
                 <Link
                   to="/student/profile"

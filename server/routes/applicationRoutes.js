@@ -222,7 +222,8 @@ router.get(
   const applications = await Application.find({ job: job._id })
     .populate({
       path: "student",
-      select: "course yearLevel department skills resumeUrl transcriptUrl bio",
+      select:
+        "course yearLevel department skills resumeUrl resumeOriginalName transcriptUrl transcriptOriginalName bio",
       populate: { path: "user", select: "fullName email" },
     })
     .sort({ createdAt: -1 });

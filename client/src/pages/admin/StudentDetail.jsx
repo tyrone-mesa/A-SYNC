@@ -7,7 +7,7 @@ import YearLevelSelect from "../../components/YearLevelSelect";
 import { useAuth } from "../../context/AuthContext";
 import DashboardShell from "../../components/DashboardShell";
 import DashboardLoading from "../../components/DashboardLoading";
-import { openProtectedFile } from "../../utils/protectedFile";
+import DocumentButtons from "../../components/DocumentButtons";
 import AvatarCropper from "../../components/AvatarCropper";
 import TransferStudentPanel from "../../components/TransferStudentPanel";
 import { resolveFileUrl } from "../../utils/fileUrl";
@@ -603,7 +603,7 @@ const StudentDetail = () => {
             Final assessment
           </h2>
           <p className="text-sm text-navy/70">
-            Submitted by:{" "}
+            Submitted by: {" "}
             <span className="font-semibold text-navy">
               {(profile.assessmentSubmittedBy ||
                 (profile.assessmentCompany ? "company" : "coordinator")) ===
@@ -615,7 +615,7 @@ const StudentDetail = () => {
             {new Date(profile.assessmentSubmittedAt).toLocaleDateString()}
           </p>
           <p className="mt-2 text-sm text-navy/70">
-            Grade:{" "}
+            Grade: {" "}
             <span className="font-semibold text-navy">
               {profile.performanceGrade || "—"}
             </span>
@@ -861,8 +861,7 @@ const StudentDetail = () => {
                     ? "Completed"
                     : completion.state === "ready_for_review"
                       ? "Ready for verification"
-                      : "In progress"}{" "}
-                  · {completion.percentage}%
+                      : "In progress"} {" · "}{completion.percentage}%
                 </span>
               )}
             </div>
@@ -989,45 +988,40 @@ const StudentDetail = () => {
             <h2 className="mb-4 font-display text-xl font-semibold text-navy">
               Documents
             </h2>
-            <div className="space-y-3 text-sm">
-              <div>
-                <div className="flex items-center justify-between">
-                  <span className="text-navy/65">Resume</span>
-                  <span className="flex items-center gap-3">
-                    {profile.resumeUrl ? (
-                      <button
-                        onClick={() =>
-                          openProtectedFile(`/students/${profile._id}/resume`)
-                        }
-                        className="text-[#457D53] hover:underline"
-                      >
-                        View
-                      </button>
-                    ) : (
-                      <span className="text-navy/65">Not uploaded</span>
-                    )}
-                  </span>
+            <div className="divide-y divide-black/10 text-sm">
+              {[
+                {
+                  key: "resume",
+                  label: "Resume",
+                  url: profile.resumeUrl,
+                  name: profile.resumeOriginalName,
+                },
+                {
+                  key: "transcript",
+                  label: "Transcript / COR",
+                  url: profile.transcriptUrl,
+                  name: profile.transcriptOriginalName,
+                },
+              ].map((doc) => (
+                <div
+                  key={doc.key}
+                  className="flex flex-wrap items-center justify-between gap-3 py-3 first:pt-0 last:pb-0"
+                >
+                  <div className="min-w-0 flex-1 basis-40">
+                    <p className="font-medium text-navy">{doc.label}</p>
+                    <p className="truncate text-navy/65">
+                      {doc.url ? doc.name || "Uploaded file" : "Not uploaded"}
+                    </p>
+                  </div>
+                  {doc.url && (
+                    <DocumentButtons
+                      path={`/students/${profile._id}/${doc.key}`}
+                      name={doc.name}
+                      label={doc.label}
+                    />
+                  )}
                 </div>
-              </div>
-              <div>
-                <div className="flex items-center justify-between">
-                  <span className="text-navy/65">Transcript / COR</span>
-                  <span className="flex items-center gap-3">
-                    {profile.transcriptUrl ? (
-                      <button
-                        onClick={() =>
-                          openProtectedFile(`/students/${profile._id}/transcript`)
-                        }
-                        className="text-[#457D53] hover:underline"
-                      >
-                        View
-                      </button>
-                    ) : (
-                      <span className="text-navy/65">Not uploaded</span>
-                    )}
-                  </span>
-                </div>
-              </div>
+              ))}
             </div>
           </div>
         )}

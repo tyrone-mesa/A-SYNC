@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import {
   documentErrorMessage,
@@ -33,6 +33,21 @@ const DownloadIcon = () => (
   </svg>
 );
 
+// Phones and tablets can't scroll a PDF placed inside an iframe (iOS shows only the first
+// page, Android shows nothing). That includes "Desktop site" mode: iPhones and iPads then
+// report themselves as a Mac, so the hardware is checked too (touch points / coarse pointer).
+const isTouchFirstDevice = () => {
+  if (typeof navigator === "undefined") return false;
+  const iosLike =
+    /iPhone|iPad|iPod/.test(navigator.userAgent || "") ||
+    (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+  const coarsePointer =
+    typeof window !== "undefined" &&
+    typeof window.matchMedia === "function" &&
+    window.matchMedia("(pointer: coarse)").matches;
+  return iosLike || (coarsePointer && navigator.maxTouchPoints > 0);
+};
+
 const MIN_ZOOM = 1;
 const MAX_ZOOM = 4;
 
@@ -45,6 +60,13 @@ const DocumentViewer = ({ path, name, label, onClose }) => {
   const [errorMessage, setErrorMessage] = useState("");
   const [zoom, setZoom] = useState(1);
   const [downloading, setDownloading] = useState(false);
+  const closeButtonRef = useRef(null);
+
+  useEffect(() => {
+    const previouslyFocused = document.activeElement;
+    closeButtonRef.current?.focus();
+    return () => previouslyFocused?.focus?.();
+  }, []);
 
   useEffect(() => {
     let cancelled = false;
@@ -104,7 +126,8 @@ const DocumentViewer = ({ path, name, label, onClose }) => {
   // Mobile browsers (e.g. Android Chrome) can't render a PDF inside an iframe, so give
   // them an "Open" button instead of a blank frame.
   const canEmbedPdf =
-    typeof navigator === "undefined" || navigator.pdfViewerEnabled !== false;
+    typeof navigator === "undefined" ||
+    (navigator.pdfViewerEnabled !== false && !isTouchFirstDevice());
 
   const zoomBy = (delta) =>
     setZoom((current) =>
@@ -177,6 +200,8 @@ const DocumentViewer = ({ path, name, label, onClose }) => {
     if (file.kind === "pdf" && canEmbedPdf) {
       return (
         <iframe
+          // The built-in toolbar would show the blob's random id as the title, so it is
+          // hidden; the viewer header above already has the file name and Download.
           src={`${file.url}#toolbar=0&navpanes=0&view=FitH`}
           title={displayName}
           className="h-full w-full rounded-xl bg-white"
@@ -186,6 +211,7 @@ const DocumentViewer = ({ path, name, label, onClose }) => {
 
     if (file.kind === "video") {
       return (
+        // eslint-disable-next-line jsx-a11y/media-has-caption
         <video
           src={file.url}
           controls
@@ -197,6 +223,7 @@ const DocumentViewer = ({ path, name, label, onClose }) => {
 
     if (file.kind === "audio") {
       return (
+        // eslint-disable-next-line jsx-a11y/media-has-caption
         <audio src={file.url} controls className="w-full max-w-md" />
       );
     }
@@ -264,10 +291,11 @@ const DocumentViewer = ({ path, name, label, onClose }) => {
       onClick={onClose}
     >
       <div
-        className="mx-auto flex w-full max-w-5xl shrink-0 items-center gap-2 rounded-t-2xl bg-white px-2 py-2 shadow-lg sm:px-3"
+        className="mx-auto flex w-full max-w-5xl 2xl:max-w-7xl shrink-0 items-center gap-2 rounded-t-2xl bg-white px-2 py-2 shadow-lg sm:px-3"
         onClick={(e) => e.stopPropagation()}
       >
         <button
+          ref={closeButtonRef}
           type="button"
           aria-label="Close preview"
           onClick={onClose}
@@ -335,7 +363,7 @@ const DocumentViewer = ({ path, name, label, onClose }) => {
       </div>
 
       <div
-        className="mx-auto flex min-h-0 w-full max-w-5xl flex-1 items-center justify-center overflow-hidden rounded-b-2xl bg-black/50 p-2 sm:p-3"
+        className="mx-auto flex min-h-0 w-full max-w-5xl 2xl:max-w-7xl flex-1 items-center justify-center overflow-hidden rounded-b-2xl bg-black/50 p-2 sm:p-3"
         onClick={(e) => e.stopPropagation()}
       >
         {renderBody()}

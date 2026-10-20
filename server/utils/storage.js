@@ -118,6 +118,21 @@ function fileStillExists(fileUrl) {
   return fs.existsSync(localPathFor(fileUrl));
 }
 
+/** Builds a Content-Disposition header that is safe for any file name. Node rejects header
+ *  values with non-ASCII characters (e.g. "Résumé.pdf"), which used to make the file fail
+ *  to open, so an ASCII fallback plus an RFC 5987 UTF-8 name are sent instead. */
+const contentDisposition = (disposition, filename) => {
+  const asciiName =
+    String(filename || "file")
+      .replace(/[^\x20-\x7e]/g, "_")
+      .replace(/["\\]/g, "_") || "file";
+  const utf8Name = encodeURIComponent(String(filename || "file")).replace(
+    /['()*]/g,
+    (char) => `%${char.charCodeAt(0).toString(16).toUpperCase()}`,
+  );
+  return `${disposition}; filename="${asciiName}"; filename*=UTF-8''${utf8Name}`;
+};
+
 /** Streams a stored file back through an Express response, whether it's on local disk or
  *  at a remote URL, and handles the 404 case itself so route handlers don't have to. */
 function serveFile(
@@ -145,6 +160,11 @@ function serveFile(
   const client = fileUrl.startsWith("https") ? https : http;
   const request = client.get(fileUrl, (upstream) => {
     if (upstream.statusCode && upstream.statusCode >= 400) {
+      // Logged so a storage-side problem (e.g. Cloudinary refusing to deliver PDFs with a
+      // 401/403) can be told apart from a file that is really missing.
+      console.error(
+        `[ASIATECH SYNC] Remote file request returned HTTP ${upstream.statusCode} for ${fileUrl}`,
+      );
       upstream.resume();
       return res.status(404).json({ message: "File not found." });
     }
@@ -156,7 +176,7 @@ function serveFile(
     );
     res.setHeader(
       "Content-Disposition",
-      `${disposition}; filename="${filename || path.basename(fileUrl)}"`,
+      contentDisposition(disposition, filename || path.basename(fileUrl)),
     );
     upstream.pipe(res);
   });

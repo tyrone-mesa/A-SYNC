@@ -5,11 +5,13 @@ const StudentProfile = require("../models/StudentProfile");
 const AttendanceLog = require("../models/AttendanceLog");
 const Application = require("../models/Application");
 const CompanyProfile = require("../models/CompanyProfile");
+const User = require("../models/User");
 const { protect, authorize } = require("../middleware/auth");
 const upload = require("../middleware/upload");
 const scanUploadedFile = require("../middleware/scanUpload");
 const { persistUpload } = require("../utils/persistUpload");
 const { removeFile, serveFile } = require("../utils/storage");
+const { createInAppNotification } = require("../utils/notify");
 const {
   getPhilippineDateString,
   getPhilippineTimeString,
@@ -21,6 +23,74 @@ const {
 } = require("../utils/exportStudent");
 
 const router = express.Router();
+
+// Tells every active admin, plus the coordinators who oversee this student's course /
+// program (or were assigned the student), that the student uploaded a document.
+// Fire-and-forget: a notification problem never fails the upload itself.
+const notifyDocumentUploaded = async (studentUser, profile, label) => {
+  try {
+    const recipients = await User.find({
+      isActive: true,
+      isArchived: { $ne: true },
+      $or: [
+        { role: "admin" },
+        {
+          role: "coordinator",
+          $or: [
+            ...(profile.course ? [{ programs: profile.course }] : []),
+            { _id: profile.coordinator || null },
+          ],
+        },
+      ],
+    }).select("_id role");
+
+    const who = studentUser.fullName || "A student";
+    const course = profile.course ? ` (${profile.course})` : "";
+    await Promise.all(
+      recipients.map((recipient) =>
+        createInAppNotification({
+          recipientUserId: recipient._id,
+          type: "document_uploaded",
+          title: `${label} uploaded`,
+          body: `${who}${course} uploaded a ${label.toLowerCase()}.`,
+          link:
+            recipient.role === "admin"
+              ? `/admin/students/${profile._id}`
+              : `/coordinator/students/${profile._id}`,
+        }),
+      ),
+    );
+  } catch (err) {
+    console.error("Failed to send document upload notifications:", err.message);
+  }
+};
+
+// Who may open a student's uploaded documents: the student themself, any admin, the
+// coordinator whose program the student is enrolled in (or who was assigned the student),
+// and a company the student has applied to.
+const canViewStudentDocuments = async (user, profile) => {
+  if (user.role === "admin") return true;
+  if (user.role === "student") return String(profile.user) === String(user._id);
+  if (user.role === "coordinator") {
+    return (
+      (user.programs || []).includes(profile.course) ||
+      String(profile.coordinator || "") === String(user._id)
+    );
+  }
+  if (user.role === "company") {
+    const company = await CompanyProfile.findOne({ user: user._id }).select(
+      "_id",
+    );
+    return Boolean(
+      company &&
+        (await Application.exists({
+          company: company._id,
+          student: profile._id,
+        })),
+    );
+  }
+  return false;
+};
 
 const companyHasStudentApplication = async (companyUserId, studentProfileId) => {
   const company = await CompanyProfile.findOne({ user: companyUserId }).select(
@@ -149,11 +219,10 @@ router.post(
       {
         resumeUrl,
         resumeOriginalName: req.file.originalname,
-        resumeStatus: "pending",
-        resumeRejectionReason: "",
       },
       { new: true },
     );
+    if (updatedProfile) notifyDocumentUploaded(req.user, updatedProfile, "Resume");
     res.json({
       message: "Resume uploaded successfully.",
       profile: updatedProfile,
@@ -178,8 +247,6 @@ router.delete("/me/resume", protect, authorize("student"), async (req, res) => {
     {
       resumeUrl: "",
       resumeOriginalName: "",
-      resumeStatus: "none",
-      resumeRejectionReason: "",
     },
     { new: true },
   );
@@ -191,40 +258,49 @@ router.delete("/me/resume", protect, authorize("student"), async (req, res) => {
 });
 
 // @route   GET /api/students/:studentId/resume
-// @desc    Serves a resume only to the student, an applicant's company, a coordinator, or an admin
-router.get("/:studentId/resume", protect, async (req, res) => {
-  const profile = await StudentProfile.findById(req.params.studentId);
-  if (!profile || !profile.resumeUrl) {
-    return res.status(404).json({ message: "Resume not found." });
-  }
+// @route   GET /api/students/:studentId/transcript   (":studentId" may be "me" for a student)
+// @desc    Opens (inline preview) a student's uploaded resume or transcript / COR for the
+//          student, any admin, the coordinator of the student's program, or a company the
+//          student applied to. Nobody else can open it.
+const DOCUMENT_TYPES = {
+  resume: {
+    urlField: "resumeUrl",
+    nameField: "resumeOriginalName",
+    fallbackName: "resume.pdf",
+    label: "Resume",
+  },
+  transcript: {
+    urlField: "transcriptUrl",
+    nameField: "transcriptOriginalName",
+    fallbackName: "transcript.pdf",
+    label: "Transcript",
+  },
+};
 
-  let allowed = req.user.role === "admin" || req.user.role === "coordinator";
-  if (req.user.role === "student") {
-    allowed = String(profile.user) === String(req.user._id);
-  } else if (req.user.role === "company") {
-    const CompanyProfile = require("../models/CompanyProfile");
-    const Application = require("../models/Application");
-    const company = await CompanyProfile.findOne({ user: req.user._id }).select(
-      "_id",
-    );
-    allowed = Boolean(
-      company &&
-      (await Application.exists({
-        company: company._id,
-        student: profile._id,
-      })),
-    );
-  }
+Object.entries(DOCUMENT_TYPES).forEach(([type, doc]) => {
+  router.get(`/:studentId/${type}`, protect, async (req, res) => {
+    // "me" lets a signed-in student open their own file without knowing their profile id.
+    const isMine = req.params.studentId === "me";
+    if (!isMine && !mongoose.isValidObjectId(req.params.studentId)) {
+      return res.status(404).json({ message: `${doc.label} not found.` });
+    }
+    const profile = isMine
+      ? await StudentProfile.findOne({ user: req.user._id })
+      : await StudentProfile.findById(req.params.studentId);
+    if (!profile || !profile[doc.urlField]) {
+      return res.status(404).json({ message: `${doc.label} not found.` });
+    }
 
-  if (!allowed) {
-    return res
-      .status(403)
-      .json({ message: "You are not authorized to view this resume." });
-  }
+    if (!(await canViewStudentDocuments(req.user, profile))) {
+      return res.status(403).json({
+        message: `You are not authorized to view this ${doc.label.toLowerCase()}.`,
+      });
+    }
 
-  return serveFile(res, profile.resumeUrl, {
-    disposition: "attachment",
-    filename: profile.resumeOriginalName || "resume.pdf",
+    return serveFile(res, profile[doc.urlField], {
+      disposition: "inline",
+      filename: profile[doc.nameField] || doc.fallbackName,
+    });
   });
 });
 
@@ -251,11 +327,11 @@ router.post(
       {
         transcriptUrl,
         transcriptOriginalName: req.file.originalname,
-        transcriptStatus: "pending",
-        transcriptRejectionReason: "",
       },
       { new: true },
     );
+    if (updatedProfile)
+      notifyDocumentUploaded(req.user, updatedProfile, "Transcript / COR");
     res.json({
       message: "Transcript uploaded successfully.",
       profile: updatedProfile,
@@ -284,8 +360,6 @@ router.delete(
       {
         transcriptUrl: "",
         transcriptOriginalName: "",
-        transcriptStatus: "none",
-        transcriptRejectionReason: "",
       },
       { new: true },
     );
@@ -293,24 +367,6 @@ router.delete(
     res.json({
       message: "Transcript removed successfully.",
       profile: updatedProfile,
-    });
-  },
-);
-
-// @route   GET /api/students/me/transcript
-// @desc    Lets a student open their own uploaded transcript / COR. Never public.
-router.get(
-  "/me/transcript",
-  protect,
-  authorize("student"),
-  async (req, res) => {
-    const profile = await StudentProfile.findOne({ user: req.user._id });
-    if (!profile || !profile.transcriptUrl) {
-      return res.status(404).json({ message: "Transcript not found." });
-    }
-    return serveFile(res, profile.transcriptUrl, {
-      disposition: "attachment",
-      filename: profile.transcriptOriginalName || "transcript.pdf",
     });
   },
 );

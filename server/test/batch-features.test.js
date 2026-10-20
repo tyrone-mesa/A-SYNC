@@ -177,8 +177,8 @@ describe("batch 3-6 workflow protections", { concurrency: false }, () => {
       _id: ids.studentProfile,
       user: null,
       isProfileComplete: true,
-      resumeStatus: "approved",
-      transcriptStatus: "approved",
+      resumeUrl: "/uploads/resumes/r.pdf",
+      transcriptUrl: "/uploads/transcripts/t.pdf",
       completedOJTHours: 480,
       requiredOJTHours: 480,
       ojtCompletionVerified: false,
@@ -202,17 +202,17 @@ describe("batch 3-6 workflow protections", { concurrency: false }, () => {
     assert.equal(response.status, 403);
   });
 
-  // ---------- Batch 3 + 9: document review + coordinator assignment guards ----------
-  it("blocks read-only admins from document review", async () => {
+  // ---------- Batch 9: coordinator assignment guards ----------
+  it("no longer has a document approval endpoint", async () => {
     const response = await fetch(
       `${baseUrl}/api/admin/students/${ids.studentProfile}/documents/resume/review`,
       {
         method: "PUT",
-        headers: jsonHeaders(tokenFor(ids.readOnlyAdmin)),
+        headers: jsonHeaders(tokenFor(ids.admin)),
         body: JSON.stringify({ action: "approve" }),
       },
     );
-    assert.equal(response.status, 403);
+    assert.equal(response.status, 404);
   });
 
   it("blocks read-only admins from coordinator assignment", async () => {
@@ -232,8 +232,8 @@ describe("batch 3-6 workflow protections", { concurrency: false }, () => {
     mock.method(StudentProfile, "findById", async () => ({
       _id: ids.studentProfile,
       isProfileComplete: false,
-      resumeStatus: "none",
-      transcriptStatus: "none",
+      resumeUrl: "",
+      transcriptUrl: "",
       completedOJTHours: 0,
       requiredOJTHours: 480,
       ojtCompletionVerified: false,

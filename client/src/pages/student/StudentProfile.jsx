@@ -602,18 +602,6 @@ const StudentProfile = () => {
             Transcript / COR{" "}
             {profile.transcriptOriginalName &&
               `— ${profile.transcriptOriginalName}`}
-            {" "}
-            {profile.transcriptStatus === "pending" && (
-              <span className="font-semibold text-[#b8860b]">· Pending review</span>
-            )}
-            {profile.transcriptStatus === "approved" && (
-              <span className="font-semibold text-[#5E7867]">· Approved</span>
-            )}
-            {profile.transcriptStatus === "rejected" && (
-              <span className="font-semibold text-[#DF2E1B]">
-                · Rejected: {profile.transcriptRejectionReason}
-              </span>
-            )}
           </label>
           <div className="flex items-center gap-2 w-full">
             <div className="file-upload-wrapper flex-1 min-w-0">
@@ -642,13 +630,24 @@ const StudentProfile = () => {
               Upload
             </button>
             {profile.transcriptUrl && (
-              <button
-                type="button"
-                onClick={() => deleteFile("transcript")}
-                className="btn-danger shrink-0 h-9 px-3 text-xs"
-              >
-                Remove
-              </button>
+              <>
+                <button
+                  type="button"
+                  onClick={() =>
+                    openProtectedFile(`/students/${profile._id}/transcript`)
+                  }
+                  className="btn-secondary shrink-0 h-9 px-3 text-xs"
+                >
+                  View
+                </button>
+                <button
+                  type="button"
+                  onClick={() => deleteFile("transcript")}
+                  className="btn-danger shrink-0 h-9 px-3 text-xs"
+                >
+                  Remove
+                </button>
+              </>
             )}
           </div>
         </div>

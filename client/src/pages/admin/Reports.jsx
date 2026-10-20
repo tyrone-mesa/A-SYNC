@@ -253,13 +253,6 @@ const Reports = () => {
           {ojtReport && (
             <BarList title="OJT Completion" data={ojtReport.ojtCompletion} />
           )}
-          {ojtReport && (
-            <BarList
-              title="Document Review Queue"
-              data={ojtReport.documentReview}
-              colorClass="bg-forest"
-            />
-          )}
         </div>
       </div>
     </DashboardShell>

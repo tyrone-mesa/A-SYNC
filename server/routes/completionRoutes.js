@@ -29,13 +29,13 @@ const buildCompletion = async (profile) => {
     },
     {
       key: "resume",
-      label: "Resume approved",
-      met: profile.resumeStatus === "approved",
+      label: "Resume uploaded",
+      met: !!profile.resumeUrl,
     },
     {
       key: "transcript",
-      label: "Transcript / COR approved",
-      met: profile.transcriptStatus === "approved",
+      label: "Transcript / COR uploaded",
+      met: !!profile.transcriptUrl,
     },
     {
       key: "hours",

@@ -12,6 +12,7 @@ const NotificationSchema = new mongoose.Schema(
       enum: [
         "application_status",
         "document_verification",
+        "document_uploaded",
         "new_application",
         "new_message",
         "job_posted",

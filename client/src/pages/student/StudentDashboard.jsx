@@ -258,8 +258,6 @@ const StudentDashboard = () => {
               label: "Resume",
               url: profile.resumeUrl,
               name: profile.resumeOriginalName,
-              status: profile.resumeStatus,
-              reason: profile.resumeRejectionReason,
               path: `/students/${profile._id}/resume`,
             },
             {
@@ -267,8 +265,6 @@ const StudentDashboard = () => {
               label: "Transcript / COR",
               url: profile.transcriptUrl,
               name: profile.transcriptOriginalName,
-              status: profile.transcriptStatus,
-              reason: profile.transcriptRejectionReason,
               path: "/students/me/transcript",
             },
           ].map((doc) => (
@@ -281,21 +277,6 @@ const StudentDashboard = () => {
                 <p className="truncate text-sm text-navy/65">
                   {doc.url ? doc.name || "Uploaded file" : "Not uploaded"}
                 </p>
-                {doc.url && doc.status === "pending" && (
-                  <p className="text-xs font-semibold text-[#b8860b]">
-                    Pending review
-                  </p>
-                )}
-                {doc.url && doc.status === "approved" && (
-                  <p className="text-xs font-semibold text-[#5E7867]">
-                    Approved
-                  </p>
-                )}
-                {doc.url && doc.status === "rejected" && (
-                  <p className="text-xs font-semibold text-[#DF2E1B]">
-                    Rejected{doc.reason ? `: ${doc.reason}` : ""}
-                  </p>
-                )}
               </div>
               {doc.url ? (
                 <button

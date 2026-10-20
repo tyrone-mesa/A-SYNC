@@ -6,7 +6,6 @@ import ExportButtons from "../../components/ExportButtons";
 import DashboardShell from "../../components/DashboardShell";
 import DashboardLoading from "../../components/DashboardLoading";
 import { openProtectedFile } from "../../utils/protectedFile";
-import { resolveFileUrl } from "../../utils/fileUrl";
 import SelectDropdown from "../../components/SelectDropdown";
 
 const STATUS_OPTIONS = [
@@ -259,14 +258,14 @@ const ApplicantsList = () => {
                 </button>
               )}
               {app.student?.transcriptUrl && (
-                <a
-                  href={resolveFileUrl(app.student.transcriptUrl)}
-                  target="_blank"
-                  rel="noreferrer"
+                <button
+                  onClick={() =>
+                    openProtectedFile(`/students/${app.student._id}/transcript`)
+                  }
                   className="text-xs font-medium text-[#457D53] hover:underline"
                 >
                   View Transcript
-                </a>
+                </button>
               )}
               {app.student?.user?._id && (
                 <button

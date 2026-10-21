@@ -8,6 +8,7 @@ import {
   getFileKind,
 } from "../utils/documentFile";
 import { downloadBlob } from "../utils/download";
+import { useAuth } from "../context/AuthContext";
 
 const formatSize = (bytes) => {
   if (!bytes) return "";
@@ -55,6 +56,8 @@ const MAX_ZOOM = 4;
 // and text open right here over the page; other files (e.g. Word) show a file card with
 // a Download button. Closes via the back arrow, the backdrop, or Esc.
 const DocumentViewer = ({ path, name, label, onClose }) => {
+  const { user } = useAuth();
+  const role = user?.role;
   const [state, setState] = useState("loading"); // loading | ready | error
   const [file, setFile] = useState(null); // { url, blob, mime, kind, text }
   const [errorMessage, setErrorMessage] = useState("");
@@ -86,7 +89,7 @@ const DocumentViewer = ({ path, name, label, onClose }) => {
       })
       .catch((error) => {
         if (cancelled) return;
-        setErrorMessage(documentErrorMessage(error));
+        setErrorMessage(documentErrorMessage(error, role));
         setState("error");
       });
 
@@ -94,7 +97,7 @@ const DocumentViewer = ({ path, name, label, onClose }) => {
       cancelled = true;
       if (objectUrl) window.URL.revokeObjectURL(objectUrl);
     };
-  }, [path, name]);
+  }, [path, name, role]);
 
   useEffect(() => {
     const onKey = (event) => {
@@ -117,11 +120,11 @@ const DocumentViewer = ({ path, name, label, onClose }) => {
       if (file?.blob) downloadBlob(file.blob, displayName);
       else await downloadDocument(path, name);
     } catch (error) {
-      window.alert(documentErrorMessage(error));
+      window.alert(documentErrorMessage(error, role));
     } finally {
       setDownloading(false);
     }
-  }, [file, displayName, path, name]);
+  }, [file, displayName, path, name, role]);
 
   // Mobile browsers (e.g. Android Chrome) can't render a PDF inside an iframe, so give
   // them an "Open" button instead of a blank frame.

@@ -121,4 +121,151 @@ async function removeFile(fileUrl) {
   }
 }
 
-/** True if the stored reference still points at a real file. Locaw
+/** True if the stored reference still points at a real file. Local paths are checked on
+ *  disk; remote URLs are trusted (Cloudinary's own durability) rather than round-tripping
+ *  on every check — this is also what fixes the "redeploy wipes logos" bug, since a
+ *  Cloudinary URL should never be treated as missing just because local disk was wiped. */
+function fileStillExists(fileUrl) {
+  if (!fileUrl) return false;
+  if (isRemoteUrl(fileUrl)) return true;
+  return fs.existsSync(localPathFor(fileUrl));
+}
+
+/** Builds a Content-Disposition header that is safe for any file name. Node rejects header
+ *  values with non-ASCII characters (e.g. "Résumé.pdf"), which used to make the file fail
+ *  to open, so an ASCII fallback plus an RFC 5987 UTF-8 name are sent instead. */
+const contentDisposition = (disposition, filename) => {
+  const asciiName =
+    String(filename || "file")
+      .replace(/[^\x20-\x7e]/g, "_")
+      .replace(/["\\]/g, "_") || "file";
+  const utf8Name = encodeURIComponent(String(filename || "file")).replace(
+    /['()*]/g,
+    (char) => `%${char.charCodeAt(0).toString(16).toUpperCase()}`,
+  );
+  return `${disposition}; filename="${asciiName}"; filename*=UTF-8''${utf8Name}`;
+};
+
+/** Streams a stored file back through an Express response, whether it's on local disk or
+ *  at a remote URL, and handles the 404 case itself so route handlers don't have to. */
+function serveFile(
+  res,
+  fileUrl,
+  { mimetype, disposition = "inline", filename } = {},
+) {
+  if (!fileUrl) {
+    return res.status(404).json({ message: "File not found." });
+  }
+
+  if (!isRemoteUrl(fileUrl)) {
+    const localPath = localPathFor(fileUrl);
+    if (!fs.existsSync(localPath)) {
+      return res.status(404).json({ message: "File not found." });
+    }
+    if (disposition === "attachment") {
+      return res.download(localPath, filename || path.basename(localPath));
+    }
+    res.type(mimetype || path.extname(localPath));
+    res.setHeader("Content-Disposition", "inline");
+    return res.sendFile(localPath);
+  }
+
+  // Remote file (Cloudinary). Cloudinary accounts commonly block delivery of PDFs/ZIPs on
+  // the public URL (HTTP 401/403), which used to be reported as "File not found". So a
+  // signed API download URL is tried first (it is not affected by that restriction), then
+  // the stored URL as a fallback.
+  const candidates = [];
+  if (cloudinary) {
+    const parsed = parseCloudinaryUrl(fileUrl);
+    if (parsed) {
+      try {
+        candidates.push(
+          cloudinary.utils.private_download_url(
+            parsed.publicId,
+            parsed.resourceType === "raw" ? "" : parsed.format,
+            {
+              resource_type: parsed.resourceType,
+              type: "upload",
+              attachment: false,
+              expires_at: Math.floor(Date.now() / 1000) + 300,
+            },
+          ),
+        );
+      } catch (err) {
+        console.error(
+          "[ASIATECH SYNC] Could not sign Cloudinary download URL:",
+          err.message,
+        );
+      }
+    }
+  }
+  candidates.push(fileUrl);
+
+  const fetchRemote = (url, redirectsLeft = 4) =>
+    new Promise((resolve, reject) => {
+      const client = url.startsWith("https") ? https : http;
+      const request = client.get(url, (upstream) => {
+        const status = upstream.statusCode || 0;
+        if (status >= 300 && status < 400 && upstream.headers.location) {
+          upstream.resume();
+          if (redirectsLeft <= 0) return reject(new Error("Too many redirects"));
+          const next = new URL(upstream.headers.location, url).toString();
+          return resolve(fetchRemote(next, redirectsLeft - 1));
+        }
+        resolve(upstream);
+      });
+      request.setTimeout(20000, () => request.destroy(new Error("Timed out")));
+      request.on("error", reject);
+    });
+
+  (async () => {
+    let lastStatus = 0;
+    for (const url of candidates) {
+      try {
+        const upstream = await fetchRemote(url);
+        const status = upstream.statusCode || 0;
+        if (status >= 400) {
+          lastStatus = status;
+          console.error(
+            `[ASIATECH SYNC] Remote file request returned HTTP ${status} for ${url.split("?")[0]}`,
+          );
+          upstream.resume();
+          continue;
+        }
+        res.setHeader(
+          "Content-Type",
+          mimetype ||
+            upstream.headers["content-type"] ||
+            "application/octet-stream",
+        );
+        res.setHeader(
+          "Content-Disposition",
+          contentDisposition(
+            disposition,
+            filename || path.basename(fileUrl.split("?")[0]),
+          ),
+        );
+        return upstream.pipe(res);
+      } catch (err) {
+        console.error("[ASIATECH SYNC] Failed to fetch remote file:", err.message);
+      }
+    }
+    if (res.headersSent) return;
+    // Only a real 404 means the file is gone; anything else is a storage-side problem.
+    if (lastStatus === 404) {
+      return res.status(404).json({ message: "File not found." });
+    }
+    return res
+      .status(502)
+      .json({ message: "File could not be retrieved from storage." });
+  })();
+}
+
+module.exports = {
+  STORAGE_PROVIDER,
+  isRemoteUrl,
+  uploadToCloudinary,
+  removeFile,
+  fileStillExists,
+  serveFile,
+};

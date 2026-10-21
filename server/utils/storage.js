@@ -67,10 +67,23 @@ const resourceTypeFromUrl = (fileUrl) => {
 //   https://res.cloudinary.com/<cloud>/<type>/upload/v<version>/<public_id>.<ext>
 // We choose the public_id ourselves at upload time, so we can recover it from the URL
 // without needing a separate DB column for it.
-const publicIdFromUrl = (fileUrl) => {
-  const match = fileUrl.match(/\/upload\/(?:v\d+\/)?(.+?)(?:\.[a-zA-Z0-9]+)?$/);
-  return match ? match[1] : null;
+// NOTE: for "raw" files (Word docs etc.) the extension is PART of the public_id, while for
+// image/video it is only the delivery format.
+const parseCloudinaryUrl = (fileUrl) => {
+  const resourceType = resourceTypeFromUrl(fileUrl);
+  const match = String(fileUrl)
+    .split(/[?#]/)[0]
+    .match(/\/upload\/(?:[^/]*,[^/]*\/)*(?:v\d+\/)?(.+)$/);
+  if (!match) return null;
+  const full = decodeURIComponent(match[1]);
+  const extMatch = full.match(/\.([a-zA-Z0-9]+)$/);
+  const format = extMatch ? extMatch[1].toLowerCase() : "";
+  const publicId =
+    resourceType === "raw" || !extMatch ? full : full.slice(0, -(format.length + 1));
+  return { resourceType, publicId, format };
 };
+
+const publicIdFromUrl = (fileUrl) => parseCloudinaryUrl(fileUrl)?.publicId || null;
 
 /** Deletes an uploaded file regardless of which provider stored it. Safe to call with an
  *  empty/undefined value — returns true (nothing to do) in that case. */
@@ -108,91 +121,4 @@ async function removeFile(fileUrl) {
   }
 }
 
-/** True if the stored reference still points at a real file. Local paths are checked on
- *  disk; remote URLs are trusted (Cloudinary's own durability) rather than round-tripping
- *  on every check — this is also what fixes the "redeploy wipes logos" bug, since a
- *  Cloudinary URL should never be treated as missing just because local disk was wiped. */
-function fileStillExists(fileUrl) {
-  if (!fileUrl) return false;
-  if (isRemoteUrl(fileUrl)) return true;
-  return fs.existsSync(localPathFor(fileUrl));
-}
-
-/** Builds a Content-Disposition header that is safe for any file name. Node rejects header
- *  values with non-ASCII characters (e.g. "Résumé.pdf"), which used to make the file fail
- *  to open, so an ASCII fallback plus an RFC 5987 UTF-8 name are sent instead. */
-const contentDisposition = (disposition, filename) => {
-  const asciiName =
-    String(filename || "file")
-      .replace(/[^\x20-\x7e]/g, "_")
-      .replace(/["\\]/g, "_") || "file";
-  const utf8Name = encodeURIComponent(String(filename || "file")).replace(
-    /['()*]/g,
-    (char) => `%${char.charCodeAt(0).toString(16).toUpperCase()}`,
-  );
-  return `${disposition}; filename="${asciiName}"; filename*=UTF-8''${utf8Name}`;
-};
-
-/** Streams a stored file back through an Express response, whether it's on local disk or
- *  at a remote URL, and handles the 404 case itself so route handlers don't have to. */
-function serveFile(
-  res,
-  fileUrl,
-  { mimetype, disposition = "inline", filename } = {},
-) {
-  if (!fileUrl) {
-    return res.status(404).json({ message: "File not found." });
-  }
-
-  if (!isRemoteUrl(fileUrl)) {
-    const localPath = localPathFor(fileUrl);
-    if (!fs.existsSync(localPath)) {
-      return res.status(404).json({ message: "File not found." });
-    }
-    if (disposition === "attachment") {
-      return res.download(localPath, filename || path.basename(localPath));
-    }
-    res.type(mimetype || path.extname(localPath));
-    res.setHeader("Content-Disposition", "inline");
-    return res.sendFile(localPath);
-  }
-
-  const client = fileUrl.startsWith("https") ? https : http;
-  const request = client.get(fileUrl, (upstream) => {
-    if (upstream.statusCode && upstream.statusCode >= 400) {
-      // Logged so a storage-side problem (e.g. Cloudinary refusing to deliver PDFs with a
-      // 401/403) can be told apart from a file that is really missing.
-      console.error(
-        `[ASIATECH SYNC] Remote file request returned HTTP ${upstream.statusCode} for ${fileUrl}`,
-      );
-      upstream.resume();
-      return res.status(404).json({ message: "File not found." });
-    }
-    res.setHeader(
-      "Content-Type",
-      mimetype ||
-        upstream.headers["content-type"] ||
-        "application/octet-stream",
-    );
-    res.setHeader(
-      "Content-Disposition",
-      contentDisposition(disposition, filename || path.basename(fileUrl)),
-    );
-    upstream.pipe(res);
-  });
-  request.on("error", (err) => {
-    console.error("[ASIATECH SYNC] Failed to fetch remote file:", err.message);
-    if (!res.headersSent) {
-      res.status(502).json({ message: "File could not be retrieved." });
-    }
-  });
-}
-
-module.exports = {
-  STORAGE_PROVIDER,
-  isRemoteUrl,
-  uploadToCloudinary,
-  removeFile,
-  fileStillExists,
-  serveFile,
-};
+/** True if the stored reference still points at a real file. Locaw

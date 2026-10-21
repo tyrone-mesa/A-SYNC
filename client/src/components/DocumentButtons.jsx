@@ -1,6 +1,7 @@
 import React, { useCallback, useState } from "react";
 import DocumentViewer from "./DocumentViewer";
 import { documentErrorMessage, downloadDocument } from "../utils/documentFile";
+import { useAuth } from "../context/AuthContext";
 
 const DownloadIcon = () => (
   <svg
@@ -48,6 +49,7 @@ const DocumentButtons = ({
   className = "",
   buttonClassName = "btn-secondary h-9 gap-1.5 px-3 text-xs",
 }) => {
+  const { user } = useAuth();
   const [viewing, setViewing] = useState(false);
   const [downloading, setDownloading] = useState(false);
   const closeViewer = useCallback(() => setViewing(false), []);
@@ -57,7 +59,7 @@ const DocumentButtons = ({
     try {
       await downloadDocument(path, name);
     } catch (error) {
-      window.alert(documentErrorMessage(error));
+      window.alert(documentErrorMessage(error, user?.role));
     } finally {
       setDownloading(false);
     }

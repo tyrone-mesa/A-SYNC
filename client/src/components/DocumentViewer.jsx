@@ -379,4 +379,4 @@ const DocumentViewer = ({ path, name, label, onClose }) => {
     : viewer;
 };
 
-export default DocumentViewer;
+export default DocumentViewer;2

@@ -170,7 +170,7 @@ const Billboard = () => {
             <p className="mb-3 text-xs font-bold uppercase tracking-[0.2em] text-[#E8C165]">
               Billboard
             </p>
-            <h2 className="text-3xl font-extrabold text-[#E8C165] md:text-5xl">
+            <h2 className="text-3xl font-extrabold text-[#F8F6F0] md:text-5xl">
               Announcements &amp; Featured Companies
             </h2>
           </div>
@@ -226,7 +226,7 @@ const Billboard = () => {
                       decoding="async"
                       className="relative h-full w-full object-contain"
                     />
-                    <div className="absolute inset-x-0 top-[50%] px-5 sm:px-8 md:px-14 lg:top-[70%]">
+                    <div className="absolute inset-x-0 top-[50%] px-5 sm:px-8 md:px-14 lg:top-[55%]">
                       <span
                         className={`inline-block rounded-full px-3 py-1 text-xs font-bold ${
                           post.category === "school"

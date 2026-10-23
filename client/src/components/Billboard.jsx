@@ -226,7 +226,7 @@ const Billboard = () => {
                       decoding="async"
                       className="relative h-full w-full object-contain"
                     />
-                    <div className="absolute inset-x-0 top-[50%] px-5 sm:px-8 md:px-14 lg:top-[40%]">
+                    <div className="absolute inset-x-0 top-[50%] px-5 sm:px-8 md:px-14 lg:top-[70%]">
                       <span
                         className={`inline-block rounded-full px-3 py-1 text-xs font-bold ${
                           post.category === "school"

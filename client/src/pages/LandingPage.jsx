@@ -810,8 +810,9 @@ const LandingPage = ({ intro = false, onIntroComplete }) => {
       </section>
 
       {/* Billboard: school announcements and company advertisements */}
-      <Billboard />
-
+      <div className="bg-[#0F3A1F]">
+  <Billboard />
+</div>
       {/* Partners Section */}
       <section
         id="partners"

@@ -76,11 +76,11 @@ const TESTIMONIALS = [
 ];
 
 const PARTNER_LOGOS = [
-  { name: "Asiatech", src: "/partners/asiatech.png", className: "h-9 sm:h-10" },
-  { name: "TESDA", src: "/partners/tesda.png", className: "h-12 sm:h-14" },
-  { name: "SM", src: "/partners/sh.png", className: "h-12 sm:h-14" },
-  { name: "BDO", src: "/partners/bdo.png", className: "h-7 sm:h-8" },
-  { name: "Ayala", src: "/partners/ayala.png", className: "h-8 sm:h-9" },
+  { name: "Asiatech", src: "/parthers/asiatech.png", className: "h-9 sm:h-10" },
+  { name: "TESDA", src: "/parthers/tesda.png", className: "h-12 sm:h-14" },
+  { name: "SM", src: "/parthers/sh.png", className: "h-12 sm:h-14" },
+  { name: "BDO", src: "/parthers/bdo.png", className: "h-7 sm:h-8" },
+  { name: "Ayala", src: "/parthers/ayala.png", className: "h-8 sm:h-9" },
 ];
 
 const PartnerTestimonialCard = () => {
@@ -492,7 +492,7 @@ const LandingPage = ({ intro = false, onIntroComplete }) => {
 
               <motion.p
                 variants={heroItem}
-                className="mb-8 max-w-2xl text-base leading-relaxed text-white/85 [text-shadow:0_1px_14px_rgba(15,61,46,0.4)] sm:text-lg"
+                className="mb-8 max-w-2xl text-base leading-relaxed text-[#354C28] [text-shadow:0_1px_14px_rgba(15,61,46,0.4)] sm:text-lg"
               >
                 AsiatechSync connects Asia Technological School of Science and Arts students with OJT and career opportunities from industry partners.
               </motion.p>
@@ -787,65 +787,24 @@ const LandingPage = ({ intro = false, onIntroComplete }) => {
                   variants={fadeUp}
                   whileHover={prefersReducedMotion ? undefined : { y: -4 }}
                   transition={{ duration: 0.25, ease: "easeOut" }}
-                  className="min-w-[80%] snap-center flex h-full flex-col rounded-2xl border border-[#7A8070] bg-[#8E9382] p-6 shadow-sm transition-shadow duration-300 hover:shadow-md md:min-w-0"
+                  className="min-w-[80%] snap-center flex h-full flex-col rounded-2xl border border-[#203318] bg-[#203318] p-6 shadow-sm transition-shadow duration-300 hover:shadow-md md:min-w-0"
                 >
                   <div className="mb-5 flex items-center gap-3">
-                    <span className="flex h-11 w-11 items-center justify-center rounded-full bg-white/20 text-white">
+                    <span className="flex h-11 w-11 items-center justify-center rounded-full bg-white/20 text-[#F8F6F0]">
                       <Icon size={22} />
                     </span>
-                    <p className="text-sm font-black text-white">
+                    <p className="text-sm font-black text-[#F8F6F0]">
                       {feature.number}
                     </p>
                   </div>
 
-                  <h3 className="mb-3 text-xl font-bold text-white">
+                  <h3 className="mb-3 text-xl font-bold text-[#F8F6F0]">
                     {feature.title}
                   </h3>
-                  <p className="text-white">{feature.description}</p>
+                  <p className="text-[#F8F6F0]">{feature.description}</p>
                 </motion.div>
               );
             })}
-          </div>
-        </motion.div>
-      </section>
-
-      {/* Student Testimonials Section */}
-      <section className="bg-[#E6EFE6] px-5 py-20 sm:px-8 lg:px-12">
-        <motion.div
-          initial="hidden"
-          whileInView="visible"
-          viewport={{ once: true, amount: 0.2 }}
-          variants={staggerContainer}
-          className="mx-auto max-w-6xl"
-        >
-          <motion.p
-            variants={fadeUp}
-            className="mb-3 text-xs font-bold uppercase tracking-[0.2em] text-[#1E5D46]"
-          >
-            Student Experience
-          </motion.p>
-          <motion.h2
-            variants={fadeUp}
-            className="mb-10 text-3xl font-extrabold text-[#1D2939] md:text-5xl"
-          >
-            Hear From Our Students
-          </motion.h2>
-          <div className="homepage-mobile-carousel -mx-1 flex snap-x snap-mandatory gap-4 overflow-x-auto px-1 pb-4 md:mx-0 md:grid md:grid-cols-3 md:gap-5 md:overflow-visible md:px-0 md:pb-0">
-            {TESTIMONIALS.map((testimonial) => (
-              <motion.div
-                key={testimonial.attribution}
-                variants={fadeUp}
-                whileHover={
-                  prefersReducedMotion ? undefined : { y: -7, scale: 1.02 }
-                }
-                className="min-w-[84%] snap-center rounded-2xl border border-white/60 bg-white/45 p-7 backdrop-blur-md transition duration-300 hover:-translate-y-1 hover:bg-white/60 md:min-w-0"
-              >
-                <p className="mb-8 text-[#4B5768]">"{testimonial.quote}"</p>
-                <p className="text-sm font-bold text-[#1E5D46]">
-                  — {testimonial.attribution}
-                </p>
-              </motion.div>
-            ))}
           </div>
         </motion.div>
       </section>
@@ -921,17 +880,17 @@ const LandingPage = ({ intro = false, onIntroComplete }) => {
                 key={title}
                 whileHover={prefersReducedMotion ? undefined : { y: -4 }}
                 transition={{ duration: 0.25, ease: "easeOut" }}
-                className="min-w-[80%] snap-center flex gap-4 rounded-2xl border border-[#7A8070] bg-[#8E9382] p-6 shadow-sm transition-shadow duration-300 hover:shadow-md md:min-w-0"
+                className="min-w-[80%] snap-center flex gap-4 rounded-2xl border border-[#203318] bg-[#203318] p-6 shadow-sm transition-shadow duration-300 hover:shadow-md md:min-w-0"
               >
                 <CheckCircle
-                  className="mt-1 shrink-0 text-white"
+                  className="mt-1 shrink-0 text-[#F8F6F0]"
                   size={23}
                 />
                 <div>
-                  <h3 className="mb-2 text-xl font-bold text-white">
+                  <h3 className="mb-2 text-xl font-bold text-[#F8F6F0]">
                     {title}
                   </h3>
-                  <p className="text-white">{description}</p>
+                  <p className="text-[#F8F6F0]">{description}</p>
                 </div>
               </motion.div>
             ))}

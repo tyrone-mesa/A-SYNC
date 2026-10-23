@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { motion, useReducedMotion } from "framer-motion";
 import Navbar from "../components/Navbar";
+import Billboard from "../components/Billboard";
 import api from "../api/axios";
 import { useAuth } from "../context/AuthContext";
 import { hasHomeIntroPlayedThisSession } from "../utils/homeIntroSession";
@@ -10,8 +11,6 @@ import {
   Users,
   Zap,
   CheckCircle,
-  GraduationCap,
-  Rocket,
   ArrowRight,
   MapPin,
   ExternalLink,
@@ -161,19 +160,6 @@ const FEATURES = [
     title: "Connect & Apply",
     description: "Apply to opportunities and connect with potential employers.",
     color: "#1E5D46",
-  },
-];
-
-const OPPORTUNITIES = [
-  {
-    icon: GraduationCap,
-    title: "OJT",
-    description: "Gain real-world experience.",
-  },
-  {
-    icon: Rocket,
-    title: "Employment",
-    description: "Take your next step toward your career.",
   },
 ];
 
@@ -864,57 +850,8 @@ const LandingPage = ({ intro = false, onIntroComplete }) => {
         </motion.div>
       </section>
 
-      {/* Opportunities Section */}
-      <section id="opportunities" className="px-5 py-20 sm:px-8 lg:px-12">
-        <motion.div
-          initial="hidden"
-          whileInView="visible"
-          viewport={{ once: true, amount: 0.2 }}
-          variants={staggerContainer}
-          className="mx-auto max-w-6xl"
-        >
-          <motion.div
-            variants={fadeUp}
-            className="mb-10 flex flex-col justify-between gap-5 md:flex-row md:items-end"
-          >
-            <div>
-              <p className="mb-3 text-xs font-bold uppercase tracking-[0.2em] text-[#1E5D46]">
-                Explore Your Path
-              </p>
-              <h2 className="text-3xl font-extrabold text-[#1D2939] md:text-5xl">
-                Opportunities Are Waiting
-              </h2>
-            </div>
-            <a
-              href="/jobs"
-              className="inline-flex items-center gap-2 font-bold text-[#1E5D46]"
-            >
-              Explore Opportunities <ArrowRight size={17} />
-            </a>
-          </motion.div>
-          <div className="homepage-mobile-carousel -mx-1 flex snap-x snap-mandatory gap-4 overflow-x-auto px-1 pb-4 md:mx-0 md:grid md:grid-cols-2 md:gap-6 md:overflow-visible md:px-0 md:pb-0">
-            {OPPORTUNITIES.map((opportunity) => {
-              const Icon = opportunity.icon;
-              return (
-                <motion.div
-                  key={opportunity.title}
-                  variants={fadeUp}
-                  whileHover={
-                    prefersReducedMotion ? undefined : { y: -7, scale: 1.02 }
-                  }
-                  className="min-w-[84%] snap-center rounded-2xl border border-[#7A8070] bg-[#8E9382] p-7 shadow-sm transition duration-300 hover:-translate-y-1 hover:shadow-md md:min-w-0"
-                >
-                  <Icon className="mb-6 text-white" size={32} />
-                  <h3 className="mb-2 text-xl font-bold text-white">
-                    {opportunity.title}
-                  </h3>
-                  <p className="text-white">{opportunity.description}</p>
-                </motion.div>
-              );
-            })}
-          </div>
-        </motion.div>
-      </section>
+      {/* Billboard: school announcements and company advertisements */}
+      <Billboard />
 
       {/* Partners Section */}
       <section
@@ -1111,7 +1048,7 @@ const LandingPage = ({ intro = false, onIntroComplete }) => {
             <div className="grid grid-cols-2 gap-3 text-sm text-white/70">
               <a href="#about">About Us</a>
               <Link to="/jobs">Opportunities</Link>
-              <a href="#opportunities">Student Experiences</a>
+              <a href="#billboard">Announcements</a>
               <a href="#partners">For Companies</a>
               <a href="#contact">Contact</a>
             </div>

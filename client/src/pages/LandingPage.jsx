@@ -58,6 +58,88 @@ const staggerContainer = {
   visible: { transition: { staggerChildren: 0.1, delayChildren: 0.2 } },
 };
 
+const TESTIMONIALS = [
+  {
+    quote:
+      "Before using AsiatechSync, I wasn't sure where to start looking for OJT opportunities. The platform made everything easier by showing opportunities that matched my interests.",
+    attribution: "BS Information Technology Student",
+  },
+  {
+    quote:
+      "What I liked most about AsiatechSync was having everything in one place. I could explore opportunities, review company information, and submit applications without jumping between websites.",
+    attribution: "OJT Student",
+  },
+  {
+    quote:
+      "AsiatechSync gave me access to opportunities I might not have found on my own. Through the platform, I connected with an industry partner that allowed me to apply what I learned in the classroom.",
+    attribution: "OJT Applicant",
+  },
+];
+
+const PARTNER_LOGOS = [
+  { name: "Asiatech", src: "/partners/asiatech.png", className: "h-9 sm:h-10" },
+  { name: "TESDA", src: "/partners/tesda.png", className: "h-12 sm:h-14" },
+  { name: "SM", src: "/partners/sh.png", className: "h-12 sm:h-14" },
+  { name: "BDO", src: "/partners/bdo.png", className: "h-7 sm:h-8" },
+  { name: "Ayala", src: "/partners/ayala.png", className: "h-8 sm:h-9" },
+];
+
+const PartnerTestimonialCard = () => {
+  const [index, setIndex] = useState(0);
+  const total = TESTIMONIALS.length;
+  const current = TESTIMONIALS[index];
+  const go = (dir) => setIndex((i) => (i + dir + total) % total);
+
+  return (
+    <div className="flex items-center gap-4 rounded-3xl border border-white/70 bg-white/55 p-5 shadow-[0_10px_30px_rgba(15,61,46,0.10)] backdrop-blur-md sm:gap-6 sm:p-6">
+      <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-[#0F3D2E] text-white sm:h-16 sm:w-16">
+        <Users size={26} aria-hidden="true" />
+      </div>
+      <div className="min-w-0 flex-1" aria-live="polite">
+        <p className="text-sm leading-relaxed text-[#2F3F37] sm:text-[15px]">
+          "{current.quote}"
+        </p>
+        <p className="mt-3 text-sm font-bold text-[#0F3D2E]">
+          — {current.attribution}
+        </p>
+      </div>
+      <div className="flex shrink-0 flex-col items-center gap-3">
+        <div className="flex items-center gap-2">
+          <button
+            type="button"
+            onClick={() => go(-1)}
+            aria-label="Previous testimonial"
+            className="flex h-9 w-9 items-center justify-center rounded-full bg-white/80 text-[#0F3D2E] shadow-sm transition hover:bg-white"
+          >
+            <ChevronLeft size={18} />
+          </button>
+          <button
+            type="button"
+            onClick={() => go(1)}
+            aria-label="Next testimonial"
+            className="flex h-9 w-9 items-center justify-center rounded-full bg-white/80 text-[#0F3D2E] shadow-sm transition hover:bg-white"
+          >
+            <ChevronRight size={18} />
+          </button>
+        </div>
+        <div className="flex items-center gap-1.5">
+          {TESTIMONIALS.map((t, i) => (
+            <button
+              key={t.attribution}
+              type="button"
+              onClick={() => setIndex(i)}
+              aria-label={`Show testimonial ${i + 1}`}
+              className={`h-1.5 w-1.5 rounded-full transition ${
+                i === index ? "bg-[#0F3D2E]" : "bg-[#0F3D2E]/25"
+              }`}
+            />
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+};
+
 const FEATURES = [
   {
     number: "01",
@@ -70,7 +152,7 @@ const FEATURES = [
     number: "02",
     icon: Briefcase,
     title: "Discover Opportunities",
-    description: "Explore OJT, internship, and employment opportunities.",
+    description: "Explore OJT and employment opportunities.",
     color: "#1E5D46",
   },
   {
@@ -87,11 +169,6 @@ const OPPORTUNITIES = [
     icon: GraduationCap,
     title: "OJT",
     description: "Gain real-world experience.",
-  },
-  {
-    icon: Briefcase,
-    title: "Internships",
-    description: "Develop your skills in a professional environment.",
   },
   {
     icon: Rocket,
@@ -431,7 +508,7 @@ const LandingPage = ({ intro = false, onIntroComplete }) => {
                 variants={heroItem}
                 className="mb-8 max-w-2xl text-base leading-relaxed text-white/85 [text-shadow:0_1px_14px_rgba(15,61,46,0.4)] sm:text-lg"
               >
-                AsiatechSync connects Asia Technological School of Science and Arts students with OJT, internship, and career opportunities from industry partners.
+                AsiatechSync connects Asia Technological School of Science and Arts students with OJT and career opportunities from industry partners.
               </motion.p>
 
               <motion.div variants={heroItem} className="flex w-full flex-col items-stretch gap-3 sm:w-auto sm:flex-row sm:flex-wrap sm:items-center">
@@ -768,23 +845,7 @@ const LandingPage = ({ intro = false, onIntroComplete }) => {
             Hear From Our Students
           </motion.h2>
           <div className="homepage-mobile-carousel -mx-1 flex snap-x snap-mandatory gap-4 overflow-x-auto px-1 pb-4 md:mx-0 md:grid md:grid-cols-3 md:gap-5 md:overflow-visible md:px-0 md:pb-0">
-            {[
-              {
-                quote:
-                  "Before using AsiatechSync, I wasn't sure where to start looking for internship opportunities. The platform made everything easier by showing opportunities that matched my interests.",
-                attribution: "BS Information Technology Student",
-              },
-              {
-                quote:
-                  "What I liked most about AsiatechSync was having everything in one place. I could explore opportunities, review company information, and submit applications without jumping between websites.",
-                attribution: "OJT Student",
-              },
-              {
-                quote:
-                  "AsiatechSync gave me access to opportunities I might not have found on my own. Through the platform, I connected with an industry partner that allowed me to apply what I learned in the classroom.",
-                attribution: "Internship Applicant",
-              },
-            ].map((testimonial) => (
+            {TESTIMONIALS.map((testimonial) => (
               <motion.div
                 key={testimonial.attribution}
                 variants={fadeUp}
@@ -831,7 +892,7 @@ const LandingPage = ({ intro = false, onIntroComplete }) => {
               Explore Opportunities <ArrowRight size={17} />
             </a>
           </motion.div>
-          <div className="homepage-mobile-carousel -mx-1 flex snap-x snap-mandatory gap-4 overflow-x-auto px-1 pb-4 md:mx-0 md:grid md:grid-cols-3 md:gap-6 md:overflow-visible md:px-0 md:pb-0">
+          <div className="homepage-mobile-carousel -mx-1 flex snap-x snap-mandatory gap-4 overflow-x-auto px-1 pb-4 md:mx-0 md:grid md:grid-cols-2 md:gap-6 md:overflow-visible md:px-0 md:pb-0">
             {OPPORTUNITIES.map((opportunity) => {
               const Icon = opportunity.icon;
               return (
@@ -858,36 +919,46 @@ const LandingPage = ({ intro = false, onIntroComplete }) => {
       {/* Partners Section */}
       <section
         id="partners"
-        className="bg-[#0F3D2E] px-5 py-20 text-white sm:px-8 lg:px-12"
+        className="bg-gradient-to-br from-[#dce8de] to-[#c9dacd] px-5 py-16 sm:px-8 lg:px-12"
       >
         <motion.div
           initial="hidden"
           whileInView="visible"
           viewport={{ once: true, amount: 0.2 }}
           variants={fadeUp}
-          className="mx-auto max-w-6xl"
+          className="mx-auto grid max-w-6xl items-center gap-10 lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1.6fr)] lg:gap-12"
         >
-          <div className="max-w-2xl">
-            <p className="mb-3 text-xs font-bold uppercase tracking-[0.2em] text-[#E8C165]">
-              For Our Industry Partners
+          <div>
+            <p className="mb-4 text-[11px] font-bold uppercase tracking-[0.2em] text-[#0F3D2E]/70">
+              Our Partners
             </p>
-            <h2 className="mb-5 text-3xl font-extrabold md:text-5xl">
-              Partner With ASIATECH
+            <h2 className="mb-4 text-3xl font-extrabold leading-tight text-[#0F3D2E] md:text-4xl">
+              Trusted by leading institutions and companies
             </h2>
-            <p className="mb-3 text-xl text-white/90">
-              Your company can help shape the next generation of professionals.
+            <p className="mb-6 max-w-sm text-[15px] leading-relaxed text-[#2F3F37]">
+              We work with reputable organizations to bring real opportunities
+              to our community.
             </p>
-            <p className="mb-8 text-lg leading-relaxed text-white/70">
-              Connect with motivated ASIATECH students and discover potential
-              OJT trainees, interns, and future employees through AsiatechSync.
-            </p>
-            <button
-              type="button"
-              onClick={openPartnerSignup}
-              className="inline-flex items-center gap-2 rounded-full bg-[#E8C165] px-7 py-3.5 font-bold text-[#0F3D2E] transition duration-200 hover:-translate-y-1 hover:scale-[1.03] hover:bg-[#DEB24E] hover:shadow-md"
+            <a
+              href="/jobs"
+              className="inline-flex items-center gap-2 text-sm font-semibold text-[#0F3D2E] transition hover:gap-3"
             >
-              Become a Partner <ArrowRight size={17} />
-            </button>
+              View All Partners <ArrowRight size={15} />
+            </a>
+          </div>
+
+          <div className="min-w-0">
+            <div className="mb-8 flex flex-wrap items-center justify-between gap-x-8 gap-y-5 px-2">
+              {PARTNER_LOGOS.map((logo) => (
+                <img
+                  key={logo.name}
+                  src={logo.src}
+                  alt={logo.name}
+                  className={`${logo.className} w-auto object-contain`}
+                />
+              ))}
+            </div>
+            <PartnerTestimonialCard />
           </div>
         </motion.div>
       </section>

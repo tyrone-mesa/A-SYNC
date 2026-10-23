@@ -226,9 +226,9 @@ const Billboard = () => {
                       decoding="async"
                       className="relative h-full w-full object-contain"
                     />
-                    <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-[#0F3D2E]/95 via-[#0F3D2E]/70 to-transparent px-5 pb-5 pt-16 sm:px-8 sm:pb-7 md:px-14">
+                    <div className="absolute inset-x-0 top-[30%] px-5 sm:px-8 md:px-14 lg:top-[40%]">
                       <span
-                        className={`mb-2 inline-block rounded-full px-3 py-1 text-xs font-bold ${
+                        className={`inline-block rounded-full px-3 py-1 text-xs font-bold ${
                           post.category === "school"
                             ? "bg-[#E8C165] text-[#0F3D2E]"
                             : "bg-white text-[#0F3D2E]"
@@ -236,6 +236,8 @@ const Billboard = () => {
                       >
                         {CATEGORY_LABEL[post.category]}
                       </span>
+                    </div>
+                    <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-[#0F3D2E]/95 via-[#0F3D2E]/70 to-transparent px-5 pb-5 pt-16 sm:px-8 sm:pb-7 md:px-14">
                       <h3 className="max-w-3xl text-xl font-extrabold leading-tight text-white sm:text-3xl">
                         {post.title}
                       </h3>

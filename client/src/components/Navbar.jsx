@@ -191,8 +191,8 @@ const Navbar = ({ variant = "static" }) => {
             <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-white/15 shadow-sm sm:h-10 sm:w-10">
               <Logo size={28} />
             </div>
-            <span className="font-display font-semibold tracking-[-0.02em] text-lg leading-tight text-white">
-              ASIATECH <span className="text-[#c4e1c1]">SYNC</span>
+            <span className="font-display font-bold tracking-[-0.02em] text-lg leading-tight text-[#0F3D2E]">
+              ASIATECH <span className="text-[#17503C]">SYNC</span>
             </span>
           </a>
 

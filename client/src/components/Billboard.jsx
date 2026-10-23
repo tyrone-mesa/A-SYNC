@@ -167,10 +167,10 @@ const Billboard = () => {
       <div className="mx-auto max-w-6xl">
         <div className="mb-8 flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
           <div>
-            <p className="mb-3 text-xs font-bold uppercase tracking-[0.2em] text-[#1E5D46]">
+            <p className="mb-3 text-xs font-bold uppercase tracking-[0.2em] text-[#E8C165]">
               Billboard
             </p>
-            <h2 className="text-3xl font-extrabold text-[#1D2939] md:text-5xl">
+            <h2 className="text-3xl font-extrabold text-[#E8C165] md:text-5xl">
               Announcements &amp; Featured Companies
             </h2>
           </div>
@@ -178,7 +178,7 @@ const Billboard = () => {
             <button
               type="button"
               onClick={() => setFormOpen(true)}
-              className="inline-flex items-center justify-center gap-2 self-start rounded-full bg-[#0F3A1F] px-5 py-3 text-sm font-bold text-white transition hover:bg-[#1E5D46] sm:self-auto"
+              className="inline-flex items-center justify-center gap-2 self-start rounded-full bg-[#E8C165] px-5 py-3 text-sm font-bold text-[#0F3D2E] transition hover:bg-[#DEB24E] sm:self-auto"
             >
               <ImagePlus size={17} /> Post to billboard
             </button>
@@ -192,7 +192,7 @@ const Billboard = () => {
           </div>
         ) : (
           <div
-            className="relative overflow-hidden rounded-3xl bg-[#0F3A1F] shadow-[0_18px_50px_rgba(15,61,46,0.25)]"
+            className="relative overflow-hidden rounded-3xl bg-[#0F3D2E] shadow-[0_18px_50px_rgba(15,61,46,0.25)]"
             onTouchStart={onTouchStart}
             onTouchEnd={onTouchEnd}
             aria-roledescription="carousel"
@@ -230,19 +230,19 @@ const Billboard = () => {
                       <span
                         className={`inline-block rounded-full px-3 py-1 text-xs font-bold ${
                           post.category === "school"
-                            ? "bg-[#E8C165] text-[#0F3A1F]"
-                            : "bg-white text-[#0F3A1F]"
+                            ? "bg-[#E8C165] text-[#0F3D2E]"
+                            : "bg-white text-[#0F3D2E]"
                         }`}
                       >
                         {CATEGORY_LABEL[post.category]}
                       </span>
                     </div>
-                    <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-[#0F3A1F]/95 via-[#0F3A1F]/70 to-transparent px-5 pb-5 pt-16 sm:px-8 sm:pb-7 md:px-14">
-                      <h3 className="max-w-3xl text-xl font-extrabold leading-tight text-[#E8C165] sm:text-3xl">
+                    <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-[#0F3D2E]/95 via-[#0F3D2E]/70 to-transparent px-5 pb-5 pt-16 sm:px-8 sm:pb-7 md:px-14">
+                      <h3 className="max-w-3xl text-xl font-extrabold leading-tight text-[#F8F6F0] sm:text-3xl">
                         {post.title}
                       </h3>
                       {post.caption && (
-                        <p className="mt-2 line-clamp-2 max-w-2xl text-sm text-[#E8C165] sm:text-base">
+                        <p className="mt-2 line-clamp-2 max-w-2xl text-sm text-[#F8F6F0] sm:text-base">
                           {post.caption}
                         </p>
                       )}
@@ -278,7 +278,7 @@ const Billboard = () => {
                   type="button"
                   onClick={() => move(-1)}
                   aria-label="Previous post"
-                  className="absolute left-3 top-1/2 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full bg-white/85 text-[#0F3A1F] shadow-md transition hover:bg-white"
+                  className="absolute left-3 top-1/2 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full bg-white/85 text-[#0F3D2E] shadow-md transition hover:bg-white"
                 >
                   <ChevronLeft size={24} />
                 </button>
@@ -286,7 +286,7 @@ const Billboard = () => {
                   type="button"
                   onClick={() => move(1)}
                   aria-label="Next post"
-                  className="absolute right-3 top-1/2 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full bg-white/85 text-[#0F3A1F] shadow-md transition hover:bg-white"
+                  className="absolute right-3 top-1/2 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full bg-white/85 text-[#0F3D2E] shadow-md transition hover:bg-white"
                 >
                   <ChevronRight size={24} />
                 </button>
@@ -412,7 +412,7 @@ const Billboard = () => {
             <button
               type="submit"
               disabled={busy}
-              className="w-full rounded-full bg-[#E8C165] px-5 py-3 font-bold text-[#0F3A1F] transition hover:bg-[#DEB24E] disabled:opacity-60"
+              className="w-full rounded-full bg-[#E8C165] px-5 py-3 font-bold text-[#0F3D2E] transition hover:bg-[#DEB24E] disabled:opacity-60"
             >
               {busy ? "Posting..." : "Post"}
             </button>
